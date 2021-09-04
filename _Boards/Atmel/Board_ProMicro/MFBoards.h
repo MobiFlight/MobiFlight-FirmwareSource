@@ -15,7 +15,7 @@
 // NO Steppers  21892 (76.4%) / 1675 (65.4%)
 // No Servos    25302 (88.2%) / 1620 (63.3%)
 
-#define MODULE_MAX_PINS 21
+#define MODULE_MAX_PINS 25
 #define MAX_OUTPUTS 10
 #define MAX_BUTTONS 16
 #define MAX_LEDSEGMENTS 1
