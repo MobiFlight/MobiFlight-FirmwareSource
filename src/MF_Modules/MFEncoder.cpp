@@ -90,7 +90,6 @@ void MFEncoder::update()
 
   if (delta<0) dir = false;
 
-  // if (abs(delta) < (MF_ENC_FAST_LIMIT * (1 + _encoderType.resolutionShift))) {   // CHECK! if resolution has to be considered!! MF_ENC_FAST_LIMIT might also to be adjusted
   if (abs(delta) < MF_ENC_FAST_LIMIT) {
     // slow turn detected
     if (dir && _handlerList[encLeft]!= NULL) {
@@ -128,7 +127,7 @@ void MFEncoder::tick(void)
   
 	if (_oldState != thisState) {
 		int _speed = 1 + (1000 / (1 + _positionTime - _positionTimePrev));
-		_position += KNOBDIR[thisState | (_oldState<<2)] * _speed;
+		_position += KNOBDIR[thisState | (_oldState<<2)] * _speed;  // * _encoderType.resolutionShift;  <-- to be checked!!
 		if (_encoderType.detents[thisState]) {
 			_positionTimePrev = _positionTime;
 			_positionTime = millis();
