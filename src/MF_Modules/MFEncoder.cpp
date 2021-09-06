@@ -113,7 +113,7 @@ void MFEncoder::update()
     pos = 0; 
   }
   _pos = pos;
-}
+} 
 
 void MFEncoder::tick(void)
 {
