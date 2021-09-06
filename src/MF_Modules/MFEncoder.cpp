@@ -77,9 +77,9 @@ void MFEncoder::update()
 {
   if (!_initialized) return;
 
-//  tick();
-  int16_t pos = getPosition();
+  tick();
   
+  int16_t pos = getPosition();
   if (pos == _pos) {
     // nothing happened 
     return;
@@ -90,7 +90,7 @@ void MFEncoder::update()
 
   if (delta<0) dir = false;
 
-  if (abs(delta) < MF_ENC_FAST_LIMIT) {
+  if (abs(delta) < (MF_ENC_FAST_LIMIT /*>> _encoderType.resolutionShift*/)) {
     // slow turn detected
     if (dir && _handlerList[encLeft]!= NULL) {
         (*_handlerList[encLeft])(encLeft, _pin1, _name);
@@ -105,7 +105,7 @@ void MFEncoder::update()
         (*_handlerList[encRightFast])(encRightFast, _pin2, _name);
     }
   }
-  
+
   // protect from overflow
   if ( (dir  && (pos + delta*2) > MF_ENC_MAX) || (!dir && (pos - delta*2) < -MF_ENC_MAX))
   { 
@@ -127,7 +127,7 @@ void MFEncoder::tick(void)
   
 	if (_oldState != thisState) {
 		int _speed = 1 + (1000 / (1 + _positionTime - _positionTimePrev));
-		_position += KNOBDIR[thisState | (_oldState<<2)] * _speed;  // * _encoderType.resolutionShift;  <-- to be checked!!
+		_position += ((KNOBDIR[thisState | (_oldState<<2)] * _speed)) << _encoderType.resolutionShift;
 		if (_encoderType.detents[thisState]) {
 			_positionTimePrev = _positionTime;
 			_positionTime = millis();
