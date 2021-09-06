@@ -776,9 +776,9 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
+char readBuffer[MEM_LEN_CONFIG + 1] = "";
 void readConfig(String cfg)
 {
-  char readBuffer[MEM_LEN_CONFIG + 1] = "";
   char *p = NULL;
   cfg.toCharArray(readBuffer, MEM_LEN_CONFIG);
 
