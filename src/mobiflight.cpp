@@ -61,10 +61,6 @@ const char version[8] = "1.11.2";
 #include <EEPROMex.h>
 #include <CmdMessenger.h>
 #include <LedControl.h>
-//#include <Button.h>
-//#include <TicksPerSecond.h>
-//#include <RotaryEncoder.h>
-//#include <Wire.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
