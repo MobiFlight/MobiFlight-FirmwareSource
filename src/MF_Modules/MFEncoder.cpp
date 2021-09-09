@@ -90,7 +90,7 @@ void MFEncoder::update()
 
   if (delta<0) dir = false;
 
-  if (abs(delta) < (MF_ENC_FAST_LIMIT /*>> _encoderType.resolutionShift*/)) {
+  if (abs(delta) < (MF_ENC_FAST_LIMIT)) {
     // slow turn detected
     if (dir && _handlerList[encLeft]!= NULL) {
         (*_handlerList[encLeft])(encLeft, _pin1, _name);
@@ -117,7 +117,7 @@ void MFEncoder::update()
 
 void MFEncoder::tick(void)
 {
-	if (millis() - _lastmillis < 5) return;     // debouncing, do not read to fast
+	if (millis() - _lastmillis < 5) return;
 	_lastmillis = millis();
 
 	bool sig1 = digitalRead(_pin1);
@@ -127,7 +127,7 @@ void MFEncoder::tick(void)
   
 	if (_oldState != thisState) {
 		int _speed = 1 + (1000 / (1 + _positionTime - _positionTimePrev));
-		_position += ((KNOBDIR[thisState | (_oldState<<2)] * _speed)) << _encoderType.resolutionShift;
+		_position += ((KNOBDIR[thisState | (_oldState<<2)] << _encoderType.resolutionShift)) * _speed;
 		if (_encoderType.detents[thisState]) {
 			_positionTimePrev = _positionTime;
 			_positionTime = millis();

@@ -38,7 +38,7 @@ extern "C"
 #define MF_ENC_MAX 8000 
 
 // this defines the delta value limit for triggering onFast
-#define MF_ENC_FAST_LIMIT 75 // 50
+#define MF_ENC_FAST_LIMIT 87 // might require adaption, depends on personally "feeling"
 
 enum
 {
