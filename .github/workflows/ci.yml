@@ -2,6 +2,7 @@ name: PlatformIO CI
 
 on:
   pull_request:
+    branches: [master]
   release:
     types: [published]
 
