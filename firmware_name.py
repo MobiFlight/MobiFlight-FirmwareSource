@@ -6,13 +6,14 @@ firmware_version = os.environ.get('VERSION', "")
 
 # Clean up the version number
 if firmware_version == "":
-  # When no version is specified default to "dev"
-  firmware_version = "dev"
+  # When no version is specified default to "0.0.1" for
+  # compatibility with MobiFlight desktop app version checks.
+  firmware_version = "0.0.1"
 else:
-  # Github versions are formatted like this: v1.0.0. To use in the filename
-  # and keep consistent with pre-PlatformIO file names strip out the v
-  # and convert the periods to underscores.
-  firmware_version = firmware_version.replace("v", "").replace(".", "_")
+  # Github versions are formatted like this: v1.0.0. The version
+  # comes into the script with the v already removed so for filenames
+  # all that has to happen is the periods get replaced with underscores.
+  firmware_version = firmware_version.replace(".", "_")
 
 print(f'Using version {firmware_version} for the build')
 
