@@ -38,9 +38,16 @@ jobs:
           name: firmware
           path: .pio/build/**/mobiflight*.hex
 
+      - name: Extract build version
+        id: get_version
+        uses: battila7/get-version-action@v2
+        if: startsWith(github.ref, 'refs/tags/')
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.get_version.outputs.version-without-v }}
         with:
           files: .pio/build/**/mobiflight*.hex
         env:
