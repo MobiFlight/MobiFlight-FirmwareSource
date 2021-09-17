@@ -43,7 +43,10 @@ char foo;
 // 1.11.0: Added Analog support, ShiftRegister Support (kudos to @manfredberry)
 // 1.11.1: minor bugfixes for BETA release
 // 1.11.2: fixed issue with one line LCD freeze
-const char version[8] = "1.11.2";
+
+// The build version comes from an environment variable
+#define STRINGIZER(arg) #arg
+#define VERSION STRINGIZER(BUILD_VERSION)
 
 //#define DEBUG 1
 
@@ -922,7 +925,7 @@ void OnGetInfo()
   cmdMessenger.sendCmdArg(type);
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdArg(version);
+  cmdMessenger.sendCmdArg(VERSION);
   cmdMessenger.sendCmdEnd();
 }
 
