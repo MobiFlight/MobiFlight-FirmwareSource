@@ -1,14 +1,12 @@
 Import("env")
 import os
 
-# Get the version number from the build environment. If no version
-# number is supplied from the build system then use "dev" as the
-# version as this is a local development build.
+# Get the version number from the build environment.
 firmware_version = os.environ.get('VERSION', "")
 
-print(firmware_version)
-
+# Clean up the version number
 if firmware_version == "":
+  # When no version is specified default to "dev"
   firmware_version = "dev"
 else:
   # Github versions are formatted like this: v1.0.0. To use in the filename

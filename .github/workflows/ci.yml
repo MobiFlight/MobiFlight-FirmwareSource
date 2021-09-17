@@ -38,9 +38,7 @@ jobs:
       - name: Run PlatformIO
         env:
           VERSION: ${{ steps.get_version.outputs.version-without-v }}
-        run: |
-          echo ${{ steps.get_version.outputs.version-without-v }}
-          pio run -e atmega2560 -e promicro -e uno
+        run: pio run -e atmega2560 -e promicro -e uno
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
