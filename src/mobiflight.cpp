@@ -234,6 +234,8 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
+  Serial.print("version: ");
+  Serial.println(VERSION);
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
@@ -310,6 +312,7 @@ void loop()
 {
   // Process incoming serial data, and perform callbacks
   cmdMessenger.feedinSerialData();
+
   updatePowerSaving();
 
   // if config has been reset
