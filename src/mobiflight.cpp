@@ -234,8 +234,6 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
-  Serial.print("version: ");
-  Serial.println(VERSION);
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
