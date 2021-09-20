@@ -310,7 +310,6 @@ void loop()
 {
   // Process incoming serial data, and perform callbacks
   cmdMessenger.feedinSerialData();
-
   updatePowerSaving();
 
   // if config has been reset
