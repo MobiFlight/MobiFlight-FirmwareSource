@@ -780,13 +780,12 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig(String cfg)
+void readConfig(char * buffer)
 {
-  char readBuffer[MEM_LEN_CONFIG + 1] = "";
+  if (configLength == 0) return;
   char *p = NULL;
-  cfg.toCharArray(readBuffer, MEM_LEN_CONFIG);
 
-  char *command = strtok_r(readBuffer, ".", &p);
+  char *command = strtok_r(buffer, ".", &p);
   char *params[6];
   if (*command == 0)
     return;
@@ -934,7 +933,10 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(configBuffer);
+  cmdMessenger.sendCmdArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG));
+  for (uint16_t i=1; i<configLength; i++) {
+    cmdMessenger.sendSingleArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG+i));
+  }
   cmdMessenger.sendCmdEnd();
 }
 
