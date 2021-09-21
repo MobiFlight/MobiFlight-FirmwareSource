@@ -35,7 +35,7 @@ jobs:
 
       - name: Run PlatformIO
         env:
-          VERSION: "0.0.${{ github.event.number }}"
+          VERSION: "0.0.${{ github.event.number}}"
         run: pio run
 
       - name: Archive production artifacts
