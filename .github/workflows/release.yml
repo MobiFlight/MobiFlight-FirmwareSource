@@ -1,4 +1,4 @@
-name: Firware release
+name: Firmware release
 
 on:
   release:
