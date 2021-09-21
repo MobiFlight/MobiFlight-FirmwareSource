@@ -15,5 +15,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           prefix: "Firmware for this pull request:"
-          format: "[Fimrware.zip]({url})"
+          format: "[Firmware.zip]({url})"
           addTo: pull
