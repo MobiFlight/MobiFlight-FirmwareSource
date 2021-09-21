@@ -782,17 +782,16 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig(String cfg)
+void readConfig(char * buffer)
 {
-  char readBuffer[MEM_LEN_CONFIG + 1] = "";
+  if (configLength == 0) return;          // command = strtok_r(readBuffer....) not working for Teensy if config is empty!???
   char *p = NULL;
-  cfg.toCharArray(readBuffer, MEM_LEN_CONFIG);
 
-  char *command = strtok_r(readBuffer, ".", &p);
-  char *params[6];
+  char *command = strtok_r(buffer, ".", &p);
   if (*command == 0)
     return;
-
+  char *params[6];
+  
   do
   {
     switch (atoi(command))
