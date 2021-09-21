@@ -934,7 +934,7 @@ void OnGetInfo()
 
 void OnGetConfig()
 {
-  loadConfig();
+  loadConfig();                   // to be added
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
   cmdMessenger.sendCmdArg(configBuffer);
