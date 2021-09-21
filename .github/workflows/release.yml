@@ -1,8 +1,8 @@
-name: Firmware pull request validation
+name: Firware release
 
 on:
-  pull_request:
-    branches: [main]
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -10,7 +10,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -33,9 +32,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
+      - name: Extract build version
+        id: get_version
+        uses: battila7/get-version-action@v2
+
       - name: Run PlatformIO
         env:
-          VERSION: "0.0.${{ github.event.number }}"
+          VERSION: ${{ steps.get_version.outputs.version-without-v }}
         run: pio run
 
       - name: Archive production artifacts
@@ -43,3 +46,10 @@ jobs:
         with:
           name: firmware
           path: .pio/build/**/mobiflight*.hex
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: .pio/build/**/mobiflight*.hex
