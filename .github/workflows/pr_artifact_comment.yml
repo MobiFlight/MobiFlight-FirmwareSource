@@ -14,6 +14,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          prefix: "Firmware binaries:"
-          format: name
+          prefix: "Firmware for this pull request:"
+          format: "(Fimrware.zip)[{url}]"
           addTo: pull
