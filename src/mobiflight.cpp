@@ -227,6 +227,7 @@ void OnResetBoard()
   clearRegisteredPins();
   lastCommand = millis();
   loadConfig();
+  OnActivateConfig();             // to be added, was in loadconfig()
   _restoreName();
 }
 
@@ -264,8 +265,9 @@ void loadConfig()
       continue;
     break;
   }
-  readConfig(configBuffer);
-  _activateConfig();
+//  readConfig(configBuffer);   // to be deleted, will be called separatly
+//  _activateConfig();          // to be deleted, will be called separatly
+//  otherwise onGetConfig() will not work
 }
 
 void _storeConfig()
@@ -932,10 +934,12 @@ void OnGetInfo()
 
 void OnGetConfig()
 {
+  loadConfig();
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
   cmdMessenger.sendCmdArg(configBuffer);
   cmdMessenger.sendCmdEnd();
+  OnActivateConfig();             // to be added, was in loadconfig()
 }
 
 // Callback function that sets led on or off
