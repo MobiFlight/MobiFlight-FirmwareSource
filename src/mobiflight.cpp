@@ -264,7 +264,7 @@ void loadConfig()
       continue;
     break;
   }
-  readConfig(configBuffer);
+  readConfig();
   _activateConfig();
 }
 
@@ -769,7 +769,7 @@ void OnSaveConfig()
 
 void OnActivateConfig()
 {
-  readConfig(configBuffer);
+  readConfig();
   _activateConfig();
   //cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
@@ -780,12 +780,12 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig(char * buffer)
+void readConfig()
 {
   if (configLength == 0) return;
   char *p = NULL;
 
-  char *command = strtok_r(buffer, ".", &p);
+  char *command = strtok_r(configBuffer, ".", &p);
   char *params[6];
   if (*command == 0)
     return;
