@@ -1,0 +1,22 @@
+{
+	"name": "Platform.IO (Community)",
+	"build": {
+		"dockerfile": "Dockerfile",
+		// [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile
+		"args": { "VARIANT": "debian" }
+	},
+	"extensions": [
+		"platformio.platformio-ide",
+		"ms-vscode.cpptools",
+		"github.vscode-pull-request-github"
+	],
+	"forwardPorts": [
+		8008
+	],
+	"mounts": [
+		"source=/dev,target=/dev,type=bind,consistency=consistent"
+	],
+	"remoteUser": "vscode",
+	"workspaceFolder": "/home/vscode/Documents/PlatformIO/Projects",
+	"workspaceMount": "type=bind,source=${localWorkspaceFolder},target=${containerWorkspaceFolder}",
+}
