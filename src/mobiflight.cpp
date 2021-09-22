@@ -220,9 +220,7 @@ void OnResetBoard()
 {
   EEPROM.setMaxAllowedWrites(1000);
   EEPROM.setMemPool(0, EEPROM_SIZE);
-
   configBuffer[0] = '\0';
-  //readBuffer[0]='\0';
   generateSerial(false);
   clearRegisteredPins();
   lastCommand = millis();
@@ -771,7 +769,7 @@ void OnSaveConfig()
 
 void OnActivateConfig()
 {
-  readConfig(configBuffer);
+  readConfig();
   _activateConfig();
   //cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
@@ -782,12 +780,12 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig(char * buffer)
+void readConfig()
 {
-  if (configLength == 0) return;          // command = strtok_r(readBuffer....) not working for Teensy if config is empty!???
+  if (configLength == 0) return;
   char *p = NULL;
 
-  char *command = strtok_r(buffer, ".", &p);
+  char *command = strtok_r(configBuffer, ".", &p);
   if (*command == 0)
     return;
   char *params[6];
