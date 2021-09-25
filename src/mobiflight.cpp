@@ -58,17 +58,8 @@ char foo;
 // No LCDs     22850 (1930)
 //
 
-#define STEPS 64
-#define STEPPER_SPEED 400 // 300 already worked, 467, too?
-#define STEPPER_ACCEL 800
-
 #include <EEPROMex.h>
 #include <CmdMessenger.h>
-#include <LedControl.h>
-#include <Button.h>
-#include <TicksPerSecond.h>
-#include <RotaryEncoder.h>
-#include <Wire.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -704,13 +695,13 @@ void OnSetConfig()
 #endif
 
   lastCommand = millis();
-  String cfg = cmdMessenger.readStringArg();
-  int cfgLen = cfg.length();
+  char * cfg = cmdMessenger.readStringArg();
+  int cfgLen = strlen(cfg);
   int bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
   if (bufferSize > 1)
   {
-    cfg.toCharArray(&configBuffer[configLength], bufferSize);
+    memcpy(&configBuffer[configLength], cfg, cfgLen);
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -1109,8 +1100,8 @@ void OnGenNewSerial()
 
 void OnSetName()
 {
-  String cfg = cmdMessenger.readStringArg();
-  cfg.toCharArray(&name[0], MEM_LEN_NAME);
+  char * cfg = cmdMessenger.readStringArg();
+  memcpy(name,cfg, MEM_LEN_NAME);
   _storeName();
   cmdMessenger.sendCmdStart(kStatus);
   cmdMessenger.sendCmdArg(name);
