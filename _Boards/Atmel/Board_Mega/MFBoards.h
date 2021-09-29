@@ -15,7 +15,7 @@
 
 #define MODULE_MAX_PINS 69
 #define MAX_OUTPUTS 40
-#define MAX_BUTTONS 67 // 69 max. numbering, 0/1 for serial
+#define MAX_BUTTONS 68
 #define MAX_LEDSEGMENTS 4
 #define MAX_ENCODERS 20
 #define MAX_STEPPERS 10
