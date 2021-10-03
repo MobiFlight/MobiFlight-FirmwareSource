@@ -1077,9 +1077,8 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  uint32_t now = millis();
-  if (now-lastButtonRead <= 10) return;
-  lastButtonRead = now;
+  if (millis()-lastButtonRead <= 10) return;
+  lastButtonRead = millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
