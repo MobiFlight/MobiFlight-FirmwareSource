@@ -928,7 +928,7 @@ void OnGetConfig()
   cmdMessenger.sendCmdStart(kInfo);
   cmdMessenger.sendCmdArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG));
   for (uint16_t i=1; i<configLength; i++) {
-    cmdMessenger.sendSingleArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG+i));
+    cmdMessenger.sendArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG+i));
   }
   cmdMessenger.sendCmdEnd();
 }
