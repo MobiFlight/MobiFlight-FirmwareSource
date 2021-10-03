@@ -100,7 +100,7 @@ const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 uint32_t lastAnalogRead = 0;
 
-char type[20] = MOBIFLIGHT_TYPE;
+const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MEMLEN_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
