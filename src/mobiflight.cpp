@@ -107,7 +107,7 @@ const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
 char configBuffer[MEM_LEN_CONFIG] = "";
 
-int configLength = 0;
+uint16_t configLength = 0;
 boolean configActivated = false;
 
 bool powerSavingMode = false;
