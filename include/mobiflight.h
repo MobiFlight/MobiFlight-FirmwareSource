@@ -93,7 +93,7 @@ void OnResetConfig();
 void OnSaveConfig();
 void OnActivateConfig();
 void _activateConfig();
-void readConfig(String cfg);
+void readConfig();
 void OnUnknownCommand();
 void OnGetInfo();
 void OnGetConfig();

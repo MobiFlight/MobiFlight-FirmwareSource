@@ -232,6 +232,17 @@ public:
       }
   }
   
+	/**
+	 * Send a single argument as string w/o field_separator
+	 *  Note that this will only succeed if a sendCmdStart has been issued first
+	 */
+	template < class T > void sendSingleArg(T arg)
+	{
+		if (startCommand) {
+			comms->print(arg);
+		}
+	}
+
   /**
    * Send a single argument as string with custom accuracy
    *  Note that this will only succeed if a sendCmdStart has been issued first
