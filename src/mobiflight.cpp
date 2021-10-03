@@ -58,20 +58,12 @@ char foo;
 // No LCDs     22850 (1930)
 //
 
-#define STEPS 64
-#define STEPPER_SPEED 400 // 300 already worked, 467, too?
-#define STEPPER_ACCEL 800
-
 #include <EEPROMex.h>
 #include <CmdMessenger.h>
-#include <LedControl.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
 #endif
-
-#include <MFButton.h>
-#include <MFEncoder.h>
 
 #if MF_STEPPER_SUPPORT == 1
 #include <AccelStepper.h>
@@ -105,8 +97,9 @@ const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 uint32_t lastEncoderRead = 0;
 uint32_t lastButtonRead = 0;
+uint32_t lastAnalogRead = 0;
 
-char type[20] = MOBIFLIGHT_TYPE;
+const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
@@ -704,13 +697,13 @@ void OnSetConfig()
 #endif
 
   lastCommand = millis();
-  String cfg = cmdMessenger.readStringArg();
-  int cfgLen = cfg.length();
+  char * cfg = cmdMessenger.readStringArg();
+  int cfgLen = strlen(cfg);
   int bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
   if (bufferSize > 1)
   {
-    cfg.toCharArray(&configBuffer[configLength], bufferSize);
+    memcpy(&configBuffer[configLength], cfg, cfgLen);
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -1098,6 +1091,8 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
+  if (millis()-lastAnalogRead < 50) return;
+  lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
     analog[i].update();
@@ -1115,8 +1110,8 @@ void OnGenNewSerial()
 
 void OnSetName()
 {
-  String cfg = cmdMessenger.readStringArg();
-  cfg.toCharArray(&name[0], MEM_LEN_NAME);
+  char * cfg = cmdMessenger.readStringArg();
+  memcpy(name,cfg, MEM_LEN_NAME);
   _storeName();
   cmdMessenger.sendCmdStart(kStatus);
   cmdMessenger.sendCmdArg(name);
