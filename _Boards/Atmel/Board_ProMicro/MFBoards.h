@@ -31,7 +31,7 @@
 
 #define MOBIFLIGHT_TYPE "MobiFlight Micro"
 #define MOBIFLIGHT_SERIAL "0987654321"
-#define MEMLEN_NAME "MobiFlight Micro"
+#define MOBIFLIGHT_NAME "MobiFlight Micro"
 #define EEPROM_SIZE 1024 // EEPROMSizeMicro
 #define MEMLEN_CONFIG 256
 

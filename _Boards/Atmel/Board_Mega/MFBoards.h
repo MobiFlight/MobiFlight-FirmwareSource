@@ -30,7 +30,7 @@
 
 #define MOBIFLIGHT_TYPE "MobiFlight Mega"
 #define MOBIFLIGHT_SERIAL "1234567890"
-#define MEMLEN_NAME "MobiFlight Mega"
+#define MOBIFLIGHT_NAME "MobiFlight Mega"
 #define EEPROM_SIZE 4096 // EEPROMSizeMega
 #define MEMLEN_CONFIG 1024
 
