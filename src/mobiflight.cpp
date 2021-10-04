@@ -60,6 +60,7 @@ char foo;
 
 #include <EEPROMex.h>
 #include <CmdMessenger.h>
+#include "MFButton.h"
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -703,7 +704,7 @@ void OnSetConfig()
 
   if (bufferSize > 1)
   {
-    memcpy(&configBuffer[configLength], cfg, cfgLen);
+    memcpy(&configBuffer[configLength], cfg, cfgLen+1);   // Do not forget to copy NULL -> +1
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
