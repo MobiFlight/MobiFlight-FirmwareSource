@@ -698,13 +698,13 @@ void OnSetConfig()
 #endif
 
   lastCommand = millis();
-  char * cfg = cmdMessenger.readStringArg();
-  int cfgLen = strlen(cfg);
+  String cfg = cmdMessenger.readStringArg();
+  int cfgLen = cfg.length();
   int bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
   if (bufferSize > 1)
   {
-    memcpy(&configBuffer[configLength], cfg, cfgLen+1);   // Do not forget to copy NULL -> +1
+    cfg.toCharArray(&configBuffer[configLength], bufferSize);
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -1111,8 +1111,8 @@ void OnGenNewSerial()
 
 void OnSetName()
 {
-  char * cfg = cmdMessenger.readStringArg();
-  memcpy(name,cfg, MEM_LEN_NAME);
+  String cfg = cmdMessenger.readStringArg();
+  cfg.toCharArray(&name[0], MEM_LEN_NAME);
   _storeName();
   cmdMessenger.sendCmdStart(kStatus);
   cmdMessenger.sendCmdArg(name);
