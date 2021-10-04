@@ -47,7 +47,7 @@ char foo;
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg) STRINGIZER(arg)
-#define VERSION STR_VALUE(BUILD_VERSION)
+#define VERSION "1.11.2" //STR_VALUE(BUILD_VERSION)
 
 //#define DEBUG 1
 
