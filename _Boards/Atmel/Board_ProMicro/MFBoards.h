@@ -1,9 +1,9 @@
 #ifndef MFBoardMicro_h
 #define MFBoardMicro_h
 
-#define MF_SEGMENT_SUPPORT 0
+#define MF_SEGMENT_SUPPORT 1
 #define MF_LCD_SUPPORT 1
-#define MF_STEPPER_SUPPORT 0
+#define MF_STEPPER_SUPPORT 1
 #define MF_SERVO_SUPPORT 1
 #define MF_ANALOG_SUPPORT 1
 #define MF_SHIFTER_SUPPORT 1
