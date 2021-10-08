@@ -231,9 +231,9 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   lastButtonRead = millis();        // Time Gap between Encoder and Button, do not read at the same loop
-  lastAnalogTick = millis() + 1;    // Time Gap between Encoder and Button, do not read at the same loop
   lastEncoderRead = millis() + 2;   // Time Gap between Encoder and Button, do not read at the same loop
-  lastAnalogRead = millis() + 3;    // Time Gap between Encoder and Button, do not read at the same loop
+  lastAnalogTick = millis() + 4;    // Time Gap between Encoder and Button, do not read at the same loop
+  lastAnalogRead = millis() + 4;    // Time Gap between Encoder and Button, do not read at the same loop
 }
 
 void generateSerial(bool force)
@@ -1097,10 +1097,10 @@ void readAnalog()
 {
   if (millis()-lastAnalogTick > 10) {
     for (int i = 0; i != analogRegistered; i++)
-  {
-    analog[i].tick();
+    {
+      analog[i].tick();
+    }
     lastAnalogTick = millis();
-  }
   }
   if (millis()-lastAnalogRead < 50) return;
   lastAnalogRead = millis();
