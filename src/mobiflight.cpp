@@ -99,6 +99,7 @@ const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIA
 uint32_t lastEncoderRead = 0;
 uint32_t lastButtonRead = 0;
 uint32_t lastAnalogRead = 0;
+uint32_t lastAnalogTick = 0;
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -229,8 +230,10 @@ void setup()
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
+  lastButtonRead = millis();        // Time Gap between Encoder and Button, do not read at the same loop
+  lastAnalogTick = millis() + 1;    // Time Gap between Encoder and Button, do not read at the same loop
   lastEncoderRead = millis() + 2;   // Time Gap between Encoder and Button, do not read at the same loop
-  lastButtonRead = millis();       // Time Gap between Encoder and Button, do not read at the same loop
+  lastAnalogRead = millis() + 3;    // Time Gap between Encoder and Button, do not read at the same loop
 }
 
 void generateSerial(bool force)
@@ -1092,6 +1095,13 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
+  if (millis()-lastAnalogTick > 10) {
+    for (int i = 0; i != analogRegistered; i++)
+  {
+    analog[i].tick();
+    lastAnalogTick = millis();
+  }
+  }
   if (millis()-lastAnalogRead < 50) return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
