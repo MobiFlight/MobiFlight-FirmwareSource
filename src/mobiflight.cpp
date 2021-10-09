@@ -699,11 +699,10 @@ void OnSetConfig()
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Setting config start"));
 #endif
-
   lastCommand = millis();
   char *cfg = cmdMessenger.readStringArg();
   uint8_t cfgLen = strlen(cfg);
-  uint8_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
+  uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
   if (bufferSize > 1)
   {
