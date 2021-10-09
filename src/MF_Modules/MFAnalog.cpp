@@ -32,7 +32,6 @@ void MFAnalog::update()
 
     int newValue = ADC_Average_Buffer/ADC_MAX_AVERAGE;
     _last = now;
-//Serial.print("Analog: "); Serial.println(newValue);
     if (abs(newValue - _lastValue) >= _sensitivity) {
       _lastValue = newValue;
        if (_handler!= NULL) {
@@ -41,7 +40,7 @@ void MFAnalog::update()
     }
 }
 
-void MFAnalog::tick(void){                                  // read ADC and calculate floating average, call it every ~10ms
+void MFAnalog::tick(){                                      // read ADC and calculate floating average, call it every ~10ms
   ADC_Average_Buffer -= ADC_Buffer[(ADC_Average_Pointer)];  // subtract oldest value to save the newest value
   ADC_Buffer[ADC_Average_Pointer] = analogRead(_pin);       // store read in, must be subtracted in next loop
   ADC_Average_Buffer += ADC_Buffer[ADC_Average_Pointer];    // add read in for floating average

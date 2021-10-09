@@ -31,7 +31,7 @@ class MFAnalog
 public:
     MFAnalog(uint8_t pin = 1, analogEvent callback = NULL, const char * name = "Analog Input", uint8_t sensitivity = 2);
     void update();
-    void tick(void);   
+    void tick();   
     const char *  _name;
     uint8_t       _pin;
     
