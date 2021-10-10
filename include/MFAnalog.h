@@ -31,7 +31,7 @@ class MFAnalog
 public:
     MFAnalog(uint8_t pin = 1, analogEvent callback = NULL, const char * name = "Analog Input", uint8_t sensitivity = 2);
     void update();
-    void tick();   
+    void readBuffer();   
     const char *  _name;
     uint8_t       _pin;
     
@@ -44,6 +44,6 @@ private:
     uint16_t ADC_Buffer[ADC_MAX_AVERAGE] = {0};     // Buffer for all values from each channel  
     uint16_t ADC_Average_Buffer = 0;                // sum of sampled values, must be divided by ADC_MAX_AVERAGE to get actual value
     volatile uint8_t ADC_Average_Pointer = 0;       // points to the actual position in ADC_BUFFER
-    uint32_t      _lastTick;
+    uint32_t      _lastReadBuffer;
 };
 #endif 

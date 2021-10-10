@@ -20,12 +20,12 @@ void MFAnalog::update()
 {
 /* *****************************************************************************
 *   There is a pull request to transfer the millis() to the mobiflight.cpp
-*   this will save some memory and would be also valid for tick();
+*   this will save some memory and would be also valid for readBuffer();
 ********************************************************************************/
     uint32_t now = millis();
-    if (now-_lastTick > 10) {
-      tick();
-      _lastTick = millis();
+    if (now-_lastReadBuffer > 10) {
+      readBuffer();
+      _lastReadBuffer = millis();
     }
     if (now-_last <= 50) return; // Analog is too spammy on the protocol to MF otherwise.
 /* *************************************************************************** */
@@ -40,7 +40,7 @@ void MFAnalog::update()
     }
 }
 
-void MFAnalog::tick(){                                      // read ADC and calculate floating average, call it every ~10ms
+void MFAnalog::readBuffer(){                                      // read ADC and calculate floating average, call it every ~10ms
   ADC_Average_Buffer -= ADC_Buffer[(ADC_Average_Pointer)];  // subtract oldest value to save the newest value
   ADC_Buffer[ADC_Average_Pointer] = analogRead(_pin);       // store read in, must be subtracted in next loop
   ADC_Average_Buffer += ADC_Buffer[ADC_Average_Pointer];    // add read in for floating average
