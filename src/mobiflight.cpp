@@ -212,9 +212,7 @@ void OnResetBoard()
 {
   EEPROM.setMaxAllowedWrites(1000);
   EEPROM.setMemPool(0, EEPROM_SIZE);
-
   configBuffer[0] = '\0';
-  //readBuffer[0]='\0';
   generateSerial(false);
   clearRegisteredPins();
   lastCommand = millis();
