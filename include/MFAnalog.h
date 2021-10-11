@@ -37,7 +37,6 @@ public:
     
 private:
     int          _lastValue;
-    uint32_t      _last;
     analogEvent   _handler; 
     uint8_t       _sensitivity;
 
