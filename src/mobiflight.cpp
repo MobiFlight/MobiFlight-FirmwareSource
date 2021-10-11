@@ -1076,7 +1076,7 @@ void readButtons()
 
 void readEncoder()
 {
-  if (millis()-lastEncoderRead < 5) return;
+  if (millis()-lastEncoderRead < 1) return;
   lastEncoderRead = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
