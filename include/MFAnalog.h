@@ -42,7 +42,7 @@ private:
     uint8_t       _sensitivity;
 
     uint16_t ADC_Buffer[ADC_MAX_AVERAGE] = {0};     // Buffer for all values from each channel  
-    uint16_t ADC_Average_Buffer = 0;                // sum of sampled values, must be divided by ADC_MAX_AVERAGE to get actual value
+    uint16_t ADC_Average_Total = 0;                 // sum of sampled values, must be divided by ADC_MAX_AVERAGE to get actual value
     volatile uint8_t ADC_Average_Pointer = 0;       // points to the actual position in ADC_BUFFER
     uint32_t      _lastReadBuffer;
 };

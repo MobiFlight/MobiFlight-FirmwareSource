@@ -30,7 +30,7 @@ void MFAnalog::update()
     if (now-_last <= 50) return; // Analog is too spammy on the protocol to MF otherwise.
 /* *************************************************************************** */
 
-    int newValue = ADC_Average_Buffer/ADC_MAX_AVERAGE;
+    int newValue = ADC_Average_Total/ADC_MAX_AVERAGE;
     _last = now;
     if (abs(newValue - _lastValue) >= _sensitivity) {
       _lastValue = newValue;
@@ -40,10 +40,10 @@ void MFAnalog::update()
     }
 }
 
-void MFAnalog::readBuffer(){                                      // read ADC and calculate floating average, call it every ~10ms
-  ADC_Average_Buffer -= ADC_Buffer[(ADC_Average_Pointer)];  // subtract oldest value to save the newest value
+void MFAnalog::readBuffer(){                                // read ADC and calculate floating average, call it every ~10ms
+  ADC_Average_Total -= ADC_Buffer[(ADC_Average_Pointer)];   // subtract oldest value to save the newest value
   ADC_Buffer[ADC_Average_Pointer] = analogRead(_pin);       // store read in, must be subtracted in next loop
-  ADC_Average_Buffer += ADC_Buffer[ADC_Average_Pointer];    // add read in for floating average
+  ADC_Average_Total += ADC_Buffer[ADC_Average_Pointer];     // add read in for floating average
   ADC_Average_Pointer++;                                    // prepare for next loop
   ADC_Average_Pointer &= (ADC_MAX_AVERAGE-1);               // limit max. values for floating average
 }
