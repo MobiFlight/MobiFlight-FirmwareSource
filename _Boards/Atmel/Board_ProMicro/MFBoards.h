@@ -1,6 +1,8 @@
 #ifndef MFBoardMicro_h
 #define MFBoardMicro_h
 
+#include "EEPROMex.h"
+
 #define MF_SEGMENT_SUPPORT 1
 #define MF_LCD_SUPPORT 1
 #define MF_STEPPER_SUPPORT 0
@@ -32,7 +34,7 @@
 #define MOBIFLIGHT_TYPE "MobiFlight Micro"
 #define MOBIFLIGHT_SERIAL "0987654321"
 #define MEMLEN_NAME "MobiFlight Micro"
-#define EEPROM_SIZE 1024 // EEPROMSizeMicro
+#define EEPROM_SIZE EEPROMSizeMicro
 #define MEMLEN_CONFIG 256
 
 #endif
