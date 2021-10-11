@@ -17,7 +17,7 @@ MFAnalog::MFAnalog(uint8_t pin, analogEvent callback, const char * name, uint8_t
 
 void MFAnalog::update()
 {
-    int newValue = ADC_Average_Buffer>>ADC_MAX_AVERAGE_LOG2;
+    uint16_t newValue = ADC_Average_Buffer>>ADC_MAX_AVERAGE_LOG2;
     if (abs(newValue - _lastValue) >= _sensitivity) {
       _lastValue = newValue;
        if (_handler!= NULL) {
