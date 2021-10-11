@@ -213,9 +213,7 @@ void OnResetBoard()
 {
   EEPROM.setMaxAllowedWrites(1000);
   EEPROM.setMemPool(0, EEPROM_SIZE);
-
   configBuffer[0] = '\0';
-  //readBuffer[0]='\0';
   generateSerial(false);
   clearRegisteredPins();
   lastCommand = millis();
@@ -256,12 +254,7 @@ void loadConfig()
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
 #endif
-  for (configLength = 0; configLength != MEM_LEN_CONFIG; configLength++)
-  {
-    if (configBuffer[configLength] != '\0')
-      continue;
-    break;
-  }
+  configLength = strlen(configBuffer);
   readConfig();
   _activateConfig();
 }
@@ -768,7 +761,6 @@ void OnActivateConfig()
 {
   readConfig();
   _activateConfig();
-  //cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
 void _activateConfig()
