@@ -1,6 +1,8 @@
 #ifndef MFBoardUno_h
 #define MFBoardUno_h
 
+#include "EEPROMex.h"
+
 #define MF_SEGMENT_SUPPORT 1
 #define MF_LCD_SUPPORT 1
 #define MF_STEPPER_SUPPORT 1
@@ -31,7 +33,7 @@
 #define MOBIFLIGHT_TYPE "MobiFlight Uno"
 #define MOBIFLIGHT_SERIAL "0987654321"
 #define MOBIFLIGHT_NAME "MobiFlight Uno"
-#define EEPROM_SIZE 1024 // EEPROMSizeUno
+#define EEPROM_SIZE EEPROMSizeUno
 #define MEMLEN_CONFIG 256
 
 #endif

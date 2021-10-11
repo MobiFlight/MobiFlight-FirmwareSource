@@ -1,6 +1,8 @@
 #ifndef MFBoardMega_h
 #define MFBoardMega_h
 
+#include "EEPROMex.h"
+
 #define MF_SEGMENT_SUPPORT 1
 #define MF_LCD_SUPPORT 1
 #define MF_STEPPER_SUPPORT 1
@@ -31,7 +33,7 @@
 #define MOBIFLIGHT_TYPE "MobiFlight Mega"
 #define MOBIFLIGHT_SERIAL "1234567890"
 #define MOBIFLIGHT_NAME "MobiFlight Mega"
-#define EEPROM_SIZE 4096 // EEPROMSizeMega
+#define EEPROM_SIZE EEPROMSizeMega
 #define MEMLEN_CONFIG 1024
 
 #endif
