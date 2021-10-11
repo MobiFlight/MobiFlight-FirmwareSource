@@ -1,39 +1,30 @@
-// MFEncoder.h
-//
-/// \mainpage MF Button module for MobiFlight Framework
-/// \par Revision History
-/// \version 1.0 Initial release
-/// \author  Sebastian Moebius (mobiflight@moebiuz.de) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
-// Copyright (C) 2013-2014 Sebastian Moebius
+/*
+ * MFEncoder.h
+ *
+ * Created: 2021/09/07
+ * Author: Ralf Kull
+ * 
+ * This is based on Peter Danneggers work
+ * see 	http://www.mikrocontroller.net/articles/Drehgeber
+ * 		https://www.mikrocontroller.net/topic/209118#new
+ */ 
 
 #ifndef MFEncoder_h
 #define MFEncoder_h
 
-#include <stdlib.h>
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
+#include <MFBoards.h>
 
-///#include "../Button/Button.h"
-///#include "../TicksPerSecond/TicksPerSecond.h"
-///#include "../RotaryEncoderAcelleration/RotaryEncoderAcelleration.h"
-#include <RotaryEncoder.h>
+#define USE_ACCELERATION_TICKS
 
-extern "C"
-{
-  typedef void (*encoderEvent) (uint8_t, uint8_t, const char *);
-};
-
-// this prevents the internal position overflow.
-// no need to change this
-#define MF_ENC_MAX 8000 
-
-// this defines the delta value limit for triggering onFast
-// this should work well for all encoder types
-#define MF_ENC_FAST_LIMIT 40
+// ----------------------------------------------------------------------------
+// Acceleration configuration (for 1000Hz calls to ::service())
+//
+#define ENC_ACCEL_TOP       250
+#define ENC_ACCEL_INC        10
+#define ENC_ACCEL_DEC         1 
+#define MF_ENC_FAST_LIMIT    50
+#define FAST_LIMIT           40   // in millisec., less than this value it will be switched to fast mode (delta *= 55)
 
 enum
 {
@@ -43,25 +34,47 @@ enum
   encRightFast
 };
 
-/////////////////////////////////////////////////////////////////////
-/// \class MFEncoder MFEncoder.h <MFEncoder.h>
+extern "C"
+{
+  typedef void (*encoderEvent) (uint8_t, uint8_t, const char *);
+};
+
+
 class MFEncoder
 {
+private:
+    uint8_t         _pin1, _pin2;                   // Arduino pins used for the encoder.
+    uint8_t         _encoder_Steps = 1;             // Encoder steps per detent, can be 1,2 or 4
+    uint8_t         _encoder_Last = 0;
+    int8_t          _encoder_Delta = 0;
+    encoderEvent    _handlerList[4];
+    const char *    _name;
+    bool            _initialized = false;
+#ifdef ARDUINO_ARCH_AVR	
+    long            _lastmillis = millis();
+#endif
+#ifdef USE_ACCELERATION_TICKS
+    uint8_t         _acceleration = 0;
+#endif
+#ifdef USE_ACCELERATION_MILLIS
+    unsigned long   _positionTime;                  // time last position change was detected
+    unsigned long   _positionTimePrev;              // time previous position change was detected
+#endif
+
 public:
-    MFEncoder();
-	  void attach(uint8_t pin1, uint8_t pin2, uint8_t encoderType, const char * name = "Encoder");
+    // Constructor
+    MFEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, const char * name = "Encoder");
+
+    // void attach(uint8_t pin1, uint8_t pin2, uint8_t encoderType, const char * name = "Encoder");
     void update();
     void attachHandler(uint8_t eventId, encoderEvent newHandler);
-    
-private:
-    uint8_t                   _pin1;              
-    uint8_t                   _pin2;
-    bool                      _initialized;
-    RotaryEncoder             _encoder;
-    const char *              _name;
-    long                      _pos;
-    encoderEvent              _handlerList[4];
-    uint8_t                   _encoderType;
-    uint16_t                  _fastLimit = MF_ENC_FAST_LIMIT;
+
+    // call this function every some milliseconds or by using an interrupt for handling state changes of the rotary encoder
+    void tick(void);
+
+    // retrieve the current position
+    int16_t getPosition();
+
 };
-#endif 
+
+#endif

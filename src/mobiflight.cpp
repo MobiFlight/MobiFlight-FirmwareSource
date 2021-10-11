@@ -66,9 +66,7 @@ char foo;
 #include <CmdMessenger.h>
 #include <LedControl.h>
 #include <Button.h>
-#include <TicksPerSecond.h>
-#include <RotaryEncoder.h>
-#include <Wire.h>
+//#include <Wire.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -426,7 +424,6 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
     return;
 
   encoders[encodersRegistered] = MFEncoder();
-  encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
   encoders[encodersRegistered].attachHandler(encLeft, handlerOnEncoder);
   encoders[encodersRegistered].attachHandler(encLeftFast, handlerOnEncoder);
   encoders[encodersRegistered].attachHandler(encRight, handlerOnEncoder);
