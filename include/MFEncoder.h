@@ -7,6 +7,7 @@
  * This is based on Peter Danneggers work
  * see 	http://www.mikrocontroller.net/articles/Drehgeber
  * 		https://www.mikrocontroller.net/topic/209118#new
+ * 		https://www.mikrocontroller.net/topic/drehgeber-auslesen?page=2#1568686
  */ 
 
 #ifndef MFEncoder_h
@@ -15,16 +16,13 @@
 #include <Arduino.h>
 #include <MFBoards.h>
 
-#define USE_ACCELERATION_TICKS
-
 // ----------------------------------------------------------------------------
-// Acceleration configuration (for 1000Hz calls to ::service())
+// Acceleration configuration (for 1000Hz calls to ::readInput())
 //
 #define ENC_ACCEL_TOP       250
 #define ENC_ACCEL_INC        10
 #define ENC_ACCEL_DEC         1 
-#define MF_ENC_FAST_LIMIT    50
-#define FAST_LIMIT           40   // in millisec., less than this value it will be switched to fast mode (delta *= 55)
+#define MF_ENC_FAST_LIMIT   100 //50
 
 enum
 {
@@ -50,31 +48,18 @@ private:
     encoderEvent    _handlerList[4];
     const char *    _name;
     bool            _initialized = false;
-#ifdef ARDUINO_ARCH_AVR	
-    long            _lastmillis = millis();
-#endif
-#ifdef USE_ACCELERATION_TICKS
-    uint8_t         _acceleration = 0;
-#endif
-#ifdef USE_ACCELERATION_MILLIS
-    unsigned long   _positionTime;                  // time last position change was detected
-    unsigned long   _positionTimePrev;              // time previous position change was detected
-#endif
+    uint16_t        _acceleration = 0;
 
 public:
     // Constructor
     MFEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, const char * name = "Encoder");
-
     // void attach(uint8_t pin1, uint8_t pin2, uint8_t encoderType, const char * name = "Encoder");
     void update();
     void attachHandler(uint8_t eventId, encoderEvent newHandler);
-
     // call this function every some milliseconds or by using an interrupt for handling state changes of the rotary encoder
-    void tick(void);
-
+    void readInput(void);
     // retrieve the current position
     int16_t getPosition();
-
 };
 
 #endif

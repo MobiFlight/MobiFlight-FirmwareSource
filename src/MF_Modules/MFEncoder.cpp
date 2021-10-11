@@ -8,7 +8,7 @@
  * see 	http://www.mikrocontroller.net/articles/Drehgeber
  * 		https://www.mikrocontroller.net/topic/209118#new
  * 		https://www.mikrocontroller.net/topic/drehgeber-auslesen?page=2#1568686
- */  
+ */
 
 #include "MFEncoder.h"
 
@@ -27,40 +27,25 @@ MFEncoder::MFEncoder( uint8_t pin1, uint8_t pin2, uint8_t encoder_type, const ch
 	_name = name;
 	pinMode(_pin1, INPUT_PULLUP);							// Encoder Port as Input and Activate Pull up's
 	pinMode(_pin2, INPUT_PULLUP);							// Encoder Port as Input and Activate Pull up's
-	if (digitalRead(_pin1)) {_encoder_Last = 3;}			// convert gray to binary
-	if (digitalRead(_pin2)) {_encoder_Last ^= 1;}			// convert gray to binary
+	if (digitalRead(_pin1)) _encoder_Last = 3;				// convert gray to binary
+	if (digitalRead(_pin2)) _encoder_Last ^= 1;				// convert gray to binary
 	if (encoder_type == 3) _encoder_Delta = 0;				// encoder starts at [10] / [01]
 	else _encoder_Delta = (_encoder_Last&1?0:1);			// encoder starts at [00] / [11]
 	_initialized = true;
 }
 
-void MFEncoder::tick( void ) {							   	// must be called every ~1ms
+void MFEncoder::readInput( void ) {							// must be called every ~1ms, otherwise acceleration has to be adjusted
 	int8_t encoder_new=0, encoder_diff=0;
-#ifdef ARDUINO_ARCH_AVR
-	if (millis() - _lastmillis < 1) return;
-	_lastmillis = millis();
-#endif
-#ifdef USE_ACCELERATION_TICKS
 	if (_acceleration >= ENC_ACCEL_DEC) _acceleration -= ENC_ACCEL_DEC;
 	else _acceleration = 0;
-#endif
-	if (digitalRead(_pin1)) {encoder_new = 3;}				// convert gray to binary
-	if (digitalRead(_pin2)) {encoder_new ^= 1;}				// convert gray to binary
+	if (digitalRead(_pin1)) encoder_new = 3;				// convert gray to binary
+	if (digitalRead(_pin2)) encoder_new ^= 1;				// convert gray to binary
 	encoder_diff = _encoder_Last - encoder_new;				// difference last - new
 	if( encoder_diff & 1 ) {								// bit 0 = value (1/0)
-#ifdef USE_ACCELERATION_TICKS
-		if (_acceleration <= (ENC_ACCEL_TOP - ENC_ACCEL_INC)) _acceleration += ENC_ACCEL_INC;
-#endif
+		_acceleration += ENC_ACCEL_INC;						// consider acceleration
 		_encoder_Last = encoder_new;						// store new as next last
 		_encoder_Delta += (encoder_diff & 2) - 1;			// bit 1 = direction (+/-)
 	}
-
-#ifdef USE_ACCELERATION_MILLIS
-	if (_encoder_Delta >> (_encoder_Steps/2)) {
-		_positionTimePrev = _positionTime;
-		_positionTime = millis();
-	}
-#endif
 }
 
 int16_t MFEncoder::getPosition( void ) {
@@ -70,23 +55,15 @@ int16_t MFEncoder::getPosition( void ) {
 	_encoder_Delta = delta & (_encoder_Steps - 1);			// set Delta Position to "Zero" (must not be really zero, getPosition() could be within one detent of encoder -> not set "0")
 	interrupts();
 	delta = delta >> (_encoder_Steps/2);
-#ifdef USE_ACCELERATION_TICKS
 	if (delta < 0) delta -= _acceleration;
 	else if (delta > 0) delta += _acceleration;
-	return delta;
-#endif
-#ifdef USE_ACCELERATION_MILLIS
-	if (((_positionTime - _positionTimePrev) < FAST_LIMIT) && delta) delta *= (MF_ENC_FAST_LIMIT+5);
-#endif
 	return delta;
 }
 
 void MFEncoder::update()
 {
   if (!_initialized) return;
-#ifdef ARDUINO_ARCH_AVR
-    tick();      //::tick() is used in ISR every 1ms for Teensy
-#endif
+  readInput();
   int16_t position = getPosition();
   if (position == 0) { return;}    // nothing happened 
   if (abs(position) < MF_ENC_FAST_LIMIT) {

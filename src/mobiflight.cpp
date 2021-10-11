@@ -105,6 +105,7 @@ const uint8_t MEM_LEN_NAME = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
+uint32_t lastEncoderRead = 0;
 
 char type[20] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -423,7 +424,7 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
   if (isPinRegistered(pin1) || isPinRegistered(pin2))
     return;
 
-  encoders[encodersRegistered] = MFEncoder();
+  encoders[encodersRegistered] = MFEncoder(pin1, pin2, encoder_type, name);
   encoders[encodersRegistered].attachHandler(encLeft, handlerOnEncoder);
   encoders[encodersRegistered].attachHandler(encLeftFast, handlerOnEncoder);
   encoders[encodersRegistered].attachHandler(encRight, handlerOnEncoder);
@@ -1080,6 +1081,8 @@ void readButtons()
 
 void readEncoder()
 {
+  if (millis()-lastEncoderRead < 1) return;
+  lastEncoderRead = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
     encoders[i].update();
