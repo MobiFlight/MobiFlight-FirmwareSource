@@ -17,6 +17,9 @@ MFAnalog::MFAnalog(uint8_t pin, analogEvent callback, const char * name, uint8_t
 
 void MFAnalog::update()
 {    
+    uint32_t now = millis();
+    if (now-_last <= 50) return; // Analog is too spammy on the protocol to MF otherwise.
+    
     int newValue = (int) analogRead(_pin);
     if (abs(newValue - _lastValue) >= _sensitivity) {
       _lastValue = newValue;

@@ -1085,8 +1085,6 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis()-lastAnalogRead < 50) return;
-  lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
     analog[i].update();
