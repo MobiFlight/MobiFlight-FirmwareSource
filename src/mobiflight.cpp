@@ -762,7 +762,6 @@ void OnActivateConfig()
 {
   readConfig(configBuffer);
   _activateConfig();
-  //cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
 void _activateConfig()
