@@ -27,7 +27,6 @@ void MFEncoder::update()
 {
   if (!_initialized) return;
   
-  //_encoder.update();
   _encoder.tick();
   long pos = _encoder.getPosition();
   
