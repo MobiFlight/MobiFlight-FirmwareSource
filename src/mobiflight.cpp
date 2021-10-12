@@ -62,7 +62,7 @@ char foo;
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
 #define STEPPER_ACCEL 800
 
-#include <EEPROMex.h>
+#include "MFEEPROM.h"
 #include <CmdMessenger.h>
 #include <LedControl.h>
 #include <Button.h>
@@ -218,8 +218,7 @@ void attachCommandCallbacks()
 
 void OnResetBoard()
 {
-  EEPROM.setMaxAllowedWrites(1000);
-  EEPROM.setMemPool(0, EEPROM_SIZE);
+  eeprom_init();
 
   configBuffer[0] = '\0';
   //readBuffer[0]='\0';
@@ -241,19 +240,19 @@ void setup()
 
 void generateSerial(bool force)
 {
-  EEPROM.readBlock<char>(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  eeprom_read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
   randomSeed(analogRead(0));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-  EEPROM.writeBlock<char>(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  eeprom_write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
 void loadConfig()
 {
   resetConfig();
-  EEPROM.readBlock<char>(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  eeprom_read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
@@ -270,7 +269,7 @@ void loadConfig()
 
 void _storeConfig()
 {
-  EEPROM.writeBlock<char>(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  eeprom_write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 }
 
 void SetPowerSavingMode(bool state)
@@ -1120,18 +1119,18 @@ void OnSetName()
 void _storeName()
 {
   char prefix[] = "#";
-  EEPROM.writeBlock<char>(MEM_OFFSET_NAME, prefix, 1);
-  EEPROM.writeBlock<char>(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  eeprom_write_block(MEM_OFFSET_NAME, prefix, 1);
+  eeprom_write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void _restoreName()
 {
   char testHasName[1] = "";
-  EEPROM.readBlock<char>(MEM_OFFSET_NAME, testHasName, 1);
+  eeprom_read_block(MEM_OFFSET_NAME, testHasName, 1);
   if (testHasName[0] != '#')
     return;
 
-  EEPROM.readBlock<char>(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  eeprom_read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void OnTrigger()
