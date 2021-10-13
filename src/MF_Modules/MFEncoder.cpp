@@ -21,29 +21,29 @@ const uint8_t encoderTypes[] {4,4,2,2,1};
 
 MFEncoder::MFEncoder( uint8_t pin1, uint8_t pin2, uint8_t encoder_type, const char * name)
 {
-  	_pin1 = pin1;
-  	_pin2 = pin2;
+  	_pin1 = pin2;                                 // otherwise the rotation is vice versa to original routine
+  	_pin2 = pin1;                                 // otherwise the rotation is vice versa to original routine
   	_encoder_Steps = encoderTypes[encoder_type];
 	_name = name;
-	pinMode(_pin1, INPUT_PULLUP);							// Encoder Port as Input and Activate Pull up's
-	pinMode(_pin2, INPUT_PULLUP);							// Encoder Port as Input and Activate Pull up's
-	if (digitalRead(_pin1)) _encoder_Last = 3;				// convert gray to binary
-	if (digitalRead(_pin2)) _encoder_Last ^= 1;				// convert gray to binary
-	if (encoder_type == 3) _encoder_Delta = 0;				// encoder starts at [10] / [01]
-	else _encoder_Delta = (_encoder_Last&1?0:1);			// encoder starts at [00] / [11]
+	pinMode(_pin1, INPUT_PULLUP);							      // Encoder Port as Input and Activate Pull up's
+	pinMode(_pin2, INPUT_PULLUP);							      // Encoder Port as Input and Activate Pull up's
+	if (digitalRead(_pin1)) _encoder_Last = 3;			// convert gray to binary
+	if (digitalRead(_pin2)) _encoder_Last ^= 1;			// convert gray to binary
+	if (encoder_type == 3) _encoder_Delta = 0;			// encoder starts at [10] / [01]
+	else _encoder_Delta = (_encoder_Last&1?0:1);		// encoder starts at [00] / [11]
 	_initialized = true;
 }
 
-void MFEncoder::readInput( void ) {							// must be called every ~1ms, otherwise acceleration has to be adjusted
+void MFEncoder::readInput( void ) {							  // must be called every ~1ms, otherwise acceleration has to be adjusted
 	int8_t encoder_new=0, encoder_diff=0;
 	if (_acceleration >= ENC_ACCEL_DEC) _acceleration -= ENC_ACCEL_DEC;
 	else _acceleration = 0;
 	if (digitalRead(_pin1)) encoder_new = 3;				// convert gray to binary
 	if (digitalRead(_pin2)) encoder_new ^= 1;				// convert gray to binary
-	encoder_diff = _encoder_Last - encoder_new;				// difference last - new
-	if( encoder_diff & 1 ) {								// bit 0 = value (1/0)
-		_acceleration += ENC_ACCEL_INC;						// consider acceleration
-		_encoder_Last = encoder_new;						// store new as next last
+	encoder_diff = _encoder_Last - encoder_new;			// difference last - new
+	if( encoder_diff & 1 ) {								        // bit 0 = value (1/0)
+		_acceleration += ENC_ACCEL_INC;						    // consider acceleration
+		_encoder_Last = encoder_new;						      // store new as next last
 		_encoder_Delta += (encoder_diff & 2) - 1;			// bit 1 = direction (+/-)
 	}
 }
