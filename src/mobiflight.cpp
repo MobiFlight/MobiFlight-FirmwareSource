@@ -246,7 +246,7 @@ void generateSerial(bool force)
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   eeprom_write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-  eeprom_write_block(MEM_OFFSET_CONFIG, 0x00);     // First byte of config to 0x00 to be ensure to start with empty config
+  eeprom_write_byte(MEM_OFFSET_CONFIG, 0x00);     // First byte of config to 0x00 to be ensure to start with empty config
 }
 
 void loadConfig()
