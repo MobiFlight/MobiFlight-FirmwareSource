@@ -12,7 +12,7 @@ void eeprom_init(void) {
 void eeprom_read_block(uint16_t adr, char data[], uint16_t len) {
     if (adr + len >= eepromLength) return;
     for (uint16_t i = 0; i<len; i++) {
-        EEPROM.get(adr + i,data[i]);
+        data[i] = EEPROM.read(adr);
     }
 }
 
