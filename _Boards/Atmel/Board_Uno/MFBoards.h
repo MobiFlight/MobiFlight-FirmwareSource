@@ -1,12 +1,25 @@
 #ifndef MFBoardUno_h
 #define MFBoardUno_h
 
+#ifndef MF_SEGMENT_SUPPORT
 #define MF_SEGMENT_SUPPORT 1
+#endif
+#ifndef MF_LCD_SUPPORT
 #define MF_LCD_SUPPORT 1
+#endif
+#ifndef MF_STEPPER_SUPPORT
 #define MF_STEPPER_SUPPORT 1
+#endif
+#ifndef MF_SERVO_SUPPORT
 #define MF_SERVO_SUPPORT 1
-#define MF_ANALOG_SUPPORT 0
-#define MF_SHIFTER_SUPPORT 0
+#endif
+#ifndef MF_ANALOG_SUPPORT
+#define MF_ANALOG_SUPPORT 1
+#endif
+#ifndef MF_SHIFTER_SUPPORT
+#define MF_SHIFTER_SUPPORT 1
+#endif
+
 // ALL          24602 (76.3%) / 1551 (75.7%)
 // No Segments  22860 (70.9%) / 1418 (69.2%)
 // No LCDs      23072 (71.5%) / 1516 (74.0%)
