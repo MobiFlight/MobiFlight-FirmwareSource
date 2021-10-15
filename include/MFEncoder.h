@@ -16,13 +16,17 @@
 #include <Arduino.h>
 #include <MFBoards.h>
 
+#define USE_ACCELERATION_MILLIS       // choose one! from these both for acceleration method
+//#define USE_ACCELERATION_TICKS
+
 // ----------------------------------------------------------------------------
 // Acceleration configuration (for 1000Hz calls to ::readInput())
 //
 #define ENC_ACCEL_TOP       250
 #define ENC_ACCEL_INC        10
 #define ENC_ACCEL_DEC         1 
-#define MF_ENC_FAST_LIMIT   100 //50
+#define MF_ENC_FAST_LIMIT    75
+#define FAST_LIMIT_MILLIS    25             // less than this value it will be switched to fast mode (delta *= MF_ENC_FAST_LIMIT + 5)
 
 enum
 {
@@ -48,7 +52,13 @@ private:
     encoderEvent    _handlerList[4];
     const char *    _name;
     bool            _initialized = false;
-    uint16_t        _acceleration = 0;
+#ifdef USE_ACCELERATION_TICKS
+    uint16_t         _acceleration = 0;
+#endif
+#ifdef USE_ACCELERATION_MILLIS
+    unsigned long _positionTime;                    // time last position change was detected
+    unsigned long _positionTimePrev;                // time previous position change was detected
+#endif
 
 public:
     // Constructor

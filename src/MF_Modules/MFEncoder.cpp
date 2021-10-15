@@ -36,16 +36,26 @@ MFEncoder::MFEncoder( uint8_t pin1, uint8_t pin2, uint8_t encoder_type, const ch
 
 void MFEncoder::readInput( void ) {							                      // must be called every ~1ms, otherwise acceleration has to be adjusted
 	int8_t encoder_new=0, encoder_diff=0;
+#ifdef USE_ACCELERATION_TICKS
 	if (_acceleration >= ENC_ACCEL_DEC) _acceleration -= ENC_ACCEL_DEC;
 	else _acceleration = 0;
+#endif
 	if (digitalRead(_pin1)) encoder_new = 3;				                    // convert gray to binary
 	if (digitalRead(_pin2)) encoder_new ^= 1;				                    // convert gray to binary
 	encoder_diff = _encoder_Last - encoder_new;			                    // difference last - new
 	if( encoder_diff & 1 ) {								                            // bit 0 = value (1/0)
+#ifdef USE_ACCELERATION_TICKS
 		_acceleration += ENC_ACCEL_INC;						                        // consider acceleration
+#endif
 		_encoder_Last = encoder_new;						                          // store new as next last
 		_encoder_Delta += (encoder_diff & 2) - 1;			                    // bit 1 = direction (+/-)
 	}
+#ifdef USE_ACCELERATION_MILLIS
+	if (_encoder_Delta >> (_encoder_Steps/2)) {
+		_positionTimePrev = _positionTime;
+		_positionTime = millis();
+	}
+#endif
 }
 
 int16_t MFEncoder::getPosition( void ) {
@@ -55,8 +65,13 @@ int16_t MFEncoder::getPosition( void ) {
 	_encoder_Delta = delta & (_encoder_Steps - 1);			                // set Delta Position to "Zero" (must not be really zero, getPosition() could be within one detent of encoder -> not set "0")
 	interrupts();
 	delta = delta >> (_encoder_Steps/2);
+#ifdef USE_ACCELERATION_TICKS
 	if (delta < 0) delta -= _acceleration;
 	else if (delta > 0) delta += _acceleration;
+#endif
+#ifdef USE_ACCELERATION_MILLIS
+	if (((_positionTime - _positionTimePrev) < FAST_LIMIT_MILLIS) && delta) delta *= (MF_ENC_FAST_LIMIT + 5);
+#endif
 	return delta;
 }
 

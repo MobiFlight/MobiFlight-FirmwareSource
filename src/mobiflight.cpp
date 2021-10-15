@@ -105,7 +105,9 @@ const uint8_t MEM_LEN_NAME = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
+#if defined(USE_ACCELERATION_TICKS)
 uint32_t lastEncoderRead = 0;
+#endif
 
 char type[20] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -1081,8 +1083,10 @@ void readButtons()
 
 void readEncoder()
 {
+#if defined(USE_ACCELERATION_TICKS)
   if (millis()-lastEncoderRead < 1) return;
   lastEncoderRead = millis();
+#endif
   for (int i = 0; i != encodersRegistered; i++)
   {
     encoders[i].update();
