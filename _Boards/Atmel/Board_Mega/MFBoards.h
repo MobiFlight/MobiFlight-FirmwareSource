@@ -1,14 +1,25 @@
 #ifndef MFBoardMega_h
 #define MFBoardMega_h
 
-#include "EEPROMex.h"
-
+#ifndef MF_SEGMENT_SUPPORT
 #define MF_SEGMENT_SUPPORT 1
+#endif
+#ifndef MF_LCD_SUPPORT
 #define MF_LCD_SUPPORT 1
+#endif
+#ifndef MF_STEPPER_SUPPORT
 #define MF_STEPPER_SUPPORT 1
+#endif
+#ifndef MF_SERVO_SUPPORT
 #define MF_SERVO_SUPPORT 1
+#endif
+#ifndef MF_ANALOG_SUPPORT
 #define MF_ANALOG_SUPPORT 1
+#endif
+#ifndef MF_SHIFTER_SUPPORT
 #define MF_SHIFTER_SUPPORT 1
+#endif
+
 // ALL          26544 (10.5%) / 4247 (51.8%)
 // No Segments  24784 (9.8%) / 4102 (50.1%)
 // No LCDs      25030 (9.9%) / 4212 (51.4%)
@@ -32,8 +43,8 @@
 
 #define MOBIFLIGHT_TYPE "MobiFlight Mega"
 #define MOBIFLIGHT_SERIAL "1234567890"
-#define MEMLEN_NAME "MobiFlight Mega"
-#define EEPROM_SIZE EEPROMSizeMega
+#define MOBIFLIGHT_NAME "MobiFlight Mega"
+#define EEPROM_SIZE 4096 // EEPROMSizeMega
 #define MEMLEN_CONFIG 1024
 
 #endif

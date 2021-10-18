@@ -102,7 +102,7 @@ uint32_t lastAnalogRead = 0;
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
-char name[MEM_LEN_NAME] = MEMLEN_NAME;
+char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
 char configBuffer[MEM_LEN_CONFIG] = "";
