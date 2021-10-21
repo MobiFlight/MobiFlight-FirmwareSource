@@ -51,20 +51,8 @@ char foo;
 
 //#define DEBUG 1
 
-// ALL 24780
-// No Segments 23040 (1740)
-// No Steppers 20208 (4572)
-// NO Servos   23302 (1478)
-// No LCDs     22850 (1930)
-//
-
-#define STEPS 64
-#define STEPPER_SPEED 400 // 300 already worked, 467, too?
-#define STEPPER_ACCEL 800
-
 #include "MFEEPROM.h"
 #include <CmdMessenger.h>
-#include "MFButton.h"
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -925,9 +913,9 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG));
+  cmdMessenger.sendCmdArg(eeprom_read_char(MEM_OFFSET_CONFIG));
   for (uint16_t i=1; i<configLength; i++) {
-    cmdMessenger.sendArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG+i));
+    cmdMessenger.sendArg(eeprom_read_char(MEM_OFFSET_CONFIG+i));
   }
   cmdMessenger.sendCmdEnd();
 }
