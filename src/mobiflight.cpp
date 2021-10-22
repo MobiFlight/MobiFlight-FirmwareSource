@@ -121,6 +121,8 @@ const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
 
+MFEEPROM MFeeprom;
+
 MFOutput outputs[MAX_OUTPUTS];
 uint8_t outputsRegistered = 0;
 
@@ -214,7 +216,7 @@ void attachCommandCallbacks()
 
 void OnResetBoard()
 {
-  eeprom_init();
+  MFeeprom.init();
 
   configBuffer[0] = '\0';
   //readBuffer[0]='\0';
@@ -236,19 +238,19 @@ void setup()
 
 void generateSerial(bool force)
 {
-  eeprom_read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
   randomSeed(analogRead(0));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-  eeprom_write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
 void loadConfig()
 {
   resetConfig();
-  eeprom_read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  MFeeprom.read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
@@ -265,7 +267,7 @@ void loadConfig()
 
 void _storeConfig()
 {
-  eeprom_write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  MFeeprom.write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 }
 
 void SetPowerSavingMode(bool state)
@@ -1115,18 +1117,18 @@ void OnSetName()
 void _storeName()
 {
   char prefix[] = "#";
-  eeprom_write_block(MEM_OFFSET_NAME, prefix, 1);
-  eeprom_write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  MFeeprom.write_block(MEM_OFFSET_NAME, prefix, 1);
+  MFeeprom.write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void _restoreName()
 {
   char testHasName[1] = "";
-  eeprom_read_block(MEM_OFFSET_NAME, testHasName, 1);
+  MFeeprom.read_block(MEM_OFFSET_NAME, testHasName, 1);
   if (testHasName[0] != '#')
     return;
 
-  eeprom_read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  MFeeprom.read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void OnTrigger()
