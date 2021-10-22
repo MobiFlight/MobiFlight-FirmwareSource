@@ -65,10 +65,6 @@ char foo;
 #include <EEPROMex.h>
 #include <CmdMessenger.h>
 #include <LedControl.h>
-#include <Button.h>
-#include <TicksPerSecond.h>
-#include <RotaryEncoder.h>
-#include <Wire.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -110,7 +106,7 @@ const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIA
 
 char type[20] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
-char name[MEM_LEN_NAME] = MEMLEN_NAME;
+char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
 char configBuffer[MEM_LEN_CONFIG] = "";
