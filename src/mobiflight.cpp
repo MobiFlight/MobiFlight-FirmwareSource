@@ -107,7 +107,7 @@ const uint8_t MEM_LEN_NAME = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
-uint32_t lastButtonRead = 0;
+uint32_t lastButtonUpdate= 0;
 
 char type[20] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -238,7 +238,7 @@ void setup()
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
-  lastButtonRead = millis();       // Time Gap between Encoder and Button, do not read at the same loop
+  lastButtonUpdate= millis();       // Time Gap between Encoder and Button, do not read at the same loop
 }
 
 void generateSerial(bool force)
@@ -1077,8 +1077,8 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis()-lastButtonRead <= 10) return;
-  lastButtonRead = millis();
+  if (millis()-lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS) return;
+  lastButtonUpdate= millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
