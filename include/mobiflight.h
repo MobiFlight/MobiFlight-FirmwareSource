@@ -4,6 +4,8 @@
 #include <MFEncoder.h>
 #include <MFAnalog.h>
 
+#define MF_BUTTON_DEBOUNCE_MS   10      // time between updating the buttons
+
 enum
 {
   kTypeNotSet,              // 0
