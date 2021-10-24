@@ -92,6 +92,7 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 uint32_t lastButtonUpdate= 0;
+uint32_t lastEncoderUpdate = 0;
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -222,6 +223,7 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   lastButtonUpdate= millis();       // Time Gap between Encoder and Button, do not read at the same loop
+  lastEncoderUpdate = millis() +2;    // Time Gap between Encoder and Button, do not read at the same loop
 }
 
 void generateSerial(bool force)
@@ -1064,6 +1066,8 @@ void readButtons()
 
 void readEncoder()
 {
+  if (millis()-lastEncoderUpdate < 1) return;
+  lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
     encoders[i].update();

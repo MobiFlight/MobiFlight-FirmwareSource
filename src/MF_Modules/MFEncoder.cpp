@@ -115,9 +115,6 @@ void MFEncoder::update()
 
 void MFEncoder::tick(void)
 {
-	if (millis() - _lastmillis < 5) return;     // debouncing, do not read to fast
-	_lastmillis = millis();
-
 	bool sig1 = digitalRead(_pin1);
 	bool sig2 = digitalRead(_pin2);
 	
