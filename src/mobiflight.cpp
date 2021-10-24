@@ -233,7 +233,7 @@ void generateSerial(bool force)
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);  // First byte of config to 0x00 to be ensure to start with empty config
-  if (!force) MFeeprom.write_block(MEM_OFFSET_CONFIG, 0x00);
+  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
 }
 
 void loadConfig()
@@ -244,12 +244,7 @@ void loadConfig()
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
 #endif
-  for (configLength = 0; configLength != MEM_LEN_CONFIG; configLength++)
-  {
-    if (configBuffer[configLength] != '\0')
-      continue;
-    break;
-  }
+  configLength = strlen(configBuffer);
   readConfig(configBuffer);
   _activateConfig();
 }
