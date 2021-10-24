@@ -61,10 +61,8 @@ void MFEncoder::attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, const ch
   _pin2  = pin2;
   _encoderType = encoderTypes[TypeEncoder];
 
-	pinMode(_pin1, INPUT);
-	digitalWrite(_pin1, HIGH);
-	pinMode(_pin2, INPUT);
-	digitalWrite(_pin2, HIGH);
+	pinMode(_pin1, INPUT_PULLUP);
+	pinMode(_pin2, INPUT_PULLUP);
   // start with position 0;
   _oldState = 0;
   _position = 0;
