@@ -35,6 +35,7 @@ void MFLCDDisplay::attach(byte address, byte cols, byte lines)
   _lcdDisplay = new LiquidCrystal_I2C((uint8_t)address, (uint8_t)cols, (uint8_t)lines);
   _initialized = true;
   _lcdDisplay->init();
+Wire.setClock(400000);  // test it!!
   _lcdDisplay->backlight();
   test();
 }
