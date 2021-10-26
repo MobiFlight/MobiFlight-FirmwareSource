@@ -1094,7 +1094,7 @@ void OnGenNewSerial()
 
 void OnSetName()
 {
-  char *cfg = cmdMessenger.readStringArg();;
+  char *cfg = cmdMessenger.readStringArg();
   memcpy(name, cfg, MEM_LEN_NAME);
   _storeName();
   cmdMessenger.sendCmdStart(kStatus);
