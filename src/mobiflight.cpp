@@ -234,8 +234,8 @@ void generateSerial(bool force)
   randomSeed(analogRead(0));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-  MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);  // First byte of config to 0x00 to be ensure to start with empty config
-  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
+  MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);           // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
 void loadConfig()
