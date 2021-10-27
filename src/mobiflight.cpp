@@ -62,7 +62,7 @@ char foo;
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
 #define STEPPER_ACCEL 800
 
-#include <EEPROMex.h>
+#include "MFEEPROM.h"
 #include <CmdMessenger.h>
 #include <LedControl.h>
 
@@ -103,6 +103,7 @@ const uint8_t MEM_LEN_NAME = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
+uint32_t lastButtonUpdate= 0;
 
 char type[20] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -120,6 +121,8 @@ const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
+
+MFEEPROM MFeeprom;
 
 MFOutput outputs[MAX_OUTPUTS];
 uint8_t outputsRegistered = 0;
@@ -214,8 +217,7 @@ void attachCommandCallbacks()
 
 void OnResetBoard()
 {
-  EEPROM.setMaxAllowedWrites(1000);
-  EEPROM.setMemPool(0, EEPROM_SIZE);
+  MFeeprom.init();
 
   configBuffer[0] = '\0';
   //readBuffer[0]='\0';
@@ -233,23 +235,24 @@ void setup()
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
+  lastButtonUpdate= millis();       // Time Gap between Encoder and Button, do not read at the same loop
 }
 
 void generateSerial(bool force)
 {
-  EEPROM.readBlock<char>(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
   randomSeed(analogRead(0));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-  EEPROM.writeBlock<char>(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
 void loadConfig()
 {
   resetConfig();
-  EEPROM.readBlock<char>(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  MFeeprom.read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
@@ -266,7 +269,7 @@ void loadConfig()
 
 void _storeConfig()
 {
-  EEPROM.writeBlock<char>(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  MFeeprom.write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 }
 
 void SetPowerSavingMode(bool state)
@@ -1073,6 +1076,8 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
+  if (millis()-lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS) return;
+  lastButtonUpdate= millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
@@ -1118,18 +1123,18 @@ void OnSetName()
 void _storeName()
 {
   char prefix[] = "#";
-  EEPROM.writeBlock<char>(MEM_OFFSET_NAME, prefix, 1);
-  EEPROM.writeBlock<char>(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  MFeeprom.write_block(MEM_OFFSET_NAME, prefix, 1);
+  MFeeprom.write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void _restoreName()
 {
   char testHasName[1] = "";
-  EEPROM.readBlock<char>(MEM_OFFSET_NAME, testHasName, 1);
+  MFeeprom.read_block(MEM_OFFSET_NAME, testHasName, 1);
   if (testHasName[0] != '#')
     return;
 
-  EEPROM.readBlock<char>(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  MFeeprom.read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void OnTrigger()
