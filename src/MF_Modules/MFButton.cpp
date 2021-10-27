@@ -9,8 +9,7 @@ MFButton::MFButton(uint8_t pin, const char * name)
   _pin  = pin;
   _name = name;
   _state = 1;
-  pinMode(_pin, INPUT);     // set pin to input
-  digitalWrite(_pin, HIGH); // turn on pullup resistors
+  pinMode(_pin, INPUT_PULLUP);     // set pin to input
 }
 
 void MFButton::update()
@@ -24,11 +23,22 @@ void MFButton::update()
 
 void MFButton::trigger()
 {
+      triggerOnRelease();
+      triggerOnPress();
+}
+
+void MFButton::triggerOnPress()
+{
       if (_state==LOW && _handlerList[btnOnPress]!= NULL) {
         (*_handlerList[btnOnPress])(btnOnPress, _pin, _name);
       }
-      else if (_handlerList[btnOnRelease] != NULL)
+}
+
+void MFButton::triggerOnRelease()
+{
+      if (_state==HIGH && _handlerList[btnOnRelease] != NULL) {
         (*_handlerList[btnOnRelease])(btnOnRelease, _pin, _name);
+      }
 }
 
 void MFButton::attachHandler(byte eventId, buttonEvent newHandler)
