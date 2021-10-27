@@ -43,6 +43,7 @@ char foo;
 // 1.11.0: Added Analog support, ShiftRegister Support (kudos to @manfredberry)
 // 1.11.1: minor bugfixes for BETA release
 // 1.11.2: fixed issue with one line LCD freeze
+// 1.11.3: Created simple prioritization mechanism for button events when using "Retrigger All Switches" (fires release events, then press events)
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
@@ -1137,8 +1138,14 @@ void _restoreName()
 
 void OnTrigger()
 {
+  // Trigger all button release events first...
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].trigger();
+    buttons[i].triggerOnRelease();
+  }
+  // ... then trigger all the press events
+  for (int i = 0; i != buttonsRegistered; i++)
+  {
+    buttons[i].triggerOnPress();
   }
 }
