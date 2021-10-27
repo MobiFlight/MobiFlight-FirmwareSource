@@ -14,7 +14,6 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
   if (!_initialized)
     return;
 
-  String str = String(string);
   byte digit = 8;
   byte pos = 0;
   for (int i = 0; i != 8; i++)
