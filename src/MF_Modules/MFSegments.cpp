@@ -21,7 +21,7 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
     digit--;
     if (((1 << digit) & mask) == 0)
       continue;
-    _ledControl.setChar(module, digit, str.charAt(pos), ((1 << digit) & points));
+    _ledControl.setChar(module, digit, string[pos], ((1 << digit) & points));
     pos++;
   }
 }
@@ -51,8 +51,6 @@ void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, by
 
 void MFSegments::detach()
 {
-  if (!_initialized)
-    return;
   _initialized = false;
 }
 
