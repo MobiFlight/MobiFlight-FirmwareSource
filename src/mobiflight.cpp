@@ -52,20 +52,8 @@ char foo;
 
 //#define DEBUG 1
 
-// ALL 24780
-// No Segments 23040 (1740)
-// No Steppers 20208 (4572)
-// NO Servos   23302 (1478)
-// No LCDs     22850 (1930)
-//
-
-#define STEPS 64
-#define STEPPER_SPEED 400 // 300 already worked, 467, too?
-#define STEPPER_ACCEL 800
-
 #include "MFEEPROM.h"
 #include <CmdMessenger.h>
-#include <LedControl.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -105,15 +93,16 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 uint32_t lastButtonUpdate= 0;
+uint32_t lastEncoderUpdate = 0;
 
-char type[20] = MOBIFLIGHT_TYPE;
+const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
 char configBuffer[MEM_LEN_CONFIG] = "";
 
-int configLength = 0;
+uint16_t configLength = 0;
 boolean configActivated = false;
 
 bool powerSavingMode = false;
@@ -219,9 +208,7 @@ void attachCommandCallbacks()
 void OnResetBoard()
 {
   MFeeprom.init();
-
   configBuffer[0] = '\0';
-  //readBuffer[0]='\0';
   generateSerial(false);
   clearRegisteredPins();
   lastCommand = millis();
@@ -237,6 +224,7 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   lastButtonUpdate= millis();       // Time Gap between Encoder and Button, do not read at the same loop
+  lastEncoderUpdate = millis() +2;    // Time Gap between Encoder and Button, do not read at the same loop
 }
 
 void generateSerial(bool force)
@@ -248,6 +236,7 @@ void generateSerial(bool force)
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);           // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
 void loadConfig()
@@ -258,12 +247,7 @@ void loadConfig()
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
 #endif
-  for (configLength = 0; configLength != MEM_LEN_CONFIG; configLength++)
-  {
-    if (configBuffer[configLength] != '\0')
-      continue;
-    break;
-  }
+  configLength = strlen(configBuffer);
   readConfig(configBuffer);
   _activateConfig();
 }
@@ -702,15 +686,14 @@ void OnSetConfig()
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Setting config start"));
 #endif
-
   lastCommand = millis();
-  String cfg = cmdMessenger.readStringArg();
-  int cfgLen = cfg.length();
-  int bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
+  char *cfg = cmdMessenger.readStringArg();
+  uint8_t cfgLen = strlen(cfg);
+  uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
   if (bufferSize > 1)
   {
-    cfg.toCharArray(&configBuffer[configLength], bufferSize);
+    memcpy(&configBuffer[configLength], cfg, bufferSize);
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -771,7 +754,6 @@ void OnActivateConfig()
 {
   readConfig(configBuffer);
   _activateConfig();
-  //cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
 void _activateConfig()
@@ -1085,6 +1067,8 @@ void readButtons()
 
 void readEncoder()
 {
+  if (millis()-lastEncoderUpdate < 1) return;
+  lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
     encoders[i].update();
@@ -1111,8 +1095,8 @@ void OnGenNewSerial()
 
 void OnSetName()
 {
-  String cfg = cmdMessenger.readStringArg();
-  cfg.toCharArray(&name[0], MEM_LEN_NAME);
+  char *cfg = cmdMessenger.readStringArg();
+  memcpy(name, cfg, MEM_LEN_NAME);
   _storeName();
   cmdMessenger.sendCmdStart(kStatus);
   cmdMessenger.sendCmdArg(name);

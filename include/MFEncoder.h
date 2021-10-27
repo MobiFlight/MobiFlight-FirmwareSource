@@ -89,7 +89,6 @@ private:
     int8_t                    _oldState;
     int16_t                   _position;            // Internal position (4 times _positionExt)
     int16_t                   _positionExt;         // External position
-    uint32_t                  _lastmillis = 0;      // for debouncing
     uint32_t                  _positionTime;        // time last position change was detected
     uint32_t                  _positionTimePrev;    // time previous position change was detected
 };
