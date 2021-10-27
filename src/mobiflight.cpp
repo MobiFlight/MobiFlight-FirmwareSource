@@ -924,8 +924,8 @@ void OnGetConfig()
 void OnSetPin()
 {
   // Read led state argument, interpret string as boolean
-  int pin = cmdMessenger.readIntArg();
-  int state = cmdMessenger.readIntArg();
+  int pin = cmdMessenger.readInt16Arg();
+  int state = cmdMessenger.readInt16Arg();
   // Set led
   analogWrite(pin, state);
   lastCommand = millis();
@@ -934,29 +934,29 @@ void OnSetPin()
 #if MF_SEGMENT_SUPPORT == 1
 void OnInitModule()
 {
-  int module = cmdMessenger.readIntArg();
-  int subModule = cmdMessenger.readIntArg();
-  int brightness = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
+  int subModule = cmdMessenger.readInt16Arg();
+  int brightness = cmdMessenger.readInt16Arg();
   ledSegments[module].setBrightness(subModule, brightness);
   lastCommand = millis();
 }
 
 void OnSetModule()
 {
-  int module = cmdMessenger.readIntArg();
-  int subModule = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
+  int subModule = cmdMessenger.readInt16Arg();
   char *value = cmdMessenger.readStringArg();
-  uint8_t points = (uint8_t)cmdMessenger.readIntArg();
-  uint8_t mask = (uint8_t)cmdMessenger.readIntArg();
+  uint8_t points = (uint8_t)cmdMessenger.readInt16Arg();
+  uint8_t mask = (uint8_t)cmdMessenger.readInt16Arg();
   ledSegments[module].display(subModule, value, points, mask);
   lastCommand = millis();
 }
 
 void OnSetModuleBrightness()
 {
-  int module = cmdMessenger.readIntArg();
-  int subModule = cmdMessenger.readIntArg();
-  int brightness = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
+  int subModule = cmdMessenger.readInt16Arg();
+  int brightness = cmdMessenger.readInt16Arg();
   ledSegments[module].setBrightness(subModule, brightness);
   lastCommand = millis();
 }
@@ -967,7 +967,7 @@ void OnSetModuleBrightness()
 
 void OnInitShiftRegister()
 {
-  int module = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
   shiftregisters[module].clear();
   lastCommand = millis();
 }
@@ -975,9 +975,9 @@ void OnInitShiftRegister()
 void OnSetShiftRegisterPins()
 {
 
-  int module = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
-  int value = cmdMessenger.readIntArg();
+  int value = cmdMessenger.readInt16Arg();
   shiftregisters[module].setPins(pins, value);
   lastCommand = millis();
 }
@@ -987,8 +987,8 @@ void OnSetShiftRegisterPins()
 #if MF_STEPPER_SUPPORT == 1
 void OnSetStepper()
 {
-  int stepper = cmdMessenger.readIntArg();
-  long newPos = cmdMessenger.readLongArg();
+  int stepper = cmdMessenger.readInt16Arg();
+  long newPos = cmdMessenger.readInt32Arg();
 
   if (stepper >= steppersRegistered)
     return;
@@ -998,7 +998,7 @@ void OnSetStepper()
 
 void OnResetStepper()
 {
-  int stepper = cmdMessenger.readIntArg();
+  int stepper = cmdMessenger.readInt16Arg();
 
   if (stepper >= steppersRegistered)
     return;
@@ -1008,7 +1008,7 @@ void OnResetStepper()
 
 void OnSetZeroStepper()
 {
-  int stepper = cmdMessenger.readIntArg();
+  int stepper = cmdMessenger.readInt16Arg();
 
   if (stepper >= steppersRegistered)
     return;
@@ -1028,8 +1028,8 @@ void updateSteppers()
 #if MF_SERVO_SUPPORT == 1
 void OnSetServo()
 {
-  int servo = cmdMessenger.readIntArg();
-  int newValue = cmdMessenger.readIntArg();
+  int servo = cmdMessenger.readInt16Arg();
+  int newValue = cmdMessenger.readInt16Arg();
   if (servo >= servosRegistered)
     return;
   servos[servo].moveTo(newValue);
@@ -1048,7 +1048,7 @@ void updateServos()
 #if MF_LCD_SUPPORT == 1
 void OnSetLcdDisplayI2C()
 {
-  int address = cmdMessenger.readIntArg();
+  int address = cmdMessenger.readInt16Arg();
   char *output = cmdMessenger.readStringArg();
   lcd_I2C[address].display(output);
   lastCommand = millis();
