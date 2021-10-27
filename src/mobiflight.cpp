@@ -932,9 +932,9 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG));
+  cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
   for (uint16_t i=1; i<configLength; i++) {
-    cmdMessenger.sendSingleArg((char)EEPROM.readByte(MEM_OFFSET_CONFIG+i));
+    cmdMessenger.sendSingleArg(MFeeprom.read_char(MEM_OFFSET_CONFIG+i));
   }
   cmdMessenger.sendCmdEnd();
 }
