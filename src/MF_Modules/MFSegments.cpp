@@ -14,7 +14,6 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
   if (!_initialized)
     return;
 
-  String str = String(string);
   byte digit = 8;
   byte pos = 0;
   for (int i = 0; i != 8; i++)
@@ -22,7 +21,7 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
     digit--;
     if (((1 << digit) & mask) == 0)
       continue;
-    _ledControl->setChar(module, digit, str.charAt(pos), ((1 << digit) & points));
+    _ledControl->setChar(module, digit, string[pos], ((1 << digit) & points));
     pos++;
   }
 }
