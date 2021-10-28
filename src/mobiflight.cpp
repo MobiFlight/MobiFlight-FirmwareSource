@@ -226,10 +226,11 @@ void setup()
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
-  lastAnalogAverage = millis() + 4;   // Time Gap between Encoder and Button, do not read at the same loop
-  lastAnalogRead = millis() + 4;      // Time Gap between Encoder and Button, do not read at the same loop
-  lastButtonUpdate= millis();       // Time Gap between Encoder and Button, do not read at the same loop
-  lastEncoderUpdate = millis() +2;    // Time Gap between Encoder and Button, do not read at the same loop
+  // Time Gap between Inputs, do not read at the same loop
+  lastAnalogAverage = millis() + 4;
+  lastAnalogRead = millis() + 4;
+  lastButtonUpdate= millis();
+  lastEncoderUpdate = millis() +2;
 }
 
 void generateSerial(bool force)
