@@ -915,7 +915,7 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
+  cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
   for (uint16_t i=1; i<configLength; i++) {
     cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG+i));
   }
