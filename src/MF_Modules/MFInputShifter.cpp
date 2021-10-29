@@ -2,6 +2,7 @@
 //
 // Copyright (C) 2021
 #include "MFInputShifter.h"
+#include "mobiflight.h"
 
 MFInputShifter::MFInputShifter(const char *name)
 {
@@ -35,7 +36,7 @@ void MFInputShifter::update()
   // This technically could miss two different switches changing within 10 milliseconds
   // but that seems extremely unlikely to happen.
   uint32_t now = millis();
-  if (now - _last <= 10)
+  if (now - _last <= MF_BUTTON_DEBOUNCE_MS)
     return;
 
   digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
