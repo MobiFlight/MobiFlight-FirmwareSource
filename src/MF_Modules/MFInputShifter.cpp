@@ -8,7 +8,6 @@ MFInputShifter::MFInputShifter(const char *name)
 {
   _initialized = false;
   clearLastState();
-  _last = millis();
   _name = name;
 }
 
@@ -32,13 +31,6 @@ void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
 // changed from the previously read state.
 void MFInputShifter::update()
 {
-  // Don't take any changes within the last 10 milliseconds to cover basic switch debouncing.
-  // This technically could miss two different switches changing within 10 milliseconds
-  // but that seems extremely unlikely to happen.
-  uint32_t now = millis();
-  if (now - _last <= MF_BUTTON_DEBOUNCE_MS)
-    return;
-
   digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
   digitalWrite(_latchPin, HIGH); // Disable input latching and enable shifting
 
@@ -60,8 +52,6 @@ void MFInputShifter::update()
   }
 
   digitalWrite(_latchPin, LOW); // disable shifting and enable input latching
-
-  _last = now;
 }
 
 // Detects changes between the current state and the previously saved state
@@ -116,7 +106,6 @@ void MFInputShifter::detach()
 // and the timestamp for the last time the data was read.
 void MFInputShifter::clear()
 {
-  _last = 0;
   clearLastState();
 }
 

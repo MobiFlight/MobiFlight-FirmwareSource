@@ -103,6 +103,10 @@ uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+uint32_t lastInputShifterUpdate = 0;
+#endif
+
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
@@ -1177,6 +1181,10 @@ void readEncoder()
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 void readInputShifters()
 {
+  if (millis() - lastInputShifterUpdate <= MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastInputShifterUpdate = millis();
+
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
     inputShifters[i].update();
