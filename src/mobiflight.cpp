@@ -241,9 +241,13 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
+#if MF_INPUTSHIFTER_SUPPORT
   lastInputShifterUpdate = millis() + 6;
+#endif
+#if MF_ANALOG_SUPPORT
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
+#endif
   lastButtonUpdate = millis();
   lastEncoderUpdate = millis() + 2;
 }
