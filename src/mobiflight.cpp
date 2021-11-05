@@ -98,8 +98,10 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
+#if MF_ANALOG_SUPPORT == 1
 uint32_t lastAnalogAverage = 0;
 uint32_t lastAnalogRead = 0;
+#endif
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 
@@ -241,8 +243,13 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
+#if MF_INPUTSHIFTER_SUPPORT == 1
+  lastInputShifterUpdate = millis() + 6;
+#endif
+#if MF_ANALOG_SUPPORT == 1
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
+#endif
   lastButtonUpdate = millis();
   lastEncoderUpdate = millis() + 2;
 }
