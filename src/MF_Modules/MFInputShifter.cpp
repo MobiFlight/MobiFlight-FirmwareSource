@@ -13,11 +13,12 @@ MFInputShifter::MFInputShifter(const char *name)
 
 // Registers a new input shifter and configures the clock, data and latch pins as well
 // as the number of modules to read from.
-void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount)
+void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name)
 {
   _latchPin = latchPin;
   _clockPin = clockPin;
   _dataPin = dataPin;
+  _name = name;
   _moduleCount = moduleCount;
 
   pinMode(_latchPin, OUTPUT);

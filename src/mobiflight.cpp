@@ -465,7 +465,7 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
 {
   if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
     return;
-  inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules);
+  inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
   inputShifters[inputShiftersRegistered].clear();
   registerPin(latchPin, kTypeInputShifter);
   registerPin(clockPin, kTypeInputShifter);

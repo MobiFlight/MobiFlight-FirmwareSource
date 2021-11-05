@@ -32,7 +32,7 @@ class MFInputShifter
 {
 public:
   MFInputShifter(const char *name = "InputShifter");
-  void attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount);
+  void attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name);
   void detach();
   void clear();
   void update();
