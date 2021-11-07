@@ -4,6 +4,8 @@
 #include <MFEncoder.h>
 #include <MFAnalog.h>
 
+#define MF_BUTTON_DEBOUNCE_MS   10      // time between updating the buttons
+
 enum
 {
   kTypeNotSet,              // 0
@@ -93,7 +95,7 @@ void OnResetConfig();
 void OnSaveConfig();
 void OnActivateConfig();
 void _activateConfig();
-void readConfig(String cfg);
+void readConfig();
 void OnUnknownCommand();
 void OnGetInfo();
 void OnGetConfig();
@@ -123,9 +125,5 @@ void OnInitShiftRegister();
 void OnSetShiftRegisterPins();
 void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
 
-// RK added
-extern uint8_t encodersRegistered;
-extern MFEncoder encoders[];
-void readConfig_reduced(char buffer[]);
 
 #endif

@@ -37,13 +37,14 @@ public:
     MFButton(uint8_t pin = 1, const char * name = "Button");
     void update();
     void trigger();
+    void triggerOnPress();
+    void triggerOnRelease();
     void attachHandler(byte eventId, buttonEvent newHandler);    
     const char *  _name;
     uint8_t       _pin;
     
 private:
     bool          _state;
-    uint32_t      _last;
     buttonEvent   _handlerList[2];    
 };
 #endif 

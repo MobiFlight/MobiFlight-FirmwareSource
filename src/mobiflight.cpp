@@ -43,6 +43,7 @@ char foo;
 // 1.11.0: Added Analog support, ShiftRegister Support (kudos to @manfredberry)
 // 1.11.1: minor bugfixes for BETA release
 // 1.11.2: fixed issue with one line LCD freeze
+// 1.11.3: Created simple prioritization mechanism for button events when using "Retrigger All Switches" (fires release events, then press events)
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
@@ -51,24 +52,8 @@ char foo;
 
 //#define DEBUG 1
 
-// ALL 24780
-// No Segments 23040 (1740)
-// No Steppers 20208 (4572)
-// NO Servos   23302 (1478)
-// No LCDs     22850 (1930)
-//
-
-#define STEPS 64
-#define STEPPER_SPEED 400 // 300 already worked, 467, too?
-#define STEPPER_ACCEL 800
-
-#include <EEPROMex.h>
+#include "MFEEPROM.h"
 #include <CmdMessenger.h>
-#include <LedControl.h>
-#include <Button.h>
-#include <TicksPerSecond.h>
-#include <RotaryEncoder.h>
-#include <Wire.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
@@ -108,14 +93,19 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char type[20] = MOBIFLIGHT_TYPE;
+uint32_t lastAnalogAverage = 0;
+uint32_t lastAnalogRead = 0;
+uint32_t lastButtonUpdate= 0;
+uint32_t lastEncoderUpdate = 0;
+
+const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
 char configBuffer[MEM_LEN_CONFIG] = "";
 
-int configLength = 0;
+uint16_t configLength = 0;
 boolean configActivated = false;
 
 bool powerSavingMode = false;
@@ -124,6 +114,8 @@ const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
+
+MFEEPROM MFeeprom;
 
 MFOutput outputs[MAX_OUTPUTS];
 uint8_t outputsRegistered = 0;
@@ -218,11 +210,8 @@ void attachCommandCallbacks()
 
 void OnResetBoard()
 {
-  EEPROM.setMaxAllowedWrites(1000);
-  EEPROM.setMemPool(0, EEPROM_SIZE);
-
+  MFeeprom.init();
   configBuffer[0] = '\0';
-  //readBuffer[0]='\0';
   generateSerial(false);
   clearRegisteredPins();
   lastCommand = millis();
@@ -237,40 +226,41 @@ void setup()
   attachCommandCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
+  // Time Gap between Inputs, do not read at the same loop
+  lastAnalogAverage = millis() + 4;
+  lastAnalogRead = millis() + 4;
+  lastButtonUpdate= millis();
+  lastEncoderUpdate = millis() +2;
 }
 
 void generateSerial(bool force)
 {
-  EEPROM.readBlock<char>(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
   randomSeed(analogRead(0));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-  EEPROM.writeBlock<char>(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);           // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
 void loadConfig()
 {
   resetConfig();
-  EEPROM.readBlock<char>(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  MFeeprom.read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
 #endif
-  for (configLength = 0; configLength != MEM_LEN_CONFIG; configLength++)
-  {
-    if (configBuffer[configLength] != '\0')
-      continue;
-    break;
-  }
-  readConfig(configBuffer);
+  configLength = strlen(configBuffer);
+  readConfig();
   _activateConfig();
 }
 
 void _storeConfig()
 {
-  EEPROM.writeBlock<char>(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+  MFeeprom.write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 }
 
 void SetPowerSavingMode(bool state)
@@ -702,15 +692,14 @@ void OnSetConfig()
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Setting config start"));
 #endif
-
   lastCommand = millis();
-  String cfg = cmdMessenger.readStringArg();
-  int cfgLen = cfg.length();
-  int bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
+  char *cfg = cmdMessenger.readStringArg();
+  uint8_t cfgLen = strlen(cfg);
+  uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
   if (bufferSize > 1)
   {
-    cfg.toCharArray(&configBuffer[configLength], bufferSize);
+    memcpy(&configBuffer[configLength], cfg, bufferSize);
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -769,9 +758,8 @@ void OnSaveConfig()
 
 void OnActivateConfig()
 {
-  readConfig(configBuffer);
+  readConfig();
   _activateConfig();
-  //cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
 void _activateConfig()
@@ -780,13 +768,12 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig(String cfg)
+void readConfig()
 {
-  char readBuffer[MEM_LEN_CONFIG + 1] = "";
+  if (configLength == 0) return;
   char *p = NULL;
-  cfg.toCharArray(readBuffer, MEM_LEN_CONFIG);
 
-  char *command = strtok_r(readBuffer, ".", &p);
+  char *command = strtok_r(configBuffer, ".", &p);
   char *params[6];
   if (*command == 0)
     return;
@@ -934,7 +921,10 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(configBuffer);
+  cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
+  for (uint16_t i=1; i<configLength; i++) {
+    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG+i));
+  }
   cmdMessenger.sendCmdEnd();
 }
 
@@ -942,8 +932,8 @@ void OnGetConfig()
 void OnSetPin()
 {
   // Read led state argument, interpret string as boolean
-  int pin = cmdMessenger.readIntArg();
-  int state = cmdMessenger.readIntArg();
+  int pin = cmdMessenger.readInt16Arg();
+  int state = cmdMessenger.readInt16Arg();
   // Set led
   analogWrite(pin, state);
   lastCommand = millis();
@@ -952,29 +942,29 @@ void OnSetPin()
 #if MF_SEGMENT_SUPPORT == 1
 void OnInitModule()
 {
-  int module = cmdMessenger.readIntArg();
-  int subModule = cmdMessenger.readIntArg();
-  int brightness = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
+  int subModule = cmdMessenger.readInt16Arg();
+  int brightness = cmdMessenger.readInt16Arg();
   ledSegments[module].setBrightness(subModule, brightness);
   lastCommand = millis();
 }
 
 void OnSetModule()
 {
-  int module = cmdMessenger.readIntArg();
-  int subModule = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
+  int subModule = cmdMessenger.readInt16Arg();
   char *value = cmdMessenger.readStringArg();
-  uint8_t points = (uint8_t)cmdMessenger.readIntArg();
-  uint8_t mask = (uint8_t)cmdMessenger.readIntArg();
+  uint8_t points = (uint8_t)cmdMessenger.readInt16Arg();
+  uint8_t mask = (uint8_t)cmdMessenger.readInt16Arg();
   ledSegments[module].display(subModule, value, points, mask);
   lastCommand = millis();
 }
 
 void OnSetModuleBrightness()
 {
-  int module = cmdMessenger.readIntArg();
-  int subModule = cmdMessenger.readIntArg();
-  int brightness = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
+  int subModule = cmdMessenger.readInt16Arg();
+  int brightness = cmdMessenger.readInt16Arg();
   ledSegments[module].setBrightness(subModule, brightness);
   lastCommand = millis();
 }
@@ -985,7 +975,7 @@ void OnSetModuleBrightness()
 
 void OnInitShiftRegister()
 {
-  int module = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
   shiftregisters[module].clear();
   lastCommand = millis();
 }
@@ -993,9 +983,9 @@ void OnInitShiftRegister()
 void OnSetShiftRegisterPins()
 {
 
-  int module = cmdMessenger.readIntArg();
+  int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
-  int value = cmdMessenger.readIntArg();
+  int value = cmdMessenger.readInt16Arg();
   shiftregisters[module].setPins(pins, value);
   lastCommand = millis();
 }
@@ -1005,8 +995,8 @@ void OnSetShiftRegisterPins()
 #if MF_STEPPER_SUPPORT == 1
 void OnSetStepper()
 {
-  int stepper = cmdMessenger.readIntArg();
-  long newPos = cmdMessenger.readLongArg();
+  int stepper = cmdMessenger.readInt16Arg();
+  long newPos = cmdMessenger.readInt32Arg();
 
   if (stepper >= steppersRegistered)
     return;
@@ -1016,7 +1006,7 @@ void OnSetStepper()
 
 void OnResetStepper()
 {
-  int stepper = cmdMessenger.readIntArg();
+  int stepper = cmdMessenger.readInt16Arg();
 
   if (stepper >= steppersRegistered)
     return;
@@ -1026,7 +1016,7 @@ void OnResetStepper()
 
 void OnSetZeroStepper()
 {
-  int stepper = cmdMessenger.readIntArg();
+  int stepper = cmdMessenger.readInt16Arg();
 
   if (stepper >= steppersRegistered)
     return;
@@ -1046,8 +1036,8 @@ void updateSteppers()
 #if MF_SERVO_SUPPORT == 1
 void OnSetServo()
 {
-  int servo = cmdMessenger.readIntArg();
-  int newValue = cmdMessenger.readIntArg();
+  int servo = cmdMessenger.readInt16Arg();
+  int newValue = cmdMessenger.readInt16Arg();
   if (servo >= servosRegistered)
     return;
   servos[servo].moveTo(newValue);
@@ -1066,7 +1056,7 @@ void updateServos()
 #if MF_LCD_SUPPORT == 1
 void OnSetLcdDisplayI2C()
 {
-  int address = cmdMessenger.readIntArg();
+  int address = cmdMessenger.readInt16Arg();
   char *output = cmdMessenger.readStringArg();
   lcd_I2C[address].display(output);
   lastCommand = millis();
@@ -1075,6 +1065,8 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
+  if (millis()-lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS) return;
+  lastButtonUpdate= millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
@@ -1083,6 +1075,8 @@ void readButtons()
 
 void readEncoder()
 {
+  if (millis()-lastEncoderUpdate < 1) return;
+  lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
     encoders[i].update();
@@ -1092,6 +1086,15 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
+  if (millis()-lastAnalogAverage > 10) {
+    for (int i = 0; i != analogRegistered; i++)
+    {
+      analog[i].readBuffer();
+    }
+    lastAnalogAverage = millis();
+  }
+  if (millis()-lastAnalogRead < 50) return;
+  lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
     analog[i].update();
@@ -1109,8 +1112,8 @@ void OnGenNewSerial()
 
 void OnSetName()
 {
-  String cfg = cmdMessenger.readStringArg();
-  cfg.toCharArray(&name[0], MEM_LEN_NAME);
+  char *cfg = cmdMessenger.readStringArg();
+  memcpy(name, cfg, MEM_LEN_NAME);
   _storeName();
   cmdMessenger.sendCmdStart(kStatus);
   cmdMessenger.sendCmdArg(name);
@@ -1120,24 +1123,30 @@ void OnSetName()
 void _storeName()
 {
   char prefix[] = "#";
-  EEPROM.writeBlock<char>(MEM_OFFSET_NAME, prefix, 1);
-  EEPROM.writeBlock<char>(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  MFeeprom.write_block(MEM_OFFSET_NAME, prefix, 1);
+  MFeeprom.write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void _restoreName()
 {
   char testHasName[1] = "";
-  EEPROM.readBlock<char>(MEM_OFFSET_NAME, testHasName, 1);
+  MFeeprom.read_block(MEM_OFFSET_NAME, testHasName, 1);
   if (testHasName[0] != '#')
     return;
 
-  EEPROM.readBlock<char>(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
+  MFeeprom.read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void OnTrigger()
 {
+  // Trigger all button release events first...
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].trigger();
+    buttons[i].triggerOnRelease();
+  }
+  // ... then trigger all the press events
+  for (int i = 0; i != buttonsRegistered; i++)
+  {
+    buttons[i].triggerOnPress();
   }
 }

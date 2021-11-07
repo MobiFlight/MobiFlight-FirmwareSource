@@ -20,12 +20,6 @@
 #define MF_SHIFTER_SUPPORT 1
 #endif
 
-// ALL          26544 (10.5%) / 4247 (51.8%)
-// No Segments  24784 (9.8%) / 4102 (50.1%)
-// No LCDs      25030 (9.9%) / 4212 (51.4%)
-// NO Steppers  21398 (8.4%) / 4177 (51.0%)
-// No Servos    24538 (9.7%) / 3827 (46.7%)
-
 #define MODULE_MAX_PINS 69
 #define MAX_OUTPUTS 40
 #define MAX_BUTTONS 68
