@@ -1,0 +1,14 @@
+Processing mega (platform: atmelavr; board: megaatmega2560; framework: arduino)
+RAM:   [=====     ]  45.8% (used 3750 bytes from 8192 bytes)
+Flash: [=         ]   9.8% (used 24780 bytes from 253952 bytes)
+======================================================================================
+Processing promicro (platform: atmelavr; board: sparkfun_promicro16; framework: arduino)
+RAM:   [======    ]  63.7% (used 1631 bytes from 2560 bytes)
+Flash: [========= ]  88.5% (used 25380 bytes from 28672 bytes)
+Building .pio\build\promicro\mobiflight_promicro_0_0_1.hex
+======================================================================================
+Processing uno (platform: atmelavr; board: uno; framework: arduino)
+RAM:   [=======   ]  71.2% (used 1458 bytes from 2048 bytes)
+Flash: [=======   ]  71.2% (used 22960 bytes from 32256 bytes)
+Building .pio\build\uno\mobiflight_uno_0_0_1.hex
+======================================================================================

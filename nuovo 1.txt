@@ -1,0 +1,13 @@
+## Description of changes
+(Improvement - no issue fixed)
+
+In order to optimize memory usage and simplify code logic,  the Event handler functions have been modified as follows:
+* handlers for MFButton unified, also for MFEncoder (all transitions use the same handler anyway)
+* handlers for MFButton, MFEncoder and MFAnalog (pointers and assignment functions) made static (no need to define a different handler for each button. Exception: Stepper zero, see remark below).
+* MFAnalog: removed handler assignment from constructor; introduced separate attachHandler() function like MFButton/MFEncoder
+* MFStepper: removed dependency from MFButton in order to avoid the need for separate handler (not a "proper" button anyway)
+* (not related to the main topic) MFButton: added status argument to trigger() to avoid unnecessary double call
+
+The changes are a little extensive as far as the number of files is concerned, but not really pervasive
+
+One point to think about: analog inputs are the only type of input which might be more likely to require a different handler depending on the source channel.

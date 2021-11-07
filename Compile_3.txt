@@ -1,0 +1,13 @@
+Processing mega (platform: atmelavr; board: megaatmega2560; framework: arduino)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Verbose mode can be enabled via `-v, --verbose` option
+RAM:   [=====     ]  45.3% (used 3714 bytes from 8192 bytes)
+Flash: [=         ]   9.5% (used 24094 bytes from 253952 bytes)
+=============================================================================
+Processing promicro (platform: atmelavr; board: sparkfun_promicro16; framework: arduino)
+RAM:   [======    ]  63.2% (used 1617 bytes from 2560 bytes)
+Flash: [========= ]  86.1% (used 24694 bytes from 28672 bytes)
+=============================================================================
+Processing uno (platform: atmelavr; board: uno; framework: arduino)
+RAM:   [=======   ]  70.7% (used 1448 bytes from 2048 bytes)
+Flash: [=======   ]  69.1% (used 22290 bytes from 32256 bytes)
+=============================================================================
