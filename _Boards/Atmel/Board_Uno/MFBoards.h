@@ -28,7 +28,7 @@
 #define MAX_STEPPERS 2
 #define MAX_MFSERVOS 2
 #define MAX_MFLCD_I2C 2
-#define MAX_ANALOG_INPUTS 0
+#define MAX_ANALOG_INPUTS 2
 #define MAX_SHIFTERS 0
 
 #define STEPS 64
