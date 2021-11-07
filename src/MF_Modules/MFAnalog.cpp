@@ -4,6 +4,8 @@
 
 #include "MFAnalog.h"
 
+analogEvent   MFAnalog::_handler = NULL; 
+
 MFAnalog::MFAnalog(uint8_t pin, analogEvent callback, const char * name, uint8_t sensitivity)
 {   
   _sensitivity = sensitivity;  

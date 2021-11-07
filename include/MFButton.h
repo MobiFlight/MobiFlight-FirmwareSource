@@ -36,15 +36,16 @@ class MFButton
 public:
     MFButton(uint8_t pin = 1, const char * name = "Button");
     void update();
-    void trigger();
+    void trigger(uint8_t state);
     void triggerOnPress();
     void triggerOnRelease();
-    void attachHandler(byte eventId, buttonEvent newHandler);    
+    void attachHandler(buttonEvent newHandler);    
     const char *  _name;
     uint8_t       _pin;
     
 private:
+    static buttonEvent   _handler;    
     bool          _state;
-    buttonEvent   _handlerList[2];    
+    
 };
 #endif 

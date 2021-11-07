@@ -1,0 +1,12 @@
+Processing mega (platform: atmelavr; board: megaatmega2560; framework: arduino)
+RAM:   [=====     ]  51.0% (used 4178 bytes from 8192 bytes)
+Flash: [=         ]   9.8% (used 24832 bytes from 253952 bytes)
+======================================================================================
+Processing promicro (platform: atmelavr; board: sparkfun_promicro16; framework: arduino)
+RAM:   [=======   ]  67.3% (used 1723 bytes from 2560 bytes)
+Flash: [========= ]  88.7% (used 25432 bytes from 28672 bytes)
+======================================================================================
+Processing uno (platform: atmelavr; board: uno; framework: arduino)
+RAM:   [=======   ]  73.3% (used 1502 bytes from 2048 bytes)
+Flash: [=======   ]  71.3% (used 23012 bytes from 32256 bytes)
+======================================================================================

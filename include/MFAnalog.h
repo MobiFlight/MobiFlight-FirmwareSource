@@ -37,8 +37,8 @@ public:
     uint8_t       _pin;
     
 private:
+    static analogEvent   _handler; 
     int          _lastValue;
-    analogEvent   _handler; 
     uint8_t       _sensitivity;
 
     uint16_t ADC_Buffer[ADC_MAX_AVERAGE] = {0};     // Buffer for all values from each channel  
