@@ -15,12 +15,14 @@
     {
       "file": ".github/workflows/release.yml",
       "description": "This GitHub action extracts the release version and sets output variables that are used in later steps.",
-      "line": 37
+      "line": 37,
+      "title": "GitHub - getting release version"
     },
     {
       "file": ".github/workflows/release.yml",
       "description": "This sets the `VERSION` environment variable to the GitHub release version so it is available for `get_version.py`, without the leading `v` so it matches the format expected by MobiFlight.",
-      "line": 41
+      "line": 41,
+      "title": "GitHub - setting release version"
     },
     {
       "file": "get_version.py",
@@ -74,5 +76,6 @@
       },
       "title": "Code - sending the version to MobiFlight"
     }
-  ]
+  ],
+  "isPrimary": true
 }
