@@ -236,6 +236,7 @@ void setup()
 {
   Serial.begin(115200);
   attachCommandCallbacks();
+  attachEventCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
