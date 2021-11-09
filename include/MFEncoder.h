@@ -66,9 +66,9 @@ class MFEncoder
 {
 public:
     MFEncoder();
+    static void attachHandler(encoderEvent newHandler);
 	  void attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, const char * name = "Encoder");
     void update();
-    void attachHandler(encoderEvent newHandler);
 // call this function every some milliseconds or by using an interrupt for handling state changes of the rotary encoder.
     void tick(void);
 // retrieve the current position
