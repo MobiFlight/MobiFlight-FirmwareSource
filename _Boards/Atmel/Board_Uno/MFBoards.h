@@ -31,9 +31,11 @@
 #define MAX_STEPPERS 2
 #define MAX_MFSERVOS 2
 #define MAX_MFLCD_I2C 2
-#define MAX_ANALOG_INPUTS 0
-#define MAX_SHIFTERS 0
+#define MAX_ANALOG_INPUTS 2
+#define MAX_SHIFTERS 4
 #define MAX_INPUT_SHIFTERS 4
+#define MAX_ANALOG_INPUTS 2
+#define MAX_SHIFTERS 4
 
 #define STEPS 64
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
