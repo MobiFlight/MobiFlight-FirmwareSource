@@ -1267,4 +1267,11 @@ void OnTrigger()
   {
     buttons[i].triggerOnPress();
   }
+
+  // Retrigger all the input shifters. This automatically sends
+  // the release events first followed by press events.
+  for (int i = 0; i != inputShiftersRegistered; i++)
+  {
+    inputShifters[i].retrigger();
+  }
 }
