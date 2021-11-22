@@ -115,8 +115,8 @@ void MFEncoder::update()
 
 void MFEncoder::tick(void)
 {
-	bool sig1 = digitalRead(_pin1);
-	bool sig2 = digitalRead(_pin2);
+	bool sig1 = !digitalRead(_pin1);        // to keep backwards compatibility for encoder type digitalRead must be negated
+	bool sig2 = !digitalRead(_pin2);        // to keep backwards compatibility for encoder type digitalRead must be negated
 	
 	int8_t thisState = sig1 | (sig2 << 1);
   
