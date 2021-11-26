@@ -11,40 +11,6 @@ char foo;
 #include "mobiflight.h"
 #include <MFBoards.h>
 
-// 1.0.1 : Nicer firmware update, more outputs (20)
-// 1.1.0 : Encoder support, more outputs (30)
-// 1.2.0 : More outputs (40), more inputs (40), more led segments (4), more encoders (20), steppers (10), servos (10)
-// 1.3.0 : Generate New Serial
-// 1.4.0 : Servo + Stepper support
-// 1.4.1 : Reduce velocity
-// 1.5.0 : Improve servo behaviour
-// 1.6.0 : Set name
-// 1.6.1 : Reduce servo noise
-// 1.7.0 : New Arduino IDE, new AVR, Uno Support
-// 1.7.1 : More UNO stability
-// 1.7.2 : "???"
-// 1.7.3 : Servo behaviour improved, fixed stepper bug #178, increased number of buttons per module (MEGA)
-// 1.8.0 : added support for LCDs
-// 1.9.0 : Support for rotary encoders with different detent configurations
-// 1.9.1 : Set "lastCommand" for LCD output command,
-//         Fixed problems with long button and encoder names
-//         Memory optimization
-// 1.9.2 : Auto reset stepper, more characters for 7 segments
-// 1.9.3 : Increased number of pins for MEGA, reduced speed for stepper for more torque
-// 1.9.4 : Increased MAX_PINS for MEGA.
-// 1.9.5 : Increased MAX_BUTTONS for MEGA and Micro Pro.
-// 1.9.6 : Fixed the MAXCALLBACKS for UNO, optimized Build settings for Micro to save memory.
-// 1.9.7 : Increased EEPROM area for storing config
-// 1.9.8 : Decreased EEPROM area again, changed order during reset/load
-// 1.9.9 : Changed MODULE_MAX_PINS and MAX_BUTTONS to 68 (69 is internally needed but it is confusing)
-//         Added PWM output
-// 1.9.10: Fix encoder issue on fastLeft/fastRight, fixed the MODULE_MAX_PINS (one more time) for "pin69"
-// 1.10.0: Fix LCD pin usage (SDA, SCL), removed LCD sendCmd
-// 1.11.0: Added Analog support, ShiftRegister Support (kudos to @manfredberry)
-// 1.11.1: minor bugfixes for BETA release
-// 1.11.2: fixed issue with one line LCD freeze
-// 1.11.3: Created simple prioritization mechanism for button events when using "Retrigger All Switches" (fires release events, then press events)
-
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg) STRINGIZER(arg)

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "How the firmware version gets set",
+  "steps": [
+    {
+      "title": "Introduction",
+      "description": "The firmware version is set automatically depending on how the firmware is built:\r\n\r\n* Local build: 0.0.1\r\n* Pull request build: 0.0._pull request version_\r\n* GitHub release build: GitHub release version\r\n\r\nThe local and pull request builds intentionally have low version numbers to ensure unofficial firmware releases can always be replaced by running the MobiFlight desktop app and saying `yes` to the prompt to update out-of-date boards."
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "description": "This is where GitHub sets the `VERSION` environment variable used by `get_version.py` to the value of the current GitHub pull request.",
+      "line": 38,
+      "title": "GitHub - setting pull request version"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "description": "This GitHub action extracts the release version and sets output variables that are used in later steps.",
+      "line": 37,
+      "title": "GitHub - getting release version"
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "description": "This sets the `VERSION` environment variable to the GitHub release version so it is available for `get_version.py`, without the leading `v` so it matches the format expected by MobiFlight.",
+      "line": 41,
+      "title": "GitHub - setting release version"
+    },
+    {
+      "file": "get_version.py",
+      "description": "The _get_version.py_ file is the PlatformIO script that runs before a build takes place and sets C++ defines with the correct firmware version. It also takes care of setting the output filename for the firmware files, again based on the correct firmware version.",
+      "line": 1,
+      "title": "PlatformIO - version overview"
+    },
+    {
+      "file": "get_version.py",
+      "description": "The `VERSION` environment variable is set during via GitHub actions and is how the firmware version gets specified for pull request and release builds.",
+      "line": 5,
+      "title": "PlatformIO - GitHub builds"
+    },
+    {
+      "file": "get_version.py",
+      "description": "This is how the version gets set to `0.0.1` for local builds. If a local build needs a different version number for some reason the easiest way to do that is to modify this line.",
+      "line": 11,
+      "title": "PlatformIO - local builds"
+    },
+    {
+      "file": "get_version.py",
+      "description": "This sets the output filename to a combination of the PlatformIO environment (`micro`, `mega`, `uno`, etc.) and the version number, with underscores replacing dots.",
+      "line": 21,
+      "title": "PlatformIO - setting output filename"
+    },
+    {
+      "file": "platformio.ini",
+      "description": "This is what causes the `get_version.py` script to run before the PlatformIO build so the C++ define with the version number is set correctly. Each platform in the `platformio.ini` file must have a copy of this to ensure the version gets set correctly.",
+      "line": 41,
+      "title": "PlatformIO - running get_version.py"
+    },
+    {
+      "file": "src/mobiflight.cpp",
+      "description": "These three lines take the version defined on the compiler command line by `get_version.py` and converts it to a string #define that can be used by the pre-processor.",
+      "line": 51,
+      "title": "Code - using the version in #define"
+    },
+    {
+      "file": "src/mobiflight.cpp",
+      "description": "This is where the firmware uses the defined `VERSION` and sends it as part of the `kGetInfo` response.",
+      "line": 916,
+      "selection": {
+        "start": {
+          "line": 916,
+          "character": 27
+        },
+        "end": {
+          "line": 916,
+          "character": 34
+        }
+      },
+      "title": "Code - sending the version to MobiFlight"
+    }
+  ],
+  "isPrimary": true
+}
