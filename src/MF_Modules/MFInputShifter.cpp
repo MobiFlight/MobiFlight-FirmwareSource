@@ -4,6 +4,8 @@
 #include "MFInputShifter.h"
 #include "mobiflight.h"
 
+inputShifterEvent MFInputShifter::_inputHandler = NULL;
+
 MFInputShifter::MFInputShifter(const char *name)
 {
   _initialized = false;
@@ -133,20 +135,20 @@ void MFInputShifter::retrigger()
 // if a handler is registered.
 void MFInputShifter::trigger(uint8_t pin, bool state)
 {
-  if (state == LOW && _handlerList[inputShifterOnPress] != NULL)
+  if (state == LOW && _inputHandler != NULL)
   {
-    (*_handlerList[inputShifterOnPress])(inputShifterOnPress, pin, _name);
+    (*_inputHandler)(inputShifterOnPress, pin, _name);
   }
-  else if (_handlerList[inputShifterOnRelease] != NULL)
+  else if (_inputHandler != NULL)
   {
-    (*_handlerList[inputShifterOnRelease])(inputShifterOnRelease, pin, _name);
+    (*_inputHandler)(inputShifterOnRelease, pin, _name);
   }
 }
 
 // Attaches a new event handler for the specified event.
-void MFInputShifter::attachHandler(byte eventId, inputShifterEvent newHandler)
+void MFInputShifter::attachHandler(inputShifterEvent newHandler)
 {
-  _handlerList[eventId] = newHandler;
+  _inputHandler = newHandler;
 }
 
 void MFInputShifter::detach()

@@ -197,9 +197,7 @@ void attachEventCallbacks()
 #if MF_ANALOG_SUPPORT == 1
   MFAnalog::attachHandler(handlerOnAnalogChange);
 #endif
-
 }
-
 
 void OnResetBoard()
 {
@@ -393,7 +391,7 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
     return;
 
   buttons[buttonsRegistered] = MFButton(pin, name);
-  
+
   registerPin(pin, kTypeButton);
   buttonsRegistered++;
 #ifdef DEBUG
@@ -420,7 +418,7 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 
   encoders[encodersRegistered] = MFEncoder();
   encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
-  
+
   registerPin(pin1, kTypeEncoder);
   registerPin(pin2, kTypeEncoder);
   encodersRegistered++;
@@ -450,8 +448,7 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
   registerPin(clockPin, kTypeInputShifter);
   registerPin(dataPin, kTypeInputShifter);
 
-  inputShifters[inputShiftersRegistered].attachHandler(inputShifterOnRelease, handlerInputShifterOnChange);
-  inputShifters[inputShiftersRegistered].attachHandler(inputShifterOnPress, handlerInputShifterOnChange);
+  inputShifters[inputShiftersRegistered].attachHandler(handlerInputShifterOnChange);
 
   inputShiftersRegistered++;
 

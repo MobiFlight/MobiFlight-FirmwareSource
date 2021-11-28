@@ -33,7 +33,7 @@ class MFInputShifter
 public:
   MFInputShifter(const char *name = "InputShifter");
   void attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name);
-  void attachHandler(byte eventId, inputShifterEvent newHandler);
+  static void attachHandler(inputShifterEvent newHandler);
   void clear();
   void detach();
   void retrigger();
@@ -51,6 +51,6 @@ private:
   void detectChanges(uint8_t lastState, uint8_t currentState, uint8_t module);
   void trigger(uint8_t pin, bool state);
   void clearLastState();
-  inputShifterEvent _handlerList[2];
+  static inputShifterEvent _inputHandler;
 };
 #endif
