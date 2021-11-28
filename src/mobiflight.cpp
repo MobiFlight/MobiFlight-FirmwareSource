@@ -174,6 +174,18 @@ void attachCommandCallbacks()
 #endif
 }
 
+// Callbacks that define what commands we issue upon internal events
+void attachEventCallbacks()
+{
+  MFButton::attachHandler(handlerOnButton);
+  MFEncoder::attachHandler(handlerOnEncoder);
+#if MF_ANALOG_SUPPORT == 1
+  MFAnalog::attachHandler(handlerOnAnalogChange);
+#endif
+
+}
+
+
 void OnResetBoard()
 {
   MFeeprom.init();
@@ -190,6 +202,7 @@ void setup()
 {
   Serial.begin(115200);
   attachCommandCallbacks();
+  attachEventCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
@@ -354,9 +367,7 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
     return;
 
   buttons[buttonsRegistered] = MFButton(pin, name);
-  buttons[buttonsRegistered].attachHandler(btnOnRelease, handlerOnRelease);
-  buttons[buttonsRegistered].attachHandler(btnOnPress, handlerOnRelease);
-
+  
   registerPin(pin, kTypeButton);
   buttonsRegistered++;
 #ifdef DEBUG
@@ -383,11 +394,7 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 
   encoders[encodersRegistered] = MFEncoder();
   encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
-  encoders[encodersRegistered].attachHandler(encLeft, handlerOnEncoder);
-  encoders[encodersRegistered].attachHandler(encLeftFast, handlerOnEncoder);
-  encoders[encodersRegistered].attachHandler(encRight, handlerOnEncoder);
-  encoders[encodersRegistered].attachHandler(encRightFast, handlerOnEncoder);
-
+  
   registerPin(pin1, kTypeEncoder);
   registerPin(pin2, kTypeEncoder);
   encodersRegistered++;
@@ -575,7 +582,7 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
   if (isPinRegistered(pin))
     return;
 
-  analog[analogRegistered] = MFAnalog(pin, handlerOnAnalogChange, name, sensitivity);
+  analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
   registerPin(pin, kTypeAnalogInput);
   analogRegistered++;
 #ifdef DEBUG
@@ -624,7 +631,7 @@ void ClearShifters()
 #endif
 
 //// EVENT HANDLER /////
-void handlerOnRelease(uint8_t eventId, uint8_t pin, const char *name)
+void handlerOnButton(uint8_t eventId, uint8_t pin, const char *name)
 {
   cmdMessenger.sendCmdStart(kButtonChange);
   cmdMessenger.sendCmdArg(name);
