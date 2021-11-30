@@ -31,9 +31,9 @@ void MFLCDDisplay::attach(byte address, byte cols, byte lines)
   _address = address;
   _cols = cols;
   _lines = lines;
-  _lcdDisplay = new LiquidCrystal_I2C((uint8_t)address, (uint8_t)cols, (uint8_t)lines);
+  _lcdDisplay = new LiquidCrystal_I2C();
   _initialized = true;
-  _lcdDisplay->init();
+  _lcdDisplay->init((uint8_t)address, (uint8_t)cols, (uint8_t)lines);
   _lcdDisplay->backlight();
   test();
 }
