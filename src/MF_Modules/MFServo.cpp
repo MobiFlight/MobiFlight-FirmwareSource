@@ -25,7 +25,8 @@ void MFServo::update() {
 		return; 
 	}
 	
-    //if ((millis()-_lastUpdate) < 5) return;
+	// Defer further processing until at least 5ms has elapsed
+    if ((millis()-_lastUpdate) < 5) return;
     
     if (_currentPos > _targetPos) _currentPos--;
     else _currentPos++;
