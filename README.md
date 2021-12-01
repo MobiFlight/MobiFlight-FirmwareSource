@@ -1,6 +1,6 @@
 # MobiFlight-FirmwareSource
 
-[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/danecreekphotography/MobiFlight-FirmwareSource)
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/MobiFlight/MobiFlight-FirmwareSource)
 
 PlatformIO version of the MobiFlight firmware source.
 
