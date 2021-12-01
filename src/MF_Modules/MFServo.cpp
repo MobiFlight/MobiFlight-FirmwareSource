@@ -24,14 +24,10 @@ void MFServo::update() {
 		// detach(); 
 		return; 
 	}
-	
-	// Defer further processing until at least 5ms has elapsed
-    if ((millis()-_lastUpdate) < 5) return;
     
     if (_currentPos > _targetPos) _currentPos--;
     else _currentPos++;
-    
-    _lastUpdate = millis();
+        
     _servo.write(_currentPos);
 }
 
@@ -49,8 +45,7 @@ void MFServo::attach(uint8_t pin, bool enable)
 	_currentPos = 0;
 	setExternalRange(0,180);
 	setInternalRange(0,180);
-	_pin = pin;		
-	_lastUpdate = millis();
+	_pin = pin;	
 }
 
 MFServo::MFServo() : _servo() {}

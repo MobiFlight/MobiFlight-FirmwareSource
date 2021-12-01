@@ -63,6 +63,7 @@ uint32_t lastAnalogAverage = 0;
 uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate= 0;
 uint32_t lastEncoderUpdate = 0;
+uint32_t lastServoUpdate = 0;
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -210,6 +211,7 @@ void setup()
   lastAnalogRead = millis() + 4;
   lastButtonUpdate= millis();
   lastEncoderUpdate = millis() +2;
+  lastServoUpdate = millis();
 }
 
 void generateSerial(bool force)
@@ -1019,6 +1021,9 @@ void OnSetServo()
 
 void updateServos()
 {
+  if (millis()-lastServoUpdate <= MF_SERVO_DELAY_MS) return;
+  lastServoUpdate = millis();
+
   for (int i = 0; i != servosRegistered; i++)
   {
     servos[i].update();
