@@ -13,17 +13,15 @@ void MFLCDDisplay::display(const char *string)
 {
   if (!_initialized)
     return;
-  for (uint8_t line = 0; line != _lines; line++)
+ for (uint8_t line = 0; line != _lines; line++)
   {
     _lcdDisplay->setCursor(0, line);
-    for (uint8_t col = 0; col < _cols; col++)
-    {
-      uint8_t char2print = string[(_cols * line) + col];
-      if (!char2print)                                     // just to be sure not to print after NULL termination
-        return;
-      _lcdDisplay->write(char2print);
-    }
+    _lcdDisplay->writeString(&string[line*_cols], _cols);
+
   }
+
+//_lcdDisplay.writeString(string);
+
 }
 
 void MFLCDDisplay::attach(byte address, byte cols, byte lines)
