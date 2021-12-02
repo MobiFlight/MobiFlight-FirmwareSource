@@ -35,6 +35,7 @@ void MFLCDDisplay::attach(byte address, byte cols, byte lines)
   _initialized = true;
   _lcdDisplay->init((uint8_t)address, (uint8_t)cols, (uint8_t)lines);
   _lcdDisplay->backlight();
+  Wire.setClock(400000);
   test();
 }
 
