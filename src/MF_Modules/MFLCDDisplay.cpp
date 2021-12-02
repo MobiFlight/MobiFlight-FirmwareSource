@@ -13,14 +13,14 @@ void MFLCDDisplay::display(const char *string)
 {
   if (!_initialized)
     return;
+/*    Fallback solution if line wrapping does not work on all LCD's (but should)
  for (uint8_t line = 0; line != _lines; line++)
   {
     _lcdDisplay->setCursor(0, line);
     _lcdDisplay->writeString(&string[line*_cols], _cols);
-
   }
-
-//_lcdDisplay.writeString(string);
+*/
+_lcdDisplay->writeString(string);
 
 }
 
