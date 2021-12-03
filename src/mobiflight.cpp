@@ -1038,7 +1038,7 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis()-lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS) return;
+  if (millis()-lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS) return;
   lastButtonUpdate= millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
@@ -1059,14 +1059,14 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis()-lastAnalogAverage > 10) {
+  if (millis()-lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1) {
     for (int i = 0; i != analogRegistered; i++)
     {
       analog[i].readBuffer();
     }
     lastAnalogAverage = millis();
   }
-  if (millis()-lastAnalogRead < 50) return;
+  if (millis()-lastAnalogRead < MF_ANALOGREAD_DELAY_MS) return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
