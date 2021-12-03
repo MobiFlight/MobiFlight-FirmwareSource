@@ -57,23 +57,13 @@
     {
       "file": "src/mobiflight.cpp",
       "description": "These three lines take the version defined on the compiler command line by `get_version.py` and converts it to a string #define that can be used by the pre-processor.",
-      "line": 51,
+      "line": 15,
       "title": "Code - using the version in #define"
     },
     {
       "file": "src/mobiflight.cpp",
       "description": "This is where the firmware uses the defined `VERSION` and sends it as part of the `kGetInfo` response.",
-      "line": 916,
-      "selection": {
-        "start": {
-          "line": 916,
-          "character": 27
-        },
-        "end": {
-          "line": 916,
-          "character": 34
-        }
-      },
+      "line": 889,
       "title": "Code - sending the version to MobiFlight"
     }
   ],
