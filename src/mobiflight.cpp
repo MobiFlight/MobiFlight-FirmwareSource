@@ -53,6 +53,10 @@ char foo;
 #include <MFShifter.h>
 #endif
 
+#if MF_MPX_DIGIN_SUPPORT == 1
+#include <MFMPXDigitalIn.h>
+#endif
+
 const uint8_t MEM_OFFSET_NAME = 0;
 const uint8_t MEM_LEN_NAME = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
@@ -64,6 +68,10 @@ uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate= 0;
 uint32_t lastEncoderUpdate = 0;
 uint32_t lastServoUpdate = 0;
+
+#if MF_MPX_DIGIN_SUPPORT == 1
+uint32_t lastMPXDigInputUpdate = 0;
+#endif
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
@@ -122,6 +130,12 @@ uint8_t analogRegistered = 0;
 MFShifter shiftregisters[MAX_SHIFTERS];
 uint8_t shiftregisterRegistered = 0;
 #endif
+
+#if MF_MPX_DIGIN_SUPPORT == 1
+MFMPXDigitalIn digitalInMPX[MAX_DIG_IN_MPX];
+uint8_t digitalInMPXRegistered = 0;
+#endif
+
 
 // Callbacks define on which received commands we take action
 void attachCommandCallbacks()
@@ -207,10 +221,13 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
+#if MF_MPX_DIGIN_SUPPORT == 1
+  lastMPXDigInputUpdate = millis() + 8;
+#endif
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
   lastButtonUpdate= millis();
-  lastEncoderUpdate = millis() +2;
+  lastEncoderUpdate = millis() + 2;
   lastServoUpdate = millis();
 }
 
@@ -292,6 +309,9 @@ void loop()
 
   readButtons();
   readEncoder();
+#if MF_MPX_DIGIN_SUPPORT == 1
+  readMPXDigitalIn();
+#endif
 #if MF_ANALOG_SUPPORT == 1
   readAnalog();
 #endif
@@ -413,6 +433,45 @@ void ClearEncoders()
   cmdMessenger.sendCmd(kStatus, F("Cleared encoders"));
 #endif
 }
+
+#if MF_MPX_DIGIN_SUPPORT == 1
+  //// DIGITAL INPUT MULTIPLEXER /////
+void AddInputShifter(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
+                     uint8_t dataPin, bool halfSize, char const *name = "MPXDigIn")
+{
+  if (digitalInMPXRegistered == MAX_DIG_IN_MPX)
+    return;
+  digitalInMPX[digitalInMPXRegistered].attach(Sel0Pin, Sel1Pin, Sel2Pin, Sel3Pin, dataPin, halfSize, name);
+  digitalInMPX[digitalInMPXRegistered].clear();
+  registerPin(Sel0Pin, kTypeMPXDigitalIn);
+  registerPin(Sel1Pin, kTypeMPXDigitalIn);
+  registerPin(Sel2Pin, kTypeMPXDigitalIn);
+  registerPin(Sel3Pin, kTypeMPXDigitalIn);
+  registerPin(dataPin, kTypeMPXDigitalIn);
+
+  digitalInMPX[digitalInMPXRegistered].attachHandler(handlerMPXDigitalInOnChange);
+
+  digitalInMPXRegistered++;
+
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Added digital input MPX"));
+#endif
+}
+
+void ClearInputShifters()
+{
+  for (int i = 0; i < digitalInMPXRegistered; i++){
+    digitalInMPX[digitalInMPXRegistered].detach();
+  }
+  clearRegisteredPins(kTypeMPXDigitalIn);
+  digitalInMPXRegistered = 0;
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Cleared digital input MPX"));
+#endif
+}
+
+#endif
+
 
 //// OUTPUTS /////
 
@@ -659,6 +718,18 @@ void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
   cmdMessenger.sendCmdEnd();
 };
 
+#if MF_MPX_DIGIN_SUPPORT == 1
+//// EVENT HANDLER /////
+void handlerMPXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name)
+{
+  cmdMessenger.sendCmdStart(kMPXDigitalInChange);
+  cmdMessenger.sendCmdArg(name);
+  cmdMessenger.sendCmdArg(channel);
+  cmdMessenger.sendCmdArg(eventId);
+  cmdMessenger.sendCmdEnd();
+};
+#endif
+
 /**
  ** config stuff
  **/
@@ -713,6 +784,10 @@ void resetConfig()
 
 #if MF_SHIFTER_SUPPORT == 1
   ClearShifters();
+#endif
+
+#if MF_MPX_DIGIN_SUPPORT == 1
+  ClearMPXDigitalIn();
 #endif
 
   configLength = 0;
@@ -862,6 +937,22 @@ void readConfig()
       params[4] = strtok_r(NULL, ":", &p); // name
 #if MF_SHIFTER_SUPPORT == 1
       AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+#endif
+      break;
+
+    case kTypeMPXDigitalIn:
+#if MF_MPX_DIGIN_SUPPORT == 1
+      params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
+      params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
+      params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
+      params[3] = strtok_r(NULL, ".", &p); // Sel3 pin
+      params[4] = strtok_r(NULL, ".", &p); // data pin
+      params[5] = strtok_r(NULL, ".", &p); // half-size
+      params[6] = strtok_r(NULL, ":", &p); // name
+      AddMPXDigitalIn(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 
+                      atoi(params[4]), (bool)atoi(params[5]), params[6]);
+#else
+      strtok_r(NULL, ":", &p); // read to the end of unmanaged command
 #endif
       break;
 
