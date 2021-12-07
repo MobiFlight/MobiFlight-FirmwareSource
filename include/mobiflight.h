@@ -5,6 +5,9 @@
 #include <MFAnalog.h>
 
 #define MF_BUTTON_DEBOUNCE_MS   10      // time between updating the buttons
+#define MF_SERVO_DELAY_MS       5       // Time between servo updates
+#define MF_ANALOGAVERAGE_DELAY_MS 10    // time between updating the analog average calculation
+#define MF_ANALOGREAD_DELAY_MS  50      // time between sending analog values
 
 enum
 {

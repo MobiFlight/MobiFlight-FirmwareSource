@@ -39,6 +39,6 @@
 #define MOBIFLIGHT_SERIAL "0987654321"
 #define MOBIFLIGHT_NAME "MobiFlight Uno"
 #define EEPROM_SIZE 1024 // EEPROMSizeUno
-#define MEMLEN_CONFIG 256
+#define MEMLEN_CONFIG 286
 
 #endif
