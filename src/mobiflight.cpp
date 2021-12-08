@@ -53,6 +53,23 @@ char foo;
 #include <MFShifter.h>
 #endif
 
+#if MF_MPX_SUPPORT == 1
+#include <MFMultiplex.h>
+// Definition of MPX_GENERAL flag:
+#define MPX_GENERAL   1
+// Value == 1:
+// MPX selector is set at main loop level (incremented at each pass) 
+// Individual modules work in one of two ways:
+// 1. they must have an associate channel number (which may also be "any"),
+//    and only execute if that matches the current channel;
+// 2. account for current channel number - guaranteed to be scanned sequentially -
+//    in their internal working (e.g. for digital inputs, "shift next bit, or bit #n, in").
+//
+// Value != 1:
+// Every block using the multiplexer sets its own selector value (or span of values).
+// MPX selector can have any value upon entry, and it is changed wherever required.
+#endif
+
 #if MF_MPX_DIGIN_SUPPORT == 1
 #include <MFMPXDigitalIn.h>
 #endif
@@ -130,6 +147,11 @@ uint8_t analogRegistered = 0;
 MFShifter shiftregisters[MAX_SHIFTERS];
 uint8_t shiftregisterRegistered = 0;
 #endif
+
+#if MF_MPX_SUPPORT == 1
+MFMultiplex MPX;
+#endif
+
 
 #if MF_MPX_DIGIN_SUPPORT == 1
 MFMPXDigitalIn digitalInMPX[MAX_DIG_IN_MPX];
@@ -307,6 +329,10 @@ void loop()
   if (!configActivated)
     return;
 
+#if MPX_GENERAL == 1
+  MPX.nextChannel();
+#endif
+
   readButtons();
   readEncoder();
 #if MF_MPX_DIGIN_SUPPORT == 1
@@ -436,7 +462,7 @@ void ClearEncoders()
 
 #if MF_MPX_DIGIN_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
-void AddInputShifter(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
+void AddMPXDigitalIn(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
                      uint8_t dataPin, bool halfSize, char const *name = "MPXDigIn")
 {
   if (digitalInMPXRegistered == MAX_DIG_IN_MPX)
@@ -458,7 +484,7 @@ void AddInputShifter(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t 
 #endif
 }
 
-void ClearInputShifters()
+void ClearMPXDigitalIn()
 {
   for (int i = 0; i < digitalInMPXRegistered; i++){
     digitalInMPX[digitalInMPXRegistered].detach();
@@ -1151,6 +1177,20 @@ void readEncoder()
     encoders[i].update();
   }
 }
+
+#if MF_MPX_DIGIN_SUPPORT == 1
+void readMPXDigitalIn()
+{
+  if (millis() - lastMPXDigInputUpdate <= MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastMPXDigInputUpdate = millis();
+
+  for (int i = 0; i != digitalInMPXRegistered; i++)
+  {
+    digitalInMPX[i].update();
+  }
+}
+#endif
 
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()

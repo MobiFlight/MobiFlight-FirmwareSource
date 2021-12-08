@@ -9,6 +9,7 @@
 #include <WProgram.h>
 #include <wiring.h>
 #endif
+#include "MFMultiplex.h"
 
 extern "C"
 {
@@ -26,7 +27,7 @@ enum
 class MFMPXDigitalIn
 {
 public:
-    MFMPXDigitalIn(const char *name = "MPXDigIn");
+    MFMPXDigitalIn(MFMultiplex *MPX = NULL, const char *name = "MPXDigIn");
     void attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
                 uint8_t dataPin, bool halfSize, char const *name);
     static void attachHandler(MPXDigitalInEvent newHandler);
@@ -38,19 +39,20 @@ public:
 private:
 
     enum { MPX_INITED = 0x80, MPX_HALFSIZE = 0x40, };
+
+    static MFMultiplex *_MPX;
+    static MPXDigitalInEvent _inputHandler;
     
     const char *  _name;
-    uint8_t       _selPin[4];   // Selector pins; 0 is LSb
     uint8_t       _dataPin;     // Data pin - MPX common, input to AVR
     uint8_t       _flags;
     uint16_t      _lastState;
 
-    //void setSelectorOpt(uint8_t mode);
-    void setSelector(uint8_t value);
     void poll(bool detect);
     void detectChanges(uint16_t lastState, uint16_t currentState);
     void trigger(uint8_t channel, bool state);
     void clearLastState();
-    static MPXDigitalInEvent _inputHandler;
+    
+
 };
 #endif

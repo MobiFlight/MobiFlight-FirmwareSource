@@ -3,14 +3,18 @@
 // Copyright (C) 2021
 
 #include "MFMPXDigitalIn.h"
+#include "MFMultiplex.h"
 #include "mobiflight.h"
+
+MFMultiplex * MFMPXDigitalIn::_MPX;
 
 MPXDigitalInEvent MFMPXDigitalIn::_inputHandler = NULL;
 
-MFMPXDigitalIn::MFMPXDigitalIn(const char *name)
+MFMPXDigitalIn::MFMPXDigitalIn(MFMultiplex *MPX, const char *name)
 : _name(name)
 {
     clearLastState();
+    if(MPX) _MPX = MPX;
     _flags = 0x00;
 }
 
@@ -19,51 +23,12 @@ void MFMPXDigitalIn::
 attach( uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
         uint8_t dataPin, bool halfSize, char const *name)
 {
-    _selPin[0]  = Sel0Pin;
-    _selPin[1]  = Sel1Pin;
-    _selPin[2]  = Sel2Pin;
-    _selPin[3]  = Sel3Pin;
+    if(!_MPX) return;
     _dataPin    = dataPin;
     _name       = name;
     _flags      = (halfSize ? MPX_HALFSIZE : 0x00);
-
-    for(uint8_t i=0; i<4; i++) pinMode(_selPin[i], OUTPUT);
     pinMode(_dataPin, INPUT);
     _flags |= MPX_INITED;
-}
-
-#if 0
-// Useless uber-optimized version, for test purposes only
-void MFMPXDigitalIn::setSelectorOpt(uint8_t mode)
-{
-    uint8_t mask = 0x0F;
-    uint8_t currSel;
-    if(0 == mode) {
-        _flags &= 0xF0;
-        currSel = 0;
-    } else {
-        currSel = _flags & 0x0F;
-        if(currSel == 15) return;
-        mask = currSel;
-        mask ^= ++currSel;
-        _flags = ((_flags & 0xF0) | currSel);
-    }
-    for(uint8_t i=0; i<4; i++) {
-        if(mask & 0x01) digitalWrite(_selPin[i], (currSel & 0x01));
-        mask    >>= 1;
-        currSel >>= 1;
-    }
-    
-}
-#endif
-
-// Sets the driver lines to select the specified channel
-void MFMPXDigitalIn::setSelector(uint8_t value)
-{
-    for(uint8_t i=0; i<4; i++) {
-        digitalWrite(_selPin[i], (value & 0x01));
-        value >>= 1;
-    }
 }
 
 // Reads the values from the attached modules, compares them to the previously
@@ -77,25 +42,65 @@ void MFMPXDigitalIn::update()
 // Helper function for update() and retrigger()
 void MFMPXDigitalIn::poll(bool detect)
 {
+    if(!_MPX) return;
+    uint16_t currentState;
     uint8_t selMax = ((_flags & MPX_HALFSIZE) ? 16 : 8);
-    uint16_t currentState = 0x0000;
 
-    for (uint8_t sel = selMax; sel > 0; sel--)
-    {
-        setSelector(sel-1);
-        currentState |= (digitalRead(_dataPin) ? 1 : 0);
-        currentState <<= 1;
+#if MPX_GENERAL == 1
+    // MPX selector is set at a higher level,
+    // we just fetch one more bit at each pass and account for changes when done with
+    uint8_t ch = _MPX->getChannel() % selMax;
+
+    // Note: with this operating mode, since we have no guarantee that the 
+    // selector sequence - imposed from outside - is indeed correct,
+    // it might be necessary to do one of following:
+    // 1. keep a copy of the index value here and check against it
+    //    (but if they don't match, then what?)
+    // 2. instead of shifting the result in, OR a mask corresponding to the selector value
+    //    (but when to perform reset and change detect?)
+
+    // static uint8_t  nextSel;             // [Option 1]
+    if(ch == 0) {
+        currentState = 0x0000;
+        // nextSel = 0;                     // [Option 1]
+    }
+    // if(nextSel++ != ch) ... do what?     // [Option 1]
+
+    // if(digitalRead(_dataPin)) currentState |= (0x0001<<ch);  // [Option 2]
+    currentState |= (digitalRead(_dataPin) ? 1 : 0);
+    currentState <<= 1;
+
+    if(ch == (selMax-1)) {
         if(_lastState != currentState)
         {
             if(detect) detectChanges(_lastState, currentState);
             _lastState = currentState;
         }
+
     }
+#else
+    // Span all values of the MPX selector here and read complete input bank.
+    // Safe but very redundant
+
+    currentState = 0x0000;
+    for (uint8_t sel = selMax; sel > 0; sel--)
+    {
+        _MPX->setChannel(sel-1);
+        currentState |= (digitalRead(_dataPin) ? 1 : 0);
+        currentState <<= 1;
+    }
+    if(_lastState != currentState)
+    {
+        if(detect) detectChanges(_lastState, currentState);
+        _lastState = currentState;
+    }
+#endif
 }
 
 // Detects changes between the current state and the previously saved state
 void MFMPXDigitalIn::detectChanges(uint16_t lastState, uint16_t currentState)
 {
+    if(!_MPX) return;
     uint8_t     selMax = ((_flags & MPX_HALFSIZE) ? 16 : 8);
     uint16_t    diff   = lastState ^ currentState;
     for (uint8_t i = 0; i < selMax; i++)
@@ -129,6 +134,7 @@ void MFMPXDigitalIn::retrigger()
 // Triggers the event handler for the associated input channel
 void MFMPXDigitalIn::trigger(uint8_t channel, bool state)
 {
+    if(!_MPX) return;
     if(!_inputHandler) return;
     (*_inputHandler)((state ? MPXDigitalInOnRelease : MPXDigitalInOnPress), channel, _name);
 }
@@ -141,6 +147,7 @@ void MFMPXDigitalIn::attachHandler(MPXDigitalInEvent newHandler)
 
 void MFMPXDigitalIn::detach()
 {
+    pinMode(_dataPin, INPUT_PULLUP);
     _flags &= (~MPX_INITED);
 }
 

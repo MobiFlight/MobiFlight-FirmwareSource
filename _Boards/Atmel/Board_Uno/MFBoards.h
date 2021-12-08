@@ -2,22 +2,25 @@
 #define MFBoardUno_h
 
 #ifndef MF_SEGMENT_SUPPORT
-#define MF_SEGMENT_SUPPORT 1
+#define MF_SEGMENT_SUPPORT   1
 #endif
 #ifndef MF_LCD_SUPPORT
-#define MF_LCD_SUPPORT 1
+#define MF_LCD_SUPPORT       1
 #endif
 #ifndef MF_STEPPER_SUPPORT
-#define MF_STEPPER_SUPPORT 1
+#define MF_STEPPER_SUPPORT   1
 #endif
 #ifndef MF_SERVO_SUPPORT
-#define MF_SERVO_SUPPORT 1
+#define MF_SERVO_SUPPORT     1
 #endif
 #ifndef MF_ANALOG_SUPPORT
-#define MF_ANALOG_SUPPORT 1
+#define MF_ANALOG_SUPPORT    1
 #endif
 #ifndef MF_SHIFTER_SUPPORT
-#define MF_SHIFTER_SUPPORT 1
+#define MF_SHIFTER_SUPPORT   1
+#endif
+#ifndef MF_MPX_SUPPORT
+#define MF_MPX_SUPPORT       1
 #endif
 #ifndef MF_MPX_DIGIN_SUPPORT
 #define MF_MPX_DIGIN_SUPPORT 1
