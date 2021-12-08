@@ -85,11 +85,11 @@ void MFMPXDigitalIn::poll(bool detect)
         setSelector(sel-1);
         currentState |= (digitalRead(_dataPin) ? 1 : 0);
         currentState <<= 1;
-        if(_lastState != currentState)
-        {
-            if(detect) detectChanges(_lastState, currentState);
-            _lastState = currentState;
-        }
+    }
+    if(_lastState != currentState)
+    {
+        if(detect) detectChanges(_lastState, currentState);
+        _lastState = currentState;
     }
 }
 

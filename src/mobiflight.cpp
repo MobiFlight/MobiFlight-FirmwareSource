@@ -436,7 +436,7 @@ void ClearEncoders()
 
 #if MF_MPX_DIGIN_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
-void AddInputShifter(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
+void AddMPXDigitalIn(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
                      uint8_t dataPin, bool halfSize, char const *name = "MPXDigIn")
 {
   if (digitalInMPXRegistered == MAX_DIG_IN_MPX)
@@ -458,7 +458,7 @@ void AddInputShifter(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t 
 #endif
 }
 
-void ClearInputShifters()
+void ClearMPXDigitalIn()
 {
   for (int i = 0; i < digitalInMPXRegistered; i++){
     digitalInMPX[digitalInMPXRegistered].detach();
@@ -1151,6 +1151,20 @@ void readEncoder()
     encoders[i].update();
   }
 }
+
+#if MF_MPX_DIGIN_SUPPORT == 1
+void readMPXDigitalIn()
+{
+  if (millis() - lastMPXDigInputUpdate <= MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastMPXDigInputUpdate = millis();
+
+  for (int i = 0; i != digitalInMPXRegistered; i++)
+  {
+    digitalInMPX[i].update();
+  }
+}
+#endif
 
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
