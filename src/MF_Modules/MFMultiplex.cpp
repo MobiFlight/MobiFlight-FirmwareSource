@@ -42,6 +42,7 @@ void MFMultiplex::detach()
 /// \brief Sets the driver lines to select the specified channel
 void MFMultiplex::setChannel(uint8_t value)
 {
+    if(!bitRead(_flags, MPX_INITED)) return;
     if(value > 15) return;
     _channel = value;
     for(uint8_t i=0; i<4; i++) {

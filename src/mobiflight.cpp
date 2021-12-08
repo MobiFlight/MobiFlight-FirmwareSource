@@ -450,6 +450,8 @@ void ClearEncoders()
   //// DIGITAL INPUT MULTIPLEXER /////
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
+  if (isPinRegistered(Sel0Pin) || isPinRegistered(Sel1Pin)||isPinRegistered(Sel2Pin) || isPinRegistered(Sel3Pin))
+     return;
 
   registerPin(Sel0Pin, kTypeMultiplexer);
   registerPin(Sel1Pin, kTypeMultiplexer);
@@ -480,6 +482,8 @@ void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name
 {
   if (digitalInMPXRegistered == MAX_DIG_IN_MPX)
     return;
+  if (isPinRegistered(dataPin))
+    return;
   MFMPXDigitalIn *DIMPX = &digitalInMPX[digitalInMPXRegistered];
   registerPin(dataPin, kTypeMPXDigitalIn);
   DIMPX->attach(dataPin, halfSize, name);
@@ -492,7 +496,6 @@ void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name
   cmdMessenger.sendCmd(kStatus, F("Added digital input MPX"));
 #endif
 }
-
 
 void ClearMPXDigitalIn()
 {

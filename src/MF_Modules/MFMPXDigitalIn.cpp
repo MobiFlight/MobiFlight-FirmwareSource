@@ -35,7 +35,7 @@ void MFMPXDigitalIn::setMPX(MFMultiplex *MPX)
 // Registers a new MPX input block and configures the driver pins
 void MFMPXDigitalIn::attach(uint8_t dataPin, bool halfSize, char const *name)
 {
-    if(!_MPX) return;
+    //if(!_MPX) return;     // no need to check, the object can be set up in advance before the MPX is configured
     _dataPin    = dataPin;
     _name       = name;
     _flags      = 0x00; 
@@ -46,8 +46,10 @@ void MFMPXDigitalIn::attach(uint8_t dataPin, bool halfSize, char const *name)
 
 void MFMPXDigitalIn::detach()
 {
-    pinMode(_dataPin, INPUT_PULLUP);
-    bitClear(_flags, MPX_INITED);
+    if(bitRead(_flags, MPX_INITED)) {
+        pinMode(_dataPin, INPUT_PULLUP);
+        bitClear(_flags, MPX_INITED);
+    }
 }
 
 // Reads the values from the attached modules, compares them to the previously
