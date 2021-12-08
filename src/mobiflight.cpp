@@ -55,19 +55,6 @@ char foo;
 
 #if MF_MPX_SUPPORT == 1
 #include <MFMultiplex.h>
-// Definition of MPX_GENERAL flag:
-#define MPX_GENERAL   1
-// Value == 1:
-// MPX selector is set at main loop level (incremented at each pass) 
-// Individual modules work in one of two ways:
-// 1. they must have an associate channel number (which may also be "any"),
-//    and only execute if that matches the current channel;
-// 2. account for current channel number - guaranteed to be scanned sequentially -
-//    in their internal working (e.g. for digital inputs, "shift next bit, or bit #n, in").
-//
-// Value != 1:
-// Every block using the multiplexer sets its own selector value (or span of values).
-// MPX selector can have any value upon entry, and it is changed wherever required.
 #endif
 
 #if MF_MPX_DIGIN_SUPPORT == 1
@@ -152,7 +139,6 @@ uint8_t shiftregisterRegistered = 0;
 MFMultiplex MPX;
 #endif
 
-
 #if MF_MPX_DIGIN_SUPPORT == 1
 MFMPXDigitalIn digitalInMPX[MAX_DIG_IN_MPX];
 uint8_t digitalInMPXRegistered = 0;
@@ -222,7 +208,6 @@ void attachEventCallbacks()
 
 }
 
-
 void OnResetBoard()
 {
   MFeeprom.init();
@@ -238,6 +223,9 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
+#if MF_MPX_DIGIN_SUPPORT == 1
+  MFMPXDigitalIn::setMPX(&MPX);
+#endif
   attachCommandCallbacks();
   attachEventCallbacks();
   cmdMessenger.printLfCr();
@@ -329,9 +317,7 @@ void loop()
   if (!configActivated)
     return;
 
-#if MPX_GENERAL == 1
   MPX.nextChannel();
-#endif
 
   readButtons();
   readEncoder();
@@ -460,29 +446,53 @@ void ClearEncoders()
 #endif
 }
 
+#if MF_MPX_SUPPORT == 1
+  //// DIGITAL INPUT MULTIPLEXER /////
+void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
+{
+
+  registerPin(Sel0Pin, kTypeMultiplexer);
+  registerPin(Sel1Pin, kTypeMultiplexer);
+  registerPin(Sel2Pin, kTypeMultiplexer);
+  registerPin(Sel3Pin, kTypeMultiplexer);
+  MPX.attach(Sel0Pin, Sel1Pin, Sel2Pin, Sel3Pin);
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Added multiplexer"));
+#endif
+}
+#endif
+
+#if MF_MPX_SUPPORT == 1
+  //// MULTIPLEXER SELUECTOR /////
+void ClearMultiplexer()
+{
+  MPX.detach();
+  clearRegisteredPins(kTypeMultiplexer);
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Cleared Multiplexer selector"));
+#endif
+}
+#endif
+
 #if MF_MPX_DIGIN_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
-void AddMPXDigitalIn(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
-                     uint8_t dataPin, bool halfSize, char const *name = "MPXDigIn")
+void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name = "MPXDigIn")
 {
   if (digitalInMPXRegistered == MAX_DIG_IN_MPX)
     return;
-  digitalInMPX[digitalInMPXRegistered].attach(Sel0Pin, Sel1Pin, Sel2Pin, Sel3Pin, dataPin, halfSize, name);
-  digitalInMPX[digitalInMPXRegistered].clear();
-  registerPin(Sel0Pin, kTypeMPXDigitalIn);
-  registerPin(Sel1Pin, kTypeMPXDigitalIn);
-  registerPin(Sel2Pin, kTypeMPXDigitalIn);
-  registerPin(Sel3Pin, kTypeMPXDigitalIn);
+  MFMPXDigitalIn *DIMPX = &digitalInMPX[digitalInMPXRegistered];
   registerPin(dataPin, kTypeMPXDigitalIn);
-
-  digitalInMPX[digitalInMPXRegistered].attachHandler(handlerMPXDigitalInOnChange);
-
+  DIMPX->attach(dataPin, halfSize, name);
+  DIMPX->clear();
+  DIMPX->setLazyMode(mode!=0);
+  DIMPX->attachHandler(handlerMPXDigitalInOnChange);
   digitalInMPXRegistered++;
 
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added digital input MPX"));
 #endif
 }
+
 
 void ClearMPXDigitalIn()
 {
@@ -966,17 +976,25 @@ void readConfig()
 #endif
       break;
 
-    case kTypeMPXDigitalIn:
-#if MF_MPX_DIGIN_SUPPORT == 1
+    case kTypeMultiplexer:
+#if MF_MPX_SUPPORT == 1
+      // Repeated commands do not define more objects, but change the only existing one
       params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
       params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
       params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
-      params[3] = strtok_r(NULL, ".", &p); // Sel3 pin
-      params[4] = strtok_r(NULL, ".", &p); // data pin
-      params[5] = strtok_r(NULL, ".", &p); // half-size
-      params[6] = strtok_r(NULL, ":", &p); // name
-      AddMPXDigitalIn(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 
-                      atoi(params[4]), (bool)atoi(params[5]), params[6]);
+      params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
+      AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
+#else
+      strtok_r(NULL, ":", &p); // read to the end of unmanaged command
+#endif
+      break;
+
+    case kTypeMPXDigitalIn:
+#if MF_MPX_DIGIN_SUPPORT == 1
+      params[0] = strtok_r(NULL, ".", &p); // data pin
+      params[1] = strtok_r(NULL, ".", &p); // half-size
+      params[2] = strtok_r(NULL, ":", &p); // name
+      AddMPXDigitalIn(atoi(params[0]), (bool)atoi(params[1]), params[2]);
 #else
       strtok_r(NULL, ":", &p); // read to the end of unmanaged command
 #endif
@@ -1074,7 +1092,6 @@ void OnInitShiftRegister()
 
 void OnSetShiftRegisterPins()
 {
-
   int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
   int value = cmdMessenger.readInt16Arg();

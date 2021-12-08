@@ -27,18 +27,24 @@ enum
 class MFMPXDigitalIn
 {
 public:
-    MFMPXDigitalIn(MFMultiplex *MPX = NULL, const char *name = "MPXDigIn");
-    void attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin, 
-                uint8_t dataPin, bool halfSize, char const *name);
+    enum { MPX_MODE_FAST = 0, MPX_MODE_LAZY = 1, };
+
+    MFMPXDigitalIn(void);
+    MFMPXDigitalIn(MFMultiplex *MPX, const char *name);
+    static void setMPX(MFMultiplex *MPX);
     static void attachHandler(MPXDigitalInEvent newHandler);
-    void clear();
+
+    void attach(uint8_t dataPin, bool halfSize, char const *name);
     void detach();
+    void clear();
     void retrigger();
     void update();
+    void setLazyMode(bool mode);
+    uint16_t getValues(void) { return _lastState; }
 
 private:
 
-    enum { MPX_INITED = 0x80, MPX_HALFSIZE = 0x40, };
+    enum { MPX_INITED = 0, MPX_HALFSIZE = 1, MPX_LAZY = 2, };
 
     static MFMultiplex *_MPX;
     static MPXDigitalInEvent _inputHandler;
@@ -48,11 +54,9 @@ private:
     uint8_t       _flags;
     uint16_t      _lastState;
 
-    void poll(bool detect);
+    void poll(bool detect, bool lazy);
     void detectChanges(uint16_t lastState, uint16_t currentState);
     void trigger(uint8_t channel, bool state);
-    void clearLastState();
-    
 
 };
 #endif

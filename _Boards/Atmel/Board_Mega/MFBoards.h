@@ -20,9 +20,9 @@
 #define MF_SHIFTER_SUPPORT   1
 #endif
 #ifndef MF_MPX_SUPPORT
-#define MF_MPX_SUPPORT       1
 #endif
 #ifndef MF_MPX_DIGIN_SUPPORT
+#define MF_MPX_SUPPORT       1
 #define MF_MPX_DIGIN_SUPPORT 1
 #endif
 
