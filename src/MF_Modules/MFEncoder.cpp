@@ -70,7 +70,8 @@ void MFEncoder::attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, const ch
   _oldState = 0;
   _position = 0;
   _positionExt = 0;
-
+  _positionTimePrev = 0;              // for first startup avoid calculation of a high speed, _positionTimePrev
+  _positionTime = 500;                // and _positionTime must be initialized to avoid that they have the same value
   _initialized = true;
 }
 
