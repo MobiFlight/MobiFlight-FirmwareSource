@@ -38,7 +38,7 @@ extern "C"
 #define MF_ENC_MAX 8000 
 
 // this defines the delta value limit for triggering onFast
-#define MF_ENC_FAST_LIMIT 75 // 50
+#define MF_ENC_FAST_LIMIT 50 // 50
 
 enum
 {
@@ -84,12 +84,13 @@ private:
     const char *              _name;
     int16_t                   _pos;
     uint8_t                   _TypeEncoder;
-
+    uint8_t                   _detentCounter;
     encoderType               _encoderType;
     int8_t                    _oldState;
     int16_t                   _position;            // Internal position (4 times _positionExt)
     int16_t                   _positionExt;         // External position
     uint32_t                  _positionTime;        // time last position change was detected
     uint32_t                  _positionTimePrev;    // time previous position change was detected
+    uint32_t                  _lastFastDec;
 };
 #endif 
