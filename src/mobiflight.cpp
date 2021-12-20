@@ -845,6 +845,7 @@ void readConfig()
       break;
 
     case kTypeLedSegment:
+#if MF_SEGMENT_SUPPORT == 1
       params[0] = strtok_r(NULL, ".", &p); // pin Data
       params[1] = strtok_r(NULL, ".", &p); // pin Cs
       params[2] = strtok_r(NULL, ".", &p); // pin Clk
@@ -852,12 +853,14 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // numModules
       params[5] = strtok_r(NULL, ":", &p); // Name
                                            // int dataPin, int clkPin, int csPin, int numDevices, int brightness
-#if MF_SEGMENT_SUPPORT == 1
       AddLedSegment(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[4]), atoi(params[3]));
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
     case kTypeStepperDeprecated:
+#if MF_STEPPER_SUPPORT == 1
       // this is for backwards compatibility
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -865,12 +868,14 @@ void readConfig()
       params[3] = strtok_r(NULL, ".", &p); // pin4
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
-#if MF_STEPPER_SUPPORT == 1
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 0);
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
     case kTypeStepper:
+#if MF_STEPPER_SUPPORT == 1
       // AddStepper(int pin1, int pin2, int pin3, int pin4)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -878,17 +883,20 @@ void readConfig()
       params[3] = strtok_r(NULL, ".", &p); // pin4
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
-#if MF_STEPPER_SUPPORT == 1
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
     case kTypeServo:
+#if MF_SERVO_SUPPORT == 1
       // AddServo(int pin)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ":", &p); // Name
-#if MF_SERVO_SUPPORT == 1
       AddServo(atoi(params[0]));
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
@@ -910,33 +918,39 @@ void readConfig()
       break;
 
     case kTypeLcdDisplayI2C:
-      // AddEncoder(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
+#if MF_LCD_SUPPORT == 1
+      // AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
       params[0] = strtok_r(NULL, ".", &p); // address
       params[1] = strtok_r(NULL, ".", &p); // cols
       params[2] = strtok_r(NULL, ".", &p); // lines
       params[3] = strtok_r(NULL, ":", &p); // Name
-#if MF_LCD_SUPPORT == 1
       AddLcdDisplay(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
     case kTypeAnalogInput:
+#if MF_ANALOG_SUPPORT == 1
       params[0] = strtok_r(NULL, ".", &p); // pin
       params[1] = strtok_r(NULL, ".", &p); // sensitivity
       params[2] = strtok_r(NULL, ":", &p); // name
-#if MF_ANALOG_SUPPORT == 1
       AddAnalog(atoi(params[0]), params[2], atoi(params[1]));
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
     case kShiftRegister:
+#if MF_SHIFTER_SUPPORT == 1
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
-#if MF_SHIFTER_SUPPORT == 1
       AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+#else
+      strtok_r(NULL, ":", &p); // skip unmanaged command
 #endif
       break;
 
@@ -957,9 +971,8 @@ void readConfig()
       break;
 
     default:
-      // read to the end of the current command which is
-      // apparently not understood
-      params[0] = strtok_r(NULL, ":", &p); // read to end of unknown command
+      // read to the end of the current command which is apparently not understood
+      strtok_r(NULL, ":", &p); // read to end of unknown command
     }
     command = strtok_r(NULL, ".", &p);
   } while (command != NULL);
