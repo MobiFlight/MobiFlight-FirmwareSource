@@ -132,6 +132,10 @@ void handlerOnAnalogChange(int value, uint8_t pin, const char *name);
 void OnInitShiftRegister();
 void OnSetShiftRegisterPins();
 void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
+void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
+void ClearInputShifters();
+void readInputShifters();
+void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name);
 
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin);
 void ClearMultiplexer();
