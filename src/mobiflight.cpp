@@ -1322,6 +1322,7 @@ void readInputShifters()
     inputShifters[i].update();
   }
 }
+#endif
 
 #if MF_MPX_DIGIN_SUPPORT == 1
 void readMPXDigitalIn()
@@ -1341,7 +1342,6 @@ void readMPXDigitalIn()
 void readAnalog()
 {
   if (millis()-lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1) {
-  {
     for (int i = 0; i != analogRegistered; i++)
     {
       analog[i].readBuffer();
