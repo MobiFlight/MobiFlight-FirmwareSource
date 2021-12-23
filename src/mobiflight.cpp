@@ -670,11 +670,10 @@ void OnSetConfig()
   lastCommand = millis();
   char *cfg = cmdMessenger.readStringArg();
   uint8_t cfgLen = strlen(cfg);
-  uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
-  if (bufferSize > 1)
+  if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, bufferSize);
+    MFeeprom.write_block(MEM_OFFSET_CONFIG + configLength, cfg, cfgLen+1);    // save the received config string including the terminatung NULL (+1) to EEPROM
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
