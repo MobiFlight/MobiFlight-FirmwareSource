@@ -38,8 +38,7 @@ private:
     bool    _initialized;
     Servo   _servo;
     long    _targetPos;
-    long    _currentPos;
-    unsigned long _lastUpdate;
+    long    _currentPos;    
     int     speed;
 };
 #endif 

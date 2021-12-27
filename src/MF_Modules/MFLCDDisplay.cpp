@@ -16,13 +16,7 @@ void MFLCDDisplay::display(const char *string)
   for (uint8_t line = 0; line != _lines; line++)
   {
     _lcdDisplay->setCursor(0, line);
-    for (uint8_t col = 0; col < _cols; col++)
-    {
-      uint8_t char2print = string[(_cols * line) + col];
-      if (!char2print)                                     // just to be sure not to print after NULL termination
-        return;
-      _lcdDisplay->write(char2print);
-    }
+    _lcdDisplay->writeString(&string[line*_cols], _cols);
   }
 }
 
@@ -31,10 +25,11 @@ void MFLCDDisplay::attach(byte address, byte cols, byte lines)
   _address = address;
   _cols = cols;
   _lines = lines;
-  _lcdDisplay = new LiquidCrystal_I2C((uint8_t)address, (uint8_t)cols, (uint8_t)lines);
+  _lcdDisplay = new LiquidCrystal_I2C();
   _initialized = true;
-  _lcdDisplay->init();
+  _lcdDisplay->init((uint8_t)address, (uint8_t)cols, (uint8_t)lines);
   _lcdDisplay->backlight();
+  Wire.setClock(400000);
   test();
 }
 
@@ -66,10 +61,10 @@ void MFLCDDisplay::test()
     preLines = floor(_lines / 2) - 1;
   }
 
-  _printCentered("MobiFlight", preLines++);
+  _printCentered("MF wishes", preLines++);
   if (_lines > 1)
   {
-    _printCentered("Rocks!", preLines++);
+    _printCentered("Happy Holidays!!", preLines++);
   }
 
   _lcdDisplay->setCursor(0, 0);

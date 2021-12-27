@@ -69,6 +69,7 @@ uint32_t lastAnalogRead = 0;
 #endif
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
+uint32_t lastServoUpdate = 0;
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 uint32_t lastInputShifterUpdate = 0;
@@ -228,6 +229,7 @@ void setup()
 #endif
   lastButtonUpdate = millis();
   lastEncoderUpdate = millis() + 2;
+  lastServoUpdate = millis();
 }
 
 void generateSerial(bool force)
@@ -740,11 +742,10 @@ void OnSetConfig()
   lastCommand = millis();
   char *cfg = cmdMessenger.readStringArg();
   uint8_t cfgLen = strlen(cfg);
-  uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
-  if (bufferSize > 1)
+  if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, bufferSize);
+    memcpy(&configBuffer[configLength], cfg, cfgLen + 1); // save the received config string including the terminatung NULL (+1)
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -1115,6 +1116,10 @@ void OnSetServo()
 
 void updateServos()
 {
+  if (millis() - lastServoUpdate <= MF_SERVO_DELAY_MS)
+    return;
+  lastServoUpdate = millis();
+
   for (int i = 0; i != servosRegistered; i++)
   {
     servos[i].update();
@@ -1134,7 +1139,7 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis() - lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS)
+  if (millis() - lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS)
     return;
   lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
@@ -1171,7 +1176,7 @@ void readInputShifters()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis() - lastAnalogAverage > 10)
+  if (millis() - lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1)
   {
     for (int i = 0; i != analogRegistered; i++)
     {
@@ -1179,7 +1184,7 @@ void readAnalog()
     }
     lastAnalogAverage = millis();
   }
-  if (millis() - lastAnalogRead < 50)
+  if (millis() - lastAnalogRead < MF_ANALOGREAD_DELAY_MS)
     return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
