@@ -70,6 +70,7 @@ void MFEncoder::attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, const ch
   _oldState = 0;
   _position = 0;
   _positionExt = 0;
+  _detentCounter = 0;
   _positionTimePrev = 0;              // for first startup avoid calculation of a high speed, _positionTimePrev
   _positionTime = 500;                // and _positionTime must be initialized to avoid that they have the same value
   _initialized = true;
@@ -93,7 +94,7 @@ void MFEncoder::update()
   if (delta<0) dir = false;
 
   if(_handler) {
-    if (abs(delta) < (MF_ENC_FAST_LIMIT /*>> _encoderType.resolutionShift*/)) {
+    if (abs(delta) < (MF_ENC_FAST_LIMIT)) {
       // slow turn detected
       if (dir) {
           (*_handler)(encLeft, _pin1, _name);
@@ -123,16 +124,33 @@ void MFEncoder::tick(void)
 {
 	bool sig1 = !digitalRead(_pin1);        // to keep backwards compatibility for encoder type digitalRead must be negated
 	bool sig2 = !digitalRead(_pin2);        // to keep backwards compatibility for encoder type digitalRead must be negated
-	
+	int _speed = 0;
+  uint32_t currentMs = millis();
+
 	int8_t thisState = sig1 | (sig2 << 1);
   
+  if (currentMs - _lastFastDec > 100 && _detentCounter > 1) {
+    _lastFastDec = currentMs;
+    _detentCounter--;
+  } else if (currentMs - _positionTimePrev > 500) {    // if more than 80ms no step detected, set fast acceleration to 0
+    _lastFastDec = currentMs;
+    _detentCounter = 0;
+  }
+
 	if (_oldState != thisState) {
-		int _speed = 1 + (1000 / (1 + _positionTime - _positionTimePrev));
+      
+    if (_detentCounter > 6) { // at minimum 6 detents have to be detected before fast step can be detected
+      _speed = 51;
+    } else {
+      _speed = 1;
+    }
+		
 		_position += ((KNOBDIR[thisState | (_oldState<<2)] * _speed)) << _encoderType.resolutionShift;
 		if (_encoderType.detents[thisState]) {
-			_positionTimePrev = _positionTime;
-			_positionTime = millis();
+      _positionTimePrev = _positionTime;
+      _positionTime = currentMs;
 			_positionExt = _position >> _encoderType.resolutionShift;
+      _detentCounter = min(_detentCounter+1, 12);
 		}
 		_oldState = thisState;
 	}
