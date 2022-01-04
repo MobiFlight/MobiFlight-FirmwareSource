@@ -92,6 +92,8 @@ void MFMPXDigitalIn::poll(bool detect, bool isLazy)
         for (uint8_t sel = selMax; sel > 0; sel--)
         {
             _MPX->setChannel(sel-1);
+            delayMicroseconds(15);  // Allow the output to stabilize from voltage transients due to spurious codes
+            // In order to avoid commutation "noise", ideally setChannel() should change all pins atomically
             currentState |= (digitalRead(_dataPin) ? 1 : 0);
             currentState <<= 1;
         }
