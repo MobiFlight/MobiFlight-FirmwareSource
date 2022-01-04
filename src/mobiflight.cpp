@@ -61,11 +61,10 @@ const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIA
 
 uint32_t lastAnalogAverage = 0;
 uint32_t lastAnalogRead = 0;
-uint32_t lastButtonUpdate= 0;
+uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 uint32_t lastServoUpdate = 0;
 
-const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
@@ -183,9 +182,7 @@ void attachEventCallbacks()
 #if MF_ANALOG_SUPPORT == 1
   MFAnalog::attachHandler(handlerOnAnalogChange);
 #endif
-
 }
-
 
 void OnResetBoard()
 {
@@ -209,8 +206,8 @@ void setup()
   // Time Gap between Inputs, do not read at the same loop
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
-  lastButtonUpdate= millis();
-  lastEncoderUpdate = millis() +2;
+  lastButtonUpdate = millis();
+  lastEncoderUpdate = millis() + 2;
   lastServoUpdate = millis();
 }
 
@@ -223,7 +220,8 @@ void generateSerial(bool force)
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);           // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
+  if (!force)
+    MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
 void loadConfig()
@@ -369,7 +367,7 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
     return;
 
   buttons[buttonsRegistered] = MFButton(pin, name);
-  
+
   registerPin(pin, kTypeButton);
   buttonsRegistered++;
 #ifdef DEBUG
@@ -396,7 +394,7 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 
   encoders[encodersRegistered] = MFEncoder();
   encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
-  
+
   registerPin(pin1, kTypeEncoder);
   registerPin(pin2, kTypeEncoder);
   encodersRegistered++;
@@ -673,7 +671,7 @@ void OnSetConfig()
 
   if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, cfgLen+1);       // save the received config string including the terminatung NULL (+1)
+    memcpy(&configBuffer[configLength], cfg, cfgLen + 1); // save the received config string including the terminatung NULL (+1)
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -744,7 +742,8 @@ void _activateConfig()
 
 void readConfig()
 {
-  if (configLength == 0) return;
+  if (configLength == 0)
+    return;
   char *p = NULL;
 
   char *command = strtok_r(configBuffer, ".", &p);
@@ -884,10 +883,10 @@ void OnGetInfo()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(type);
+  cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdArg(VERSION);
+  cmdMessenger.sendCmdArg(F(VERSION));
   cmdMessenger.sendCmdEnd();
 }
 
@@ -896,8 +895,9 @@ void OnGetConfig()
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
   cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
-  for (uint16_t i=1; i<configLength; i++) {
-    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG+i));
+  for (uint16_t i = 1; i < configLength; i++)
+  {
+    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
   }
   cmdMessenger.sendCmdEnd();
 }
@@ -1020,7 +1020,8 @@ void OnSetServo()
 
 void updateServos()
 {
-  if (millis()-lastServoUpdate <= MF_SERVO_DELAY_MS) return;
+  if (millis() - lastServoUpdate <= MF_SERVO_DELAY_MS)
+    return;
   lastServoUpdate = millis();
 
   for (int i = 0; i != servosRegistered; i++)
@@ -1042,8 +1043,9 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis()-lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS) return;
-  lastButtonUpdate= millis();
+  if (millis() - lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
@@ -1052,7 +1054,8 @@ void readButtons()
 
 void readEncoder()
 {
-  if (millis()-lastEncoderUpdate < 1) return;
+  if (millis() - lastEncoderUpdate < 1)
+    return;
   lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
@@ -1063,14 +1066,16 @@ void readEncoder()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis()-lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1) {
+  if (millis() - lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1)
+  {
     for (int i = 0; i != analogRegistered; i++)
     {
       analog[i].readBuffer();
     }
     lastAnalogAverage = millis();
   }
-  if (millis()-lastAnalogRead < MF_ANALOGREAD_DELAY_MS) return;
+  if (millis() - lastAnalogRead < MF_ANALOGREAD_DELAY_MS)
+    return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
