@@ -24,8 +24,8 @@ enum
   kShiftRegister,           // 10 Shift register support (example: 74HC595, TLC592X)
   kTypeAnalogInput,         // 11 Analog Device with 1 pin
   kTypeInputShifter,        // 12 Input shift register support (example: 74HC165)
-  kTypeMultiplexer,         // 13 Multiplexer selector support (generates select outputs)
-  kTypeMPXDigitalIn,        // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
+  kTypeMuxDriver,           // 13 Multiplexer selector support (generates select outputs)
+  kTypeMuxDigIn,            // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
 };
 
 // This is the list of recognized commands. These can be commands that can either be sent or received.
@@ -65,7 +65,7 @@ enum
   kSetShiftRegisterPins, // 27
   kAnalogChange,         // 28
   kInputShifterChange,   // 29
-  kMPXDigitalInChange,   // 30
+  kMuxDigInChange,   // 30
 };
 
 void attachCommandCallbacks();
@@ -136,9 +136,9 @@ void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t mod
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin);
 void ClearMultiplexer();
 
-void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name);
-void ClearMPXDigitalIn();
-void readMPXDigitalIn();
-void handlerMPXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name);
+void AddMUXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name);
+void ClearMUXDigitalIn();
+void readMUXDigitalIn();
+void handlerMUXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name);
 
 #endif
