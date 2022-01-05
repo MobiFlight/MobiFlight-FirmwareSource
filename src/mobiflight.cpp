@@ -57,7 +57,7 @@ char foo;
 #include <MFMuxDriver.h>
 #endif
 
-#if MF_MUX_DIGIN_SUPPORT == 1
+#if MF_DIGIN_MUX_SUPPORT == 1
 #include <MFDigInMux.h>
 #endif
 
@@ -73,8 +73,8 @@ uint32_t lastButtonUpdate= 0;
 uint32_t lastEncoderUpdate = 0;
 uint32_t lastServoUpdate = 0;
 
-#if MF_MUX_DIGIN_SUPPORT == 1
-uint32_t lastMUXDigInputUpdate = 0;
+#if MF_DIGIN_MUX_SUPPORT == 1
+uint32_t lastDigInMuxUpdate = 0;
 #endif
 
 const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
@@ -139,9 +139,9 @@ uint8_t shiftregisterRegistered = 0;
 MFMuxDriver MUX;
 #endif
 
-#if MF_MUX_DIGIN_SUPPORT == 1
-MFDigInMux digitalInMUX[MAX_DIG_IN_MUX];
-uint8_t digitalInMUXRegistered = 0;
+#if MF_DIGIN_MUX_SUPPORT == 1
+MFDigInMux digInMUX[MAX_DIGIN_MUX];
+uint8_t digInMuxRegistered = 0;
 #endif
 
 
@@ -223,7 +223,7 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
-#if MF_MUX_DIGIN_SUPPORT == 1
+#if MF_DIGIN_MUX_SUPPORT == 1
   MFDigInMux::setMux(&MUX);
 #endif
   attachCommandCallbacks();
@@ -231,8 +231,8 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
-#if MF_MUX_DIGIN_SUPPORT == 1
-  lastMUXDigInputUpdate = millis() + 8;
+#if MF_DIGIN_MUX_SUPPORT == 1
+  lastDigInMuxUpdate = millis() + 8;
 #endif
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
@@ -321,8 +321,8 @@ void loop()
 
   readButtons();
   readEncoder();
-#if MF_MUX_DIGIN_SUPPORT == 1
-  readMUXDigitalIn();
+#if MF_DIGIN_MUX_SUPPORT == 1
+  readDigInMux();
 #endif
 #if MF_ANALOG_SUPPORT == 1
   readAnalog();
@@ -476,34 +476,34 @@ void ClearMultiplexer()
 }
 #endif
 
-#if MF_MUX_DIGIN_SUPPORT == 1
+#if MF_DIGIN_MUX_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
 void AddMUXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name = "MUXDigIn")
 {
-  if (digitalInMUXRegistered == MAX_DIG_IN_MUX)
+  if (digInMuxRegistered == MAX_DIGIN_MUX)
     return;
   if (isPinRegistered(dataPin))
     return;
-  MFDigInMux *DIMUX = &digitalInMUX[digitalInMUXRegistered];
-  registerPin(dataPin, kTypeMuxDigIn);
+  MFDigInMux *DIMUX = &digInMUX[digInMuxRegistered];
+  registerPin(dataPin, kTypeDigInMux);
   DIMUX->attach(dataPin, halfSize, name);
   DIMUX->clear();
   DIMUX->setLazyMode(mode!=0);
-  DIMUX->attachHandler(handlerMUXDigitalInOnChange);
-  digitalInMUXRegistered++;
+  DIMUX->attachHandler(handlerDigInMuxOnChange);
+  digInMuxRegistered++;
 
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added digital input MUX"));
 #endif
 }
 
-void ClearMUXDigitalIn()
+void ClearDigInMux()
 {
-  for (int i = 0; i < digitalInMUXRegistered; i++){
-    digitalInMUX[digitalInMUXRegistered].detach();
+  for (int i = 0; i < digInMuxRegistered; i++){
+    digInMUX[digInMuxRegistered].detach();
   }
-  clearRegisteredPins(kTypeMuxDigIn);
-  digitalInMUXRegistered = 0;
+  clearRegisteredPins(kTypeDigInMux);
+  digInMuxRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared digital input MUX"));
 #endif
@@ -757,11 +757,11 @@ void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
   cmdMessenger.sendCmdEnd();
 };
 
-#if MF_MUX_DIGIN_SUPPORT == 1
+#if MF_DIGIN_MUX_SUPPORT == 1
 //// EVENT HANDLER /////
-void handlerMUXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name)
+void handlerDigInMuxOnChange(uint8_t eventId, uint8_t channel, const char *name)
 {
-  cmdMessenger.sendCmdStart(kMuxDigInChange);
+  cmdMessenger.sendCmdStart(kDigInMuxChange);
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(channel);
   cmdMessenger.sendCmdArg(eventId);
@@ -824,8 +824,8 @@ void resetConfig()
   ClearShifters();
 #endif
 
-#if MF_MUX_DIGIN_SUPPORT == 1
-  ClearMUXDigitalIn();
+#if MF_DIGIN_MUX_SUPPORT == 1
+  ClearDigInMux();
 #endif
 
   configLength = 0;
@@ -1005,8 +1005,8 @@ void readConfig()
 #endif
       break;
 
-    case kTypeMuxDigIn:
-#if MF_MUX_DIGIN_SUPPORT == 1
+    case kTypeDigInMux:
+#if MF_DIGIN_MUX_SUPPORT == 1
       params[0] = strtok_r(NULL, ".", &p); // data pin
       params[1] = strtok_r(NULL, ".", &p); // half-size
       params[2] = strtok_r(NULL, ":", &p); // name
@@ -1210,16 +1210,16 @@ void readEncoder()
   }
 }
 
-#if MF_MUX_DIGIN_SUPPORT == 1
-void readMUXDigitalIn()
+#if MF_DIGIN_MUX_SUPPORT == 1
+void readDigInMux()
 {
-  if (millis() - lastMUXDigInputUpdate <= MF_BUTTON_DEBOUNCE_MS)
+  if (millis() - lastDigInMuxUpdate <= MF_BUTTON_DEBOUNCE_MS)
     return;
-  lastMUXDigInputUpdate = millis();
+  lastDigInMuxUpdate = millis();
 
-  for (int i = 0; i != digitalInMUXRegistered; i++)
+  for (int i = 0; i != digInMuxRegistered; i++)
   {
-    digitalInMUX[i].update();
+    digInMUX[i].update();
   }
 }
 #endif
