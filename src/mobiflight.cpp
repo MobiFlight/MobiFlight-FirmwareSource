@@ -769,8 +769,8 @@ void readConfig()
       AddOutput(atoi(params[0]), params[1]);
       break;
 
-    case kTypeLedSegment:
 #if MF_SEGMENT_SUPPORT == 1
+    case kTypeLedSegment:
       params[0] = strtok_r(NULL, ".", &p); // pin Data
       params[1] = strtok_r(NULL, ".", &p); // pin Cs
       params[2] = strtok_r(NULL, ".", &p); // pin Clk
@@ -779,13 +779,11 @@ void readConfig()
       params[5] = strtok_r(NULL, ":", &p); // Name
                                            // int dataPin, int clkPin, int csPin, int numDevices, int brightness
       AddLedSegment(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[4]), atoi(params[3]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeStepperDeprecated:
 #if MF_STEPPER_SUPPORT == 1
+    case kTypeStepperDeprecated:
       // this is for backwards compatibility
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -794,13 +792,11 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 0);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeStepper:
 #if MF_STEPPER_SUPPORT == 1
+    case kTypeStepper:
       // AddStepper(int pin1, int pin2, int pin3, int pin4)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -809,21 +805,17 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeServo:
 #if MF_SERVO_SUPPORT == 1
+    case kTypeServo:
       // AddServo(int pin)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ":", &p); // Name
       AddServo(atoi(params[0]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
     case kTypeEncoderSingleDetent:
       // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
@@ -842,42 +834,36 @@ void readConfig()
       AddEncoder(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
       break;
 
-    case kTypeLcdDisplayI2C:
 #if MF_LCD_SUPPORT == 1
+    case kTypeLcdDisplayI2C:
       // AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
       params[0] = strtok_r(NULL, ".", &p); // address
       params[1] = strtok_r(NULL, ".", &p); // cols
       params[2] = strtok_r(NULL, ".", &p); // lines
       params[3] = strtok_r(NULL, ":", &p); // Name
       AddLcdDisplay(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeAnalogInput:
 #if MF_ANALOG_SUPPORT == 1
+    case kTypeAnalogInput:
       params[0] = strtok_r(NULL, ".", &p); // pin
       params[1] = strtok_r(NULL, ".", &p); // sensitivity
       params[2] = strtok_r(NULL, ":", &p); // name
       AddAnalog(atoi(params[0]), params[2], atoi(params[1]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kShiftRegister:
 #if MF_SHIFTER_SUPPORT == 1
+    case kShiftRegister:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
       AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
     default:
       // read to the end of the current command which is apparently not understood
