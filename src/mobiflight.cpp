@@ -936,16 +936,16 @@ void readConfig()
       break;
 #endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
     case kTypeInputShifter:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
-#if MF_INPUT_SHIFTER_SUPPORT == 1
       AddInputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
-#endif
       break;
+#endif
 
     default:
       // read to the end of the current command which is apparently not understood
