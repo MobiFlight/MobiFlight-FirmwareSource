@@ -63,10 +63,8 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-#if MF_ANALOG_SUPPORT == 1
 uint32_t lastAnalogAverage = 0;
 uint32_t lastAnalogRead = 0;
-#endif
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 uint32_t lastServoUpdate = 0;
@@ -75,7 +73,6 @@ uint32_t lastServoUpdate = 0;
 uint32_t lastInputShifterUpdate = 0;
 #endif
 
-const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
@@ -223,10 +220,8 @@ void setup()
 #if MF_INPUTSHIFTER_SUPPORT == 1
   lastInputShifterUpdate = millis() + 6;
 #endif
-#if MF_ANALOG_SUPPORT == 1
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
-#endif
   lastButtonUpdate = millis();
   lastEncoderUpdate = millis() + 2;
   lastServoUpdate = millis();
@@ -972,10 +967,10 @@ void OnGetInfo()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(type);
+  cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdArg(VERSION);
+  cmdMessenger.sendCmdArg(F(VERSION));
   cmdMessenger.sendCmdEnd();
 }
 
