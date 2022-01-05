@@ -28,6 +28,10 @@ char foo;
 #include <MFButton.h>
 #include <MFEncoder.h>
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+#include <MFInputShifter.h>
+#endif
+
 #if MF_STEPPER_SUPPORT == 1
 #include <AccelStepper.h>
 #include <MFStepper.h>
@@ -64,6 +68,10 @@ uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 uint32_t lastServoUpdate = 0;
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+uint32_t lastInputShifterUpdate = 0;
+#endif
 
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
@@ -120,6 +128,11 @@ uint8_t analogRegistered = 0;
 #if MF_SHIFTER_SUPPORT == 1
 MFShifter shiftregisters[MAX_SHIFTERS];
 uint8_t shiftregisterRegistered = 0;
+#endif
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+MFInputShifter inputShifters[MAX_INPUT_SHIFTERS];
+uint8_t inputShiftersRegistered = 0;
 #endif
 
 // Callbacks define on which received commands we take action
@@ -204,6 +217,9 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
+#if MF_INPUTSHIFTER_SUPPORT == 1
+  lastInputShifterUpdate = millis() + 6;
+#endif
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
   lastButtonUpdate = millis();
@@ -290,6 +306,11 @@ void loop()
 
   readButtons();
   readEncoder();
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  readInputShifters();
+#endif
+
 #if MF_ANALOG_SUPPORT == 1
   readAnalog();
 #endif
@@ -411,6 +432,42 @@ void ClearEncoders()
   cmdMessenger.sendCmd(kStatus, F("Cleared encoders"));
 #endif
 }
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+//// INPUT SHIFT REGISTER /////
+void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "Shifter")
+{
+  if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
+    return;
+  inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
+  inputShifters[inputShiftersRegistered].clear();
+  registerPin(latchPin, kTypeInputShifter);
+  registerPin(clockPin, kTypeInputShifter);
+  registerPin(dataPin, kTypeInputShifter);
+
+  inputShifters[inputShiftersRegistered].attachHandler(handlerInputShifterOnChange);
+
+  inputShiftersRegistered++;
+
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Added input shifter"));
+#endif
+}
+
+void ClearInputShifters()
+{
+  for (int i = 0; i < inputShiftersRegistered; i++)
+  {
+    inputShifters[inputShiftersRegistered].detach();
+  }
+
+  clearRegisteredPins(kTypeInputShifter);
+  inputShiftersRegistered = 0;
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Cleared input shifter"));
+#endif
+}
+#endif
 
 //// OUTPUTS /////
 
@@ -648,6 +705,18 @@ void handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
   cmdMessenger.sendCmdEnd();
 };
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+//// EVENT HANDLER /////
+void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
+{
+  cmdMessenger.sendCmdStart(kInputShifterChange);
+  cmdMessenger.sendCmdArg(name);
+  cmdMessenger.sendCmdArg(pin);
+  cmdMessenger.sendCmdArg(eventId);
+  cmdMessenger.sendCmdEnd();
+};
+#endif
+
 //// EVENT HANDLER /////
 void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
 {
@@ -710,6 +779,10 @@ void resetConfig()
 
 #if MF_SHIFTER_SUPPORT == 1
   ClearShifters();
+#endif
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  ClearInputShifters();
 #endif
 
   configLength = 0;
@@ -863,6 +936,17 @@ void readConfig()
       break;
 #endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+    case kTypeInputShifter:
+      params[0] = strtok_r(NULL, ".", &p); // pin latch
+      params[1] = strtok_r(NULL, ".", &p); // pin clock
+      params[2] = strtok_r(NULL, ".", &p); // pin data
+      params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
+      params[4] = strtok_r(NULL, ":", &p); // name
+      AddInputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      break;
+#endif
+
     default:
       // read to the end of the current command which is apparently not understood
       strtok_r(NULL, ":", &p); // read to end of unknown command
@@ -945,7 +1029,6 @@ void OnSetModuleBrightness()
 #endif
 
 #if MF_SHIFTER_SUPPORT == 1
-
 void OnInitShiftRegister()
 {
   int module = cmdMessenger.readInt16Arg();
@@ -962,7 +1045,15 @@ void OnSetShiftRegisterPins()
   shiftregisters[module].setPins(pins, value);
   lastCommand = millis();
 }
+#endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+void OnInitInputShiftRegister()
+{
+  int module = cmdMessenger.readInt16Arg();
+  inputShifters[module].clear();
+  lastCommand = millis();
+}
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
@@ -1062,6 +1153,20 @@ void readEncoder()
   }
 }
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+void readInputShifters()
+{
+  if (millis() - lastInputShifterUpdate <= MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastInputShifterUpdate = millis();
+
+  for (int i = 0; i != inputShiftersRegistered; i++)
+  {
+    inputShifters[i].update();
+  }
+}
+#endif
+
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
@@ -1129,5 +1234,12 @@ void OnTrigger()
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].triggerOnPress();
+  }
+
+  // Retrigger all the input shifters. This automatically sends
+  // the release events first followed by press events.
+  for (int i = 0; i != inputShiftersRegistered; i++)
+  {
+    inputShifters[i].retrigger();
   }
 }
