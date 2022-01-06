@@ -89,16 +89,33 @@ void MFDigInMux::poll(bool detect, bool isLazy)
 
     if(!isLazy) {
 
+        // "Fast" read:
+        // scan all inputs right away
+
         uint16_t    currentState = 0x0000;
+        volatile uint8_t pinVal;
+
         _MUX->saveChannel();
         for (uint8_t sel = selMax; sel > 0; sel--)
         {
             _MUX->setChannel(sel-1);
-            //delayMicroseconds(500);
-            delayMicroseconds(20);  // Allow the output to stabilize from voltage transients due to spurious codes
-            // In order to avoid commutation "noise", ideally setChannel() should change all pins atomically
+            
+            // Allow the output to settle from voltage transients:
+            // transients towards 0 (GND) are negligible, but transients towards 1 (Vcc)
+            // require a pullup to charge parasitic capacities.
+            // These are examples of delay times measured for 0->1 transitions with different pull-ups:
+            // integrated PU -> 1.4us
+            // external, 10k -> 400ns
+            // external, 4k7 -> 250ns
+            // A digitalRead() takes about 5us, therefore even the integrated pullup should be sufficient;
+            // for added safety, we perform one more (useless) digitalRead().
+            // NB An external pullup (10k or 4k7) is recommended anyway for better interference immunity.
+
+            pinVal = digitalRead(_dataPin);
+            pinVal = digitalRead(_dataPin);
+            // delayMicroseconds(5);  // This is overkill
             currentState <<= 1;
-            currentState |= (digitalRead(_dataPin) ? 1 : 0);
+            currentState |= (pinVal ? 1 : 0);
         }
         _MUX->restoreChannel(); // tidy up
 
@@ -109,6 +126,12 @@ void MFDigInMux::poll(bool detect, bool isLazy)
         }
 
     } else {
+
+        // "Lazy" read:
+        // read one more channel every time the method is invoked 
+        // (the corresponding event, if any, is generated immediately).
+        // Relies on the MuxDriver to be set externally by the caller 
+        // (typically incremented at every main loop iteration).
 
         bool     chVal = (digitalRead(_dataPin) ? true : false);
         uint8_t  ch    = _MUX->getChannel() % selMax;

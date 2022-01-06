@@ -44,6 +44,15 @@ void MFMuxDriver::setChannel(uint8_t value)
 {
     if(!bitRead(_flags, MUX_INITED)) return;
     if(value > 15) return;
+
+    // Ideally, setChannel() should change all pins atomically (at the same time):
+    // since it doesn't, be advised that there will be signal glitches because 
+    // the actual code - which is not latched - spans several values as the single bits are changed.
+    // This should not be an issue, because e.g. in an input mux the output is only read at the end,
+    // once the code is stable.
+    // (Please note that output value settling is a completely different effect.)
+    // However, this effect might have to be taken into account.
+
     _channel = value;
     for(uint8_t i=0; i<4; i++) {
         digitalWrite(_selPin[i], (value & 0x01));
