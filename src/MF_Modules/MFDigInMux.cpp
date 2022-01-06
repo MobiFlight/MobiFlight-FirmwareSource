@@ -16,6 +16,7 @@ MFDigInMux::MFDigInMux(void)
     _MUX = NULL;
     _name = "MUXDigIn";
     _flags = 0x00;
+    setLazyMode(MUX_MODE_FAST);
     clear();
 }
 
@@ -24,6 +25,7 @@ MFDigInMux::MFDigInMux(MFMuxDriver *MUX, const char *name)
 {
     if(MUX) _MUX = MUX;
     _flags = 0x00;
+    setLazyMode(MUX_MODE_FAST);
     clear();
 }
 
@@ -40,7 +42,7 @@ void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
     _name       = name;
     _flags      = 0x00; 
     if(halfSize) bitSet(_flags, MUX_HALFSIZE);
-    pinMode(_dataPin, INPUT);
+    pinMode(_dataPin, INPUT_PULLUP);
     bitSet(_flags, MUX_INITED);
 }
 
@@ -83,7 +85,7 @@ void MFDigInMux::poll(bool detect, bool isLazy)
     //
     // Each block can use its preferred mode, and blocks of both types can co-exist.
 
-    uint8_t  selMax = (bitRead(_flags, MUX_HALFSIZE) ? 16 : 8);;
+    uint8_t  selMax = (bitRead(_flags, MUX_HALFSIZE) ? 16 : 8);
 
     if(!isLazy) {
 
@@ -92,7 +94,8 @@ void MFDigInMux::poll(bool detect, bool isLazy)
         for (uint8_t sel = selMax; sel > 0; sel--)
         {
             _MUX->setChannel(sel-1);
-            delayMicroseconds(15);  // Allow the output to stabilize from voltage transients due to spurious codes
+            //delayMicroseconds(500);
+            delayMicroseconds(20);  // Allow the output to stabilize from voltage transients due to spurious codes
             // In order to avoid commutation "noise", ideally setChannel() should change all pins atomically
             currentState |= (digitalRead(_dataPin) ? 1 : 0);
             currentState <<= 1;
@@ -125,7 +128,7 @@ void MFDigInMux::poll(bool detect, bool isLazy)
 void MFDigInMux::detectChanges(uint16_t lastState, uint16_t currentState)
 {
     if(!_MUX) return;
-    uint8_t     selMax = (bitRead(_flags, MUX_HALFSIZE) ? 16 : 8);
+    uint8_t     selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
     uint16_t    diff   = lastState ^ currentState;
     for (uint8_t i = 0; i < selMax; i++)
     {

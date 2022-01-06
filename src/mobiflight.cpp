@@ -1290,4 +1290,12 @@ void OnTrigger()
   {
     buttons[i].triggerOnPress();
   }
+  // Retrigger all the DigInMux devices. This automatically sends
+  // the release events first followed by press events.
+  #if MF_DIGIN_MUX_SUPPORT == 1
+  for (int i = 0; i != digInMuxRegistered; i++)
+  {
+    digInMUX[i].retrigger();
+  }
+  #endif
 }
