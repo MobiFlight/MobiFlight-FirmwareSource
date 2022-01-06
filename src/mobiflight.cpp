@@ -154,7 +154,7 @@ MFMuxDriver MUX;
 #endif
 
 #if MF_DIGIN_MUX_SUPPORT == 1
-MFDigInMux digInMUX[MAX_DIGIN_MUX];
+MFDigInMux digInMux[MAX_DIGIN_MUX];
 uint8_t digInMuxRegistered = 0;
 #endif
 
@@ -538,17 +538,17 @@ void ClearMultiplexer()
 
 #if MF_DIGIN_MUX_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
-void AddMUXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name = "MUXDigIn")
+void AddDigInMux(uint8_t dataPin, uint8_t nRegs, char const *name = "MUXDigIn", bool mode = MFDigInMux::MUX_MODE_FAST)
 {
   if (digInMuxRegistered == MAX_DIGIN_MUX)
     return;
   if (isPinRegistered(dataPin))
     return;
-  MFDigInMux *DIMUX = &digInMUX[digInMuxRegistered];
+  MFDigInMux *DIMUX = &digInMux[digInMuxRegistered];
   registerPin(dataPin, kTypeDigInMux);
-  DIMUX->attach(dataPin, halfSize, name);
+  DIMUX->attach(dataPin, (nRegs==1), name);
   DIMUX->clear();
-  DIMUX->setLazyMode(mode!=0);
+  DIMUX->setLazyMode(mode==MFDigInMux::MUX_MODE_LAZY);
   DIMUX->attachHandler(handlerDigInMuxOnChange);
   digInMuxRegistered++;
 
@@ -560,7 +560,7 @@ void AddMUXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name
 void ClearDigInMux()
 {
   for (int i = 0; i < digInMuxRegistered; i++){
-    digInMUX[digInMuxRegistered].detach();
+    digInMux[digInMuxRegistered].detach();
   }
   clearRegisteredPins(kTypeDigInMux);
   digInMuxRegistered = 0;
@@ -1079,9 +1079,9 @@ void readConfig()
 #if MF_DIGIN_MUX_SUPPORT == 1
     case kTypeDigInMux:
       params[0] = strtok_r(NULL, ".", &p); // data pin
-      params[1] = strtok_r(NULL, ".", &p); // half-size
+      params[1] = strtok_r(NULL, ".", &p); // 8-bit registers (1-2)
       params[2] = strtok_r(NULL, ":", &p); // name
-      AddMUXDigitalIn(atoi(params[0]), (bool)atoi(params[1]), params[2]);
+      AddDigInMux(atoi(params[0]), atoi(params[1]), params[2]);
       break;
 #endif
 
@@ -1313,7 +1313,7 @@ void readDigInMux()
 
   for (int i = 0; i != digInMuxRegistered; i++)
   {
-    digInMUX[i].update();
+    digInMux[i].update();
   }
 }
 #endif
@@ -1401,7 +1401,7 @@ void OnTrigger()
   #if MF_DIGIN_MUX_SUPPORT == 1
   for (int i = 0; i != digInMuxRegistered; i++)
   {
-    digInMUX[i].retrigger();
+    digInMux[i].retrigger();
   }
   #endif
 }

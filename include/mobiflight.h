@@ -141,7 +141,7 @@ void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin);
 void ClearMultiplexer();
 
-void AddMUXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name);
+void AddDigInMux(uint8_t dataPin, bool halfSize, bool mode, char const *name);
 void ClearDigInMux();
 void readDigInMux();
 void handlerDigInMuxOnChange(uint8_t eventId, uint8_t channel, const char *name);

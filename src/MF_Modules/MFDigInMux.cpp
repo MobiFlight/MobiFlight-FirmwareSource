@@ -85,7 +85,7 @@ void MFDigInMux::poll(bool detect, bool isLazy)
     //
     // Each block can use its preferred mode, and blocks of both types can co-exist.
 
-    uint8_t  selMax = (bitRead(_flags, MUX_HALFSIZE) ? 16 : 8);
+    uint8_t  selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
 
     if(!isLazy) {
 
@@ -97,8 +97,8 @@ void MFDigInMux::poll(bool detect, bool isLazy)
             //delayMicroseconds(500);
             delayMicroseconds(20);  // Allow the output to stabilize from voltage transients due to spurious codes
             // In order to avoid commutation "noise", ideally setChannel() should change all pins atomically
-            currentState |= (digitalRead(_dataPin) ? 1 : 0);
             currentState <<= 1;
+            currentState |= (digitalRead(_dataPin) ? 1 : 0);
         }
         _MUX->restoreChannel(); // tidy up
 
