@@ -244,11 +244,11 @@ void setup()
   cmdMessenger.printLfCr();
   OnResetBoard();
   // Time Gap between Inputs, do not read at the same loop
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  lastInputShifterUpdate = millis() + 6;
+#endif
 #if MF_MPX_DIGIN_SUPPORT == 1
   lastMPXDigInputUpdate = millis() + 8;
-#endif
-#if MF_INPUTSHIFTER_SUPPORT == 1
-  lastInputShifterUpdate = millis() + 6;
 #endif
 #if MF_ANALOG_SUPPORT == 1
   lastAnalogAverage = millis() + 4;
@@ -470,7 +470,6 @@ void ClearEncoders()
   cmdMessenger.sendCmd(kStatus, F("Cleared encoders"));
 #endif
 }
-
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 //// INPUT SHIFT REGISTER /////
@@ -856,7 +855,7 @@ void OnSetConfig()
 
   if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, cfgLen+1);       // save the received config string including the terminatung NULL (+1)
+    memcpy(&configBuffer[configLength], cfg, cfgLen + 1); // save the received config string including the terminatung NULL (+1)
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -960,8 +959,8 @@ void readConfig()
       AddOutput(atoi(params[0]), params[1]);
       break;
 
-    case kTypeLedSegment:
 #if MF_SEGMENT_SUPPORT == 1
+    case kTypeLedSegment:
       params[0] = strtok_r(NULL, ".", &p); // pin Data
       params[1] = strtok_r(NULL, ".", &p); // pin Cs
       params[2] = strtok_r(NULL, ".", &p); // pin Clk
@@ -970,13 +969,11 @@ void readConfig()
       params[5] = strtok_r(NULL, ":", &p); // Name
                                            // int dataPin, int clkPin, int csPin, int numDevices, int brightness
       AddLedSegment(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[4]), atoi(params[3]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeStepperDeprecated:
 #if MF_STEPPER_SUPPORT == 1
+    case kTypeStepperDeprecated:
       // this is for backwards compatibility
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -985,13 +982,11 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 0);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeStepper:
 #if MF_STEPPER_SUPPORT == 1
+    case kTypeStepper:
       // AddStepper(int pin1, int pin2, int pin3, int pin4)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -1000,21 +995,17 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeServo:
 #if MF_SERVO_SUPPORT == 1
+    case kTypeServo:
       // AddServo(int pin)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ":", &p); // Name
       AddServo(atoi(params[0]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
     case kTypeEncoderSingleDetent:
       // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
@@ -1033,77 +1024,67 @@ void readConfig()
       AddEncoder(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
       break;
 
-    case kTypeLcdDisplayI2C:
 #if MF_LCD_SUPPORT == 1
+    case kTypeLcdDisplayI2C:
       // AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
       params[0] = strtok_r(NULL, ".", &p); // address
       params[1] = strtok_r(NULL, ".", &p); // cols
       params[2] = strtok_r(NULL, ".", &p); // lines
       params[3] = strtok_r(NULL, ":", &p); // Name
       AddLcdDisplay(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeAnalogInput:
 #if MF_ANALOG_SUPPORT == 1
+    case kTypeAnalogInput:
       params[0] = strtok_r(NULL, ".", &p); // pin
       params[1] = strtok_r(NULL, ".", &p); // sensitivity
       params[2] = strtok_r(NULL, ":", &p); // name
       AddAnalog(atoi(params[0]), params[2], atoi(params[1]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kShiftRegister:
 #if MF_SHIFTER_SUPPORT == 1
+    case kShiftRegister:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
       AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeMultiplexer:
 #if MF_MPX_SUPPORT == 1
+    case kTypeMultiplexer:
       // Repeated commands do not define more objects, but change the only existing one
       params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
       params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
       params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
       params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
       AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
-#else
-      strtok_r(NULL, ":", &p); // read to the end of unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeMPXDigitalIn:
 #if MF_MPX_DIGIN_SUPPORT == 1
+    case kTypeMPXDigitalIn:
       params[0] = strtok_r(NULL, ".", &p); // data pin
       params[1] = strtok_r(NULL, ".", &p); // half-size
       params[2] = strtok_r(NULL, ":", &p); // name
       AddMPXDigitalIn(atoi(params[0]), (bool)atoi(params[1]), params[2]);
-#else
-      strtok_r(NULL, ":", &p); // read to the end of unmanaged command
-#endif
       break;
+#endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
     case kTypeInputShifter:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
-#if MF_INPUT_SHIFTER_SUPPORT == 1
       AddInputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
-#endif
       break;
+#endif
 
     default:
       // read to the end of the current command which is apparently not understood
@@ -1124,10 +1105,10 @@ void OnGetInfo()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(type);
+  cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdArg(VERSION);
+  cmdMessenger.sendCmdArg(F(VERSION));
   cmdMessenger.sendCmdEnd();
 }
 
@@ -1267,7 +1248,8 @@ void OnSetServo()
 
 void updateServos()
 {
-  if (millis()-lastServoUpdate <= MF_SERVO_DELAY_MS) return;
+  if (millis() - lastServoUpdate <= MF_SERVO_DELAY_MS)
+    return;
   lastServoUpdate = millis();
 
   for (int i = 0; i != servosRegistered; i++)
@@ -1289,7 +1271,7 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis() - lastButtonUpdate <= MF_BUTTON_DEBOUNCE_MS)
+  if (millis() - lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS)
     return;
   lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
@@ -1340,14 +1322,16 @@ void readMPXDigitalIn()
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis()-lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1) {
+  if (millis() - lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1)
+  {
     for (int i = 0; i != analogRegistered; i++)
     {
       analog[i].readBuffer();
     }
     lastAnalogAverage = millis();
   }
-  if (millis()-lastAnalogRead < MF_ANALOGREAD_DELAY_MS) return;
+  if (millis() - lastAnalogRead < MF_ANALOGREAD_DELAY_MS)
+    return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
@@ -1406,8 +1390,10 @@ void OnTrigger()
 
   // Retrigger all the input shifters. This automatically sends
   // the release events first followed by press events.
+  #if MF_INPUT_SHIFTER_SUPPORT == 1
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
     inputShifters[i].retrigger();
   }
+  #endif
 }
