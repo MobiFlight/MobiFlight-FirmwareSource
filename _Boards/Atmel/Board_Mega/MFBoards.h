@@ -19,17 +19,15 @@
 #ifndef MF_SHIFTER_SUPPORT
 #define MF_SHIFTER_SUPPORT   1
 #endif
-#ifndef MF_MPX_SUPPORT
-#endif
-#ifndef MF_MPX_DIGIN_SUPPORT
-#define MF_MPX_SUPPORT       1
-#define MF_MPX_DIGIN_SUPPORT 1
-#endif
 #ifndef MF_INPUT_SHIFTER_SUPPORT
 #define MF_INPUT_SHIFTER_SUPPORT 1
 #endif
-#ifndef MF_INPUT_SHIFTER_SUPPORT
-#define MF_INPUT_SHIFTER_SUPPORT 1
+#ifndef MF_MUX_SUPPORT
+#define MF_MUX_SUPPORT       1
+#endif
+#ifndef MF_DIGIN_MUX_SUPPORT
+#define MF_MUX_SUPPORT       1
+#define MF_DIGIN_MUX_SUPPORT 1
 #endif
 
 #define MODULE_MAX_PINS 69
@@ -41,9 +39,9 @@
 #define MAX_MFSERVOS    10
 #define MAX_MFLCD_I2C   2
 #define MAX_ANALOG_INPUTS 16
-#define MAX_SHIFTERS 4
+#define MAX_SHIFTERS    4
 #define MAX_INPUT_SHIFTERS 4
-#define MAX_DIG_IN_MPX  1
+#define MAX_DIGIN_MUX  2
 
 #define STEPS 64
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?

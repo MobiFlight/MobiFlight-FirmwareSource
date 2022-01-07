@@ -1,4 +1,4 @@
-// MFMultiplex.h
+// MFMuxDriver.h
  
 #ifndef MFMultiplex_h
 #define MFMultiplex_h
@@ -12,18 +12,18 @@
 
 extern "C"
 {
-    typedef void (*MPXDigitalInEvent)(byte, uint8_t, const char *);
+    typedef void (*MuxDigInEvent)(byte, uint8_t, const char *);
 };
 
 /////////////////////////////////////////////////////////////////////
-/// \class MFMultiplex MFMultiplex.h <MFMultiplex.h>
+/// \class MFMuxDriver MFMuxDriver.h <MFMuxDriver.h>
 /// \brief  Implements a (system-level) multiplex selector
 ///          
-class MFMultiplex
+class MFMuxDriver
 {
 public:
     
-    MFMultiplex(void);
+    MFMuxDriver(void);
     void attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin);
     void detach();
 
@@ -36,7 +36,7 @@ public:
 
 private:
 
-    enum { MPX_INITED = 0, };
+    enum { MUX_INITED = 0, };
 
     uint8_t       _selPin[4];   // Selector pins; 0 is LSb
     uint8_t       _flags;
