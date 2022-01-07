@@ -20,8 +20,7 @@ To publish a new release:
 
 1. Go to the [GitHub Releases page](https://github.com/MobiFlight/MobiFlight-FirmwareSource/releases) and
 click the `Draft a new release` button.
-2. Click `Choose a tag` and create a new version tag, e.g. `v1.14.0`. Note that this *must* include the `v`
-at the front for various release scripts to work correctly. 
+2. Click `Choose a tag` and create a new version tag, e.g. `1.14.0`
 3. Enter a title and release notes.
 4. Optionally check `This is a pre-release` if the release should be for testing purposes and not be marked
 as the latest published release.

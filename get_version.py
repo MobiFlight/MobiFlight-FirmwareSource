@@ -10,6 +10,11 @@ if firmware_version == "":
   # compatibility with MobiFlight desktop app version checks.
   firmware_version = "0.0.1"
 
+# Strip any leading "v" that might be on the version and
+# any leading or trailing periods.
+firmware_version = firmware_version.lstrip("v")
+firmware_version = firmware_version.strip(".")
+
 print(f'Using version {firmware_version} for the build')
 
 # Append the version to the build defines so it gets baked into the firmware

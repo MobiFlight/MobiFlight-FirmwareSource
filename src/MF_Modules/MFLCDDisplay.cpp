@@ -61,10 +61,10 @@ void MFLCDDisplay::test()
     preLines = floor(_lines / 2) - 1;
   }
 
-  _printCentered("MobiFlight", preLines++);
+  _printCentered("MF wishes", preLines++);
   if (_lines > 1)
   {
-    _printCentered("Rocks!", preLines++);
+    _printCentered("Happy Holidays!!", preLines++);
   }
 
   _lcdDisplay->setCursor(0, 0);

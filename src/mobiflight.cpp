@@ -28,6 +28,10 @@ char foo;
 #include <MFButton.h>
 #include <MFEncoder.h>
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+#include <MFInputShifter.h>
+#endif
+
 #if MF_STEPPER_SUPPORT == 1
 #include <AccelStepper.h>
 #include <MFStepper.h>
@@ -69,15 +73,18 @@ const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIA
 
 uint32_t lastAnalogAverage = 0;
 uint32_t lastAnalogRead = 0;
-uint32_t lastButtonUpdate= 0;
+uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
 uint32_t lastServoUpdate = 0;
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+uint32_t lastInputShifterUpdate = 0;
+#endif
 
 #if MF_MPX_DIGIN_SUPPORT == 1
 uint32_t lastMPXDigInputUpdate = 0;
 #endif
 
-const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
@@ -135,6 +142,11 @@ MFShifter shiftregisters[MAX_SHIFTERS];
 uint8_t shiftregisterRegistered = 0;
 #endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+MFInputShifter inputShifters[MAX_INPUT_SHIFTERS];
+uint8_t inputShiftersRegistered = 0;
+#endif
+
 #if MF_MPX_SUPPORT == 1
 MFMultiplex MPX;
 #endif
@@ -143,7 +155,6 @@ MFMultiplex MPX;
 MFMPXDigitalIn digitalInMPX[MAX_DIG_IN_MPX];
 uint8_t digitalInMPXRegistered = 0;
 #endif
-
 
 // Callbacks define on which received commands we take action
 void attachCommandCallbacks()
@@ -205,7 +216,6 @@ void attachEventCallbacks()
 #if MF_ANALOG_SUPPORT == 1
   MFAnalog::attachHandler(handlerOnAnalogChange);
 #endif
-
 }
 
 void OnResetBoard()
@@ -234,10 +244,13 @@ void setup()
 #if MF_MPX_DIGIN_SUPPORT == 1
   lastMPXDigInputUpdate = millis() + 8;
 #endif
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  lastInputShifterUpdate = millis() + 6;
+#endif
   lastAnalogAverage = millis() + 4;
   lastAnalogRead = millis() + 4;
-  lastButtonUpdate= millis();
   lastEncoderUpdate = millis() + 2;
+  lastButtonUpdate= millis();
   lastServoUpdate = millis();
 }
 
@@ -250,7 +263,8 @@ void generateSerial(bool force)
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-  if (!force) MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);           // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
+  if (!force)
+    MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
 void loadConfig()
@@ -323,6 +337,9 @@ void loop()
   readEncoder();
 #if MF_MPX_DIGIN_SUPPORT == 1
   readMPXDigitalIn();
+#endif
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  readInputShifters();
 #endif
 #if MF_ANALOG_SUPPORT == 1
   readAnalog();
@@ -401,7 +418,7 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
     return;
 
   buttons[buttonsRegistered] = MFButton(pin, name);
-  
+
   registerPin(pin, kTypeButton);
   buttonsRegistered++;
 #ifdef DEBUG
@@ -428,7 +445,7 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 
   encoders[encodersRegistered] = MFEncoder();
   encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
-  
+
   registerPin(pin1, kTypeEncoder);
   registerPin(pin2, kTypeEncoder);
   encodersRegistered++;
@@ -465,7 +482,7 @@ void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t S
 #endif
 
 #if MF_MPX_SUPPORT == 1
-  //// MULTIPLEXER SELUECTOR /////
+  //// MULTIPLEXER SELECTOR /////
 void ClearMultiplexer()
 {
   MPX.detach();
@@ -511,6 +528,41 @@ void ClearMPXDigitalIn()
 
 #endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+//// INPUT SHIFT REGISTER /////
+void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "Shifter")
+{
+  if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
+    return;
+  inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
+  inputShifters[inputShiftersRegistered].clear();
+  registerPin(latchPin, kTypeInputShifter);
+  registerPin(clockPin, kTypeInputShifter);
+  registerPin(dataPin, kTypeInputShifter);
+
+  inputShifters[inputShiftersRegistered].attachHandler(handlerInputShifterOnChange);
+
+  inputShiftersRegistered++;
+
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Added input shifter"));
+#endif
+}
+
+void ClearInputShifters()
+{
+  for (int i = 0; i < inputShiftersRegistered; i++)
+  {
+    inputShifters[inputShiftersRegistered].detach();
+  }
+
+  clearRegisteredPins(kTypeInputShifter);
+  inputShiftersRegistered = 0;
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Cleared input shifter"));
+#endif
+}
+#endif
 
 //// OUTPUTS /////
 
@@ -748,6 +800,18 @@ void handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
   cmdMessenger.sendCmdEnd();
 };
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+//// EVENT HANDLER /////
+void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
+{
+  cmdMessenger.sendCmdStart(kInputShifterChange);
+  cmdMessenger.sendCmdArg(name);
+  cmdMessenger.sendCmdArg(pin);
+  cmdMessenger.sendCmdArg(eventId);
+  cmdMessenger.sendCmdEnd();
+};
+#endif
+
 //// EVENT HANDLER /////
 void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
 {
@@ -780,11 +844,10 @@ void OnSetConfig()
   lastCommand = millis();
   char *cfg = cmdMessenger.readStringArg();
   uint8_t cfgLen = strlen(cfg);
-  uint16_t bufferSize = MEM_LEN_CONFIG - (configLength + cfgLen);
 
-  if (bufferSize > 1)
+  if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, bufferSize);
+    memcpy(&configBuffer[configLength], cfg, cfgLen + 1); // save the received config string including the terminatung NULL (+1)
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -825,6 +888,10 @@ void resetConfig()
   ClearShifters();
 #endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  ClearInputShifters();
+#endif
+
 #if MF_MPX_DIGIN_SUPPORT == 1
   ClearMPXDigitalIn();
 #endif
@@ -859,7 +926,8 @@ void _activateConfig()
 
 void readConfig()
 {
-  if (configLength == 0) return;
+  if (configLength == 0)
+    return;
   char *p = NULL;
 
   char *command = strtok_r(configBuffer, ".", &p);
@@ -883,8 +951,8 @@ void readConfig()
       AddOutput(atoi(params[0]), params[1]);
       break;
 
-    case kTypeLedSegment:
 #if MF_SEGMENT_SUPPORT == 1
+    case kTypeLedSegment:
       params[0] = strtok_r(NULL, ".", &p); // pin Data
       params[1] = strtok_r(NULL, ".", &p); // pin Cs
       params[2] = strtok_r(NULL, ".", &p); // pin Clk
@@ -893,13 +961,11 @@ void readConfig()
       params[5] = strtok_r(NULL, ":", &p); // Name
                                            // int dataPin, int clkPin, int csPin, int numDevices, int brightness
       AddLedSegment(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[4]), atoi(params[3]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeStepperDeprecated:
 #if MF_STEPPER_SUPPORT == 1
+    case kTypeStepperDeprecated:
       // this is for backwards compatibility
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -908,13 +974,11 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 0);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeStepper:
 #if MF_STEPPER_SUPPORT == 1
+    case kTypeStepper:
       // AddStepper(int pin1, int pin2, int pin3, int pin4)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ".", &p); // pin2
@@ -923,21 +987,17 @@ void readConfig()
       params[4] = strtok_r(NULL, ".", &p); // btnPin1
       params[5] = strtok_r(NULL, ":", &p); // Name
       AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeServo:
 #if MF_SERVO_SUPPORT == 1
+    case kTypeServo:
       // AddServo(int pin)
       params[0] = strtok_r(NULL, ".", &p); // pin1
       params[1] = strtok_r(NULL, ":", &p); // Name
       AddServo(atoi(params[0]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
     case kTypeEncoderSingleDetent:
       // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
@@ -956,66 +1016,67 @@ void readConfig()
       AddEncoder(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
       break;
 
-    case kTypeLcdDisplayI2C:
 #if MF_LCD_SUPPORT == 1
+    case kTypeLcdDisplayI2C:
       // AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
       params[0] = strtok_r(NULL, ".", &p); // address
       params[1] = strtok_r(NULL, ".", &p); // cols
       params[2] = strtok_r(NULL, ".", &p); // lines
       params[3] = strtok_r(NULL, ":", &p); // Name
       AddLcdDisplay(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeAnalogInput:
 #if MF_ANALOG_SUPPORT == 1
+    case kTypeAnalogInput:
       params[0] = strtok_r(NULL, ".", &p); // pin
       params[1] = strtok_r(NULL, ".", &p); // sensitivity
       params[2] = strtok_r(NULL, ":", &p); // name
       AddAnalog(atoi(params[0]), params[2], atoi(params[1]));
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kShiftRegister:
 #if MF_SHIFTER_SUPPORT == 1
+    case kShiftRegister:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
       AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
-#else
-      strtok_r(NULL, ":", &p); // skip unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeMultiplexer:
 #if MF_MPX_SUPPORT == 1
+    case kTypeMultiplexer:
       // Repeated commands do not define more objects, but change the only existing one
       params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
       params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
       params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
       params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
       AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
-#else
-      strtok_r(NULL, ":", &p); // read to the end of unmanaged command
-#endif
       break;
+#endif
 
-    case kTypeMPXDigitalIn:
 #if MF_MPX_DIGIN_SUPPORT == 1
+    case kTypeMPXDigitalIn:
       params[0] = strtok_r(NULL, ".", &p); // data pin
       params[1] = strtok_r(NULL, ".", &p); // half-size
       params[2] = strtok_r(NULL, ":", &p); // name
       AddMPXDigitalIn(atoi(params[0]), (bool)atoi(params[1]), params[2]);
-#else
-      strtok_r(NULL, ":", &p); // read to the end of unmanaged command
-#endif
       break;
+#endif
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+    case kTypeInputShifter:
+      params[0] = strtok_r(NULL, ".", &p); // pin latch
+      params[1] = strtok_r(NULL, ".", &p); // pin clock
+      params[2] = strtok_r(NULL, ".", &p); // pin data
+      params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
+      params[4] = strtok_r(NULL, ":", &p); // name
+      AddInputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      break;
+#endif
 
     default:
       // read to the end of the current command which is apparently not understood
@@ -1036,10 +1097,10 @@ void OnGetInfo()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(type);
+  cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdArg(VERSION);
+  cmdMessenger.sendCmdArg(F(VERSION));
   cmdMessenger.sendCmdEnd();
 }
 
@@ -1048,8 +1109,9 @@ void OnGetConfig()
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
   cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
-  for (uint16_t i=1; i<configLength; i++) {
-    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG+i));
+  for (uint16_t i = 1; i < configLength; i++)
+  {
+    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
   }
   cmdMessenger.sendCmdEnd();
 }
@@ -1098,7 +1160,6 @@ void OnSetModuleBrightness()
 #endif
 
 #if MF_SHIFTER_SUPPORT == 1
-
 void OnInitShiftRegister()
 {
   int module = cmdMessenger.readInt16Arg();
@@ -1114,7 +1175,15 @@ void OnSetShiftRegisterPins()
   shiftregisters[module].setPins(pins, value);
   lastCommand = millis();
 }
+#endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+void OnInitInputShiftRegister()
+{
+  int module = cmdMessenger.readInt16Arg();
+  inputShifters[module].clear();
+  lastCommand = millis();
+}
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
@@ -1171,7 +1240,8 @@ void OnSetServo()
 
 void updateServos()
 {
-  if (millis()-lastServoUpdate <= MF_SERVO_DELAY_MS) return;
+  if (millis() - lastServoUpdate <= MF_SERVO_DELAY_MS)
+    return;
   lastServoUpdate = millis();
 
   for (int i = 0; i != servosRegistered; i++)
@@ -1193,8 +1263,9 @@ void OnSetLcdDisplayI2C()
 
 void readButtons()
 {
-  if (millis()-lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS) return;
-  lastButtonUpdate= millis();
+  if (millis() - lastButtonUpdate < MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
     buttons[i].update();
@@ -1203,7 +1274,8 @@ void readButtons()
 
 void readEncoder()
 {
-  if (millis()-lastEncoderUpdate < 1) return;
+  if (millis() - lastEncoderUpdate < 1)
+    return;
   lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
@@ -1225,17 +1297,33 @@ void readMPXDigitalIn()
 }
 #endif
 
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+void readInputShifters()
+{
+  if (millis() - lastInputShifterUpdate <= MF_BUTTON_DEBOUNCE_MS)
+    return;
+  lastInputShifterUpdate = millis();
+
+  for (int i = 0; i != inputShiftersRegistered; i++)
+  {
+    inputShifters[i].update();
+  }
+}
+#endif
+
 #if MF_ANALOG_SUPPORT == 1
 void readAnalog()
 {
-  if (millis()-lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1) {
+  if (millis() - lastAnalogAverage > MF_ANALOGAVERAGE_DELAY_MS - 1)
+  {
     for (int i = 0; i != analogRegistered; i++)
     {
       analog[i].readBuffer();
     }
     lastAnalogAverage = millis();
   }
-  if (millis()-lastAnalogRead < MF_ANALOGREAD_DELAY_MS) return;
+  if (millis() - lastAnalogRead < MF_ANALOGREAD_DELAY_MS)
+    return;
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
@@ -1291,4 +1379,13 @@ void OnTrigger()
   {
     buttons[i].triggerOnPress();
   }
+
+  // Retrigger all the input shifters. This automatically sends
+  // the release events first followed by press events.
+  #if MF_INPUT_SHIFTER_SUPPORT == 1
+  for (int i = 0; i != inputShiftersRegistered; i++)
+  {
+    inputShifters[i].retrigger();
+  }
+  #endif
 }

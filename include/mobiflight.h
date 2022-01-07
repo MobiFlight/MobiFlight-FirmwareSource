@@ -4,10 +4,10 @@
 #include <MFEncoder.h>
 #include <MFAnalog.h>
 
-#define MF_BUTTON_DEBOUNCE_MS   10      // time between updating the buttons
-#define MF_SERVO_DELAY_MS       5       // Time between servo updates
-#define MF_ANALOGAVERAGE_DELAY_MS 10    // time between updating the analog average calculation
-#define MF_ANALOGREAD_DELAY_MS  50      // time between sending analog values
+#define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
+#define MF_SERVO_DELAY_MS 5          // Time between servo updates
+#define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
+#define MF_ANALOGREAD_DELAY_MS 50    // time between sending analog values
 
 enum
 {
@@ -132,13 +132,14 @@ void handlerOnAnalogChange(int value, uint8_t pin, const char *name);
 void OnInitShiftRegister();
 void OnSetShiftRegisterPins();
 void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
-
+void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
+void ClearInputShifters();
+void readInputShifters();
+void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name);
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin);
 void ClearMultiplexer();
-
 void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name);
 void ClearMPXDigitalIn();
 void readMPXDigitalIn();
 void handlerMPXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name);
-
 #endif
