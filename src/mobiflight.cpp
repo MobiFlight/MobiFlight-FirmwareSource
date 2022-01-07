@@ -63,11 +63,17 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-uint32_t lastAnalogAverage = 0;
-uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
+
+#if MF_ANALOG_SUPPORT == 1
+uint32_t lastAnalogAverage = 0;
+uint32_t lastAnalogRead = 0;
+#endif
+
+#if MF_SERVO_SUPPORT == 1
 uint32_t lastServoUpdate = 0;
+#endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 uint32_t lastInputShifterUpdate = 0;
@@ -216,15 +222,23 @@ void setup()
   attachEventCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
+
+  lastButtonUpdate = millis();
+  lastEncoderUpdate = millis() + 2;
+
+#if MF_ANALOG_SUPPORT == 1
+  lastAnalogAverage = millis() + 4;
+  lastAnalogRead = millis() + 4;
+#endif
+
+#if MF_SERVO_SUPPORT == 1
+  lastServoUpdate = millis();
+#endif
+
   // Time Gap between Inputs, do not read at the same loop
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   lastInputShifterUpdate = millis() + 6;
 #endif
-  lastAnalogAverage = millis() + 4;
-  lastAnalogRead = millis() + 4;
-  lastButtonUpdate = millis();
-  lastEncoderUpdate = millis() + 2;
-  lastServoUpdate = millis();
 }
 
 void generateSerial(bool force)
@@ -1236,12 +1250,12 @@ void OnTrigger()
     buttons[i].triggerOnPress();
   }
 
-  // Retrigger all the input shifters. This automatically sends
-  // the release events first followed by press events.
-  #if MF_INPUT_SHIFTER_SUPPORT == 1
+// Retrigger all the input shifters. This automatically sends
+// the release events first followed by press events.
+#if MF_INPUT_SHIFTER_SUPPORT == 1
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
     inputShifters[i].retrigger();
   }
-  #endif
+#endif
 }
