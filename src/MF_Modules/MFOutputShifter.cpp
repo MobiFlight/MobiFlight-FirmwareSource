@@ -1,15 +1,15 @@
-// MFSegments.cpp
+// MFOutputShifter.cpp
 //
 // Copyright (C) 2021
 
-#include "MFShifter.h"
+#include "MFOutputShifter.h"
 
-MFShifter::MFShifter()
+MFOutputShifter::MFOutputShifter()
 {
   _initialized = false;
 }
 
-void MFShifter::setPin(uint8_t pin, int value)
+void MFOutputShifter::setPin(uint8_t pin, int value)
 {
   if (!_initialized) return;
 
@@ -21,7 +21,7 @@ void MFShifter::setPin(uint8_t pin, int value)
   updateShiftRegister();
 }
 
-void MFShifter::setPins(char* pins, int value)
+void MFOutputShifter::setPins(char* pins, int value)
 {
   if (!_initialized) return;
 
@@ -39,7 +39,7 @@ void MFShifter::setPins(char* pins, int value)
   updateShiftRegister();
 }
 
-void MFShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount)
+void MFOutputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount)
 {
   _initialized = true;
   _latchPin = latchPin;
@@ -54,20 +54,20 @@ void MFShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint
   clear();
 }
 
-void MFShifter::detach()
+void MFOutputShifter::detach()
 {
   if (!_initialized) return;
   _initialized = false;
 }
 
-void MFShifter::clear() 
+void MFOutputShifter::clear() 
 {
   // Set everything to 0
   _output = 0;
   updateShiftRegister();  
 }
 
-void MFShifter::test() 
+void MFOutputShifter::test() 
 {
   _output = 0;
   updateShiftRegister();
@@ -87,7 +87,7 @@ void MFShifter::test()
   }
 }
 
-void MFShifter::updateShiftRegister()
+void MFOutputShifter::updateShiftRegister()
 {
    digitalWrite(_latchPin, LOW);
    for (uint8_t i = _moduleCount; i>0 ; i--) {

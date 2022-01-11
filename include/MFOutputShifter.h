@@ -1,13 +1,14 @@
-// MFSegments.h
+// MFOutputShifter.h
 //
-/// \mainpage MF ShiftArray module for MobiFlight Framework
+/// \mainpage MF Output shifter module for MobiFlight Framework
 /// \par Revision History
 /// \version 1.0 Initial release
 /// \author  Manfred Berry (manfred@nystedberry.info) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2021 Manfred Berry
+// Modified 2022 Giorgio Croci Candiani
 
-#ifndef MFShifter_h
-#define MFShifter_h
+#ifndef MFOutputShifter_h
+#define MFOutputShifter_h
 
 #if ARDUINO >= 100
 #include <Arduino.h>
@@ -17,11 +18,11 @@
 #endif
 
 /////////////////////////////////////////////////////////////////////
-/// \class MFShifter MFShifter.h <MFShifter.h>
-class MFShifter
+/// \class MFOutputShifter MFOutputShifter.h <MFOutputShifter.h>
+class MFOutputShifter
 {
 public:
-    MFShifter();
+    MFOutputShifter();
     void setPin(uint8_t pin, int value);
     void setPins(char* pins, int value);
     void attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount);
