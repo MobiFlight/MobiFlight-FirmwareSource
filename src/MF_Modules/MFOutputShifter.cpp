@@ -68,41 +68,19 @@ void MFOutputShifter::clear()
 }
 
 
-void MFOutputShifter::_testbar(uint8_t mode)
+void MFOutputShifter::test() 
 {
   for (uint8_t b = 0; b < _moduleCount * 8; b++) {   
     uint8_t idx = (b & 0xF8)>>3;
     uint8_t msk = (0x01 << (b & 0x07));
-    if(mode==0) {   // Set n-th output ON
-        _outputBuffer[idx] = msk;
-        if(msk == 0x01 && idx != 0) _outputBuffer[idx-1] = 0x00;
-    } else 
-    if(mode==1) {   // Set all outputs ON incrementally
-        _outputBuffer[idx] |= msk;
-    } else 
-    if(mode==2) {   // Set all outputs OFF incrementally
-        _outputBuffer[idx] &= ~msk;
-    } 
+    _outputBuffer[idx] = msk;
+    if(msk == 0x01 && idx != 0) _outputBuffer[idx-1] = 0x00;
     updateShiftRegister();
     delay(50);
-  }
-  if(mode==0) {
+
     _outputBuffer[_moduleCount-1] = 0;
     updateShiftRegister();
   }
-}
-
-void MFOutputShifter::test() 
-{
-    // Two sequences to choose from:
-    
-    // 1. Span all outputs, one at a time 
-    _testbar(0);
-    
-    // 2. All outputs incrementally ON, then all OFF
-    // (when driving LEDs, or heavier loads, beware of power drain!)
-    //_testbar(1);
-    //_testbar(2);
 }
 
 

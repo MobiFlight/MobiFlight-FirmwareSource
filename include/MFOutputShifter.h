@@ -38,8 +38,6 @@ public:
     void updateShiftRegister();
     
 private:
-    void _testbar(uint8_t mode);
-    
     uint8_t _latchPin;	    // Latch pin
     uint8_t _clockPin;	    // Clock pin
     uint8_t _dataPin;	    // Data/SI pin
