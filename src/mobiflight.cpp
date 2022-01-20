@@ -232,7 +232,7 @@ void generateSerial(bool force)
   MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(RANDOM_SEED_INPUT));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
@@ -1236,12 +1236,12 @@ void OnTrigger()
     buttons[i].triggerOnPress();
   }
 
-  // Retrigger all the input shifters. This automatically sends
-  // the release events first followed by press events.
-  #if MF_INPUT_SHIFTER_SUPPORT == 1
+// Retrigger all the input shifters. This automatically sends
+// the release events first followed by press events.
+#if MF_INPUT_SHIFTER_SUPPORT == 1
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
     inputShifters[i].retrigger();
   }
-  #endif
+#endif
 }
