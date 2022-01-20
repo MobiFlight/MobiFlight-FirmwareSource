@@ -14,7 +14,7 @@ class MFEEPROM
   public:
     MFEEPROM();
     void init(void);
-    void get_length(void);
+    uint16_t get_length(void);
     void read_block(uint16_t addr, char data[], uint16_t len);
     void write_block (uint16_t addr, char data[], uint16_t len);
     char read_char(uint16_t adr);

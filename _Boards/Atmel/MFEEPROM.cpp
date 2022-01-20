@@ -13,7 +13,7 @@
 
 MFEEPROM::MFEEPROM() {}
 
-void MFEEPROM::get_length(void) {
+uint16_t MFEEPROM::get_length(void) {
     eepromLength = EEPROM.length();
 }
 
