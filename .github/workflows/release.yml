@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      platforms: -e mega -e micro -e uno -e pico_linux
 
     steps:
       - uses: actions/checkout@v2

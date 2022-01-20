@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      platforms: -e mega -e micro -e uno -e pico_linux
 
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +38,7 @@ jobs:
       - name: Run PlatformIO
         env:
           VERSION: "0.0.${{ github.event.number }}"
-        run: pio run
+        run: pio run ${{ env.platforms}}
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
