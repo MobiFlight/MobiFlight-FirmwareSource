@@ -3,6 +3,7 @@
 
 #include <MFEncoder.h>
 #include <MFAnalog.h>
+#include <CmdMessenger.h>
 
 #define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
 #define MF_SERVO_DELAY_MS 5          // Time between servo updates
@@ -62,7 +63,8 @@ enum
   kSetModuleBrightness,  // 26
   kSetShiftRegisterPins, // 27
   kAnalogChange,         // 28
-  kInputShifterChange    // 29
+  kInputShifterChange,   // 29
+  kLoadConfig            // 30  -> for testing via terminal
 };
 
 void attachCommandCallbacks();
@@ -128,4 +130,9 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
 void ClearInputShifters();
 void readInputShifters();
 void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name);
+void onLoadConfig();
+void loadConfig();
+
+extern CmdMessenger cmdMessenger;
+
 #endif

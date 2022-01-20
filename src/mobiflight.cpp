@@ -19,14 +19,12 @@ char foo;
 //#define DEBUG 1
 
 #include "MFEEPROM.h"
-#include <CmdMessenger.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
 #endif
 
 #include <MFButton.h>
-#include <MFEncoder.h>
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 #include <MFInputShifter.h>
@@ -77,7 +75,7 @@ char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
-char configBuffer[MEM_LEN_CONFIG] = "";
+char configBuffer[MEMLEN_CONFIG_BUFFER] = "";
 
 uint16_t configLength = 0;
 boolean configActivated = false;
@@ -184,6 +182,7 @@ void attachCommandCallbacks()
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Attached callbacks"));
 #endif
+  cmdMessenger.attach(kLoadConfig, onLoadConfig); // -> check if required, was only used during testing but might be sensefull/required
 }
 
 // Callbacks that define what commands we issue upon internal events
@@ -196,7 +195,7 @@ void attachEventCallbacks()
 #endif
 }
 
-void OnResetBoard()
+void ResetBoard()
 {
   MFeeprom.init();
   configBuffer[0] = '\0';
@@ -204,6 +203,12 @@ void OnResetBoard()
   lastCommand = millis();
   loadConfig();
   _restoreName();
+}
+
+void OnResetBoard()
+{
+  resetConfig();    // was part of loadConfig();
+  ResetBoard();
 }
 
 // Setup function
@@ -238,22 +243,52 @@ void generateSerial(bool force)
     MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
+// reads the EEPRROM until NULL termination and returns the number of characters incl. NULL termination, starting from given address
+bool readConfigLength()
+{
+  char temp = 0;
+  uint16_t addreeprom = MEM_OFFSET_CONFIG;
+  uint16_t length = MFeeprom.get_length();
+  configLength = 0;
+  do
+  {
+    temp = MFeeprom.read_char(addreeprom++);
+    configLength++;
+    if (addreeprom > length)                                      // abort if EEPROM size will be exceeded
+    {
+      cmdMessenger.sendCmd(kStatus, F("Loading config failed"));   // text or "-1" like config upload?
+      return false;
+    }
+  }
+  while (temp != 0x00);                                           // reads until NULL
+  configLength--;
+  return true;
+}
+
 void loadConfig()
 {
-  resetConfig();
-  MFeeprom.read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
   cmdMessenger.sendCmd(kStatus, configBuffer);
 #endif
-  configLength = strlen(configBuffer);
-  readConfig();
-  _activateConfig();
+  if (readConfigLength())
+  {
+    readConfig();
+    _activateConfig();
+  }
+}
+
+void onLoadConfig()
+{
+  readConfigLength();
 }
 
 void _storeConfig()
 {
-  MFeeprom.write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+// this is a command coming from the UI
+// the complete config is transferred in severall blocks, after the last block the config was saved here
+// as now the config blocks are stored directly to the EEPROM, it is not required here anymore
+// _storeConfig() should be renamed or just deleted (changes in the connector also required)
 }
 
 void SetPowerSavingMode(bool state)
@@ -647,7 +682,7 @@ void OnSetConfig()
 
   if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, cfgLen + 1); // save the received config string including the terminatung NULL (+1)
+    MFeeprom.write_block(MEM_OFFSET_CONFIG + configLength, cfg, cfgLen+1);    // save the received config string including the terminatung NULL (+1) to EEPROM
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
@@ -720,146 +755,188 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig()
-{
-  if (configLength == 0)
-    return;
-  char *p = NULL;
-
-  char *command = strtok_r(configBuffer, ".", &p);
-  char *params[6];
-  if (*command == 0)
-    return;
-
+// reads an ascii value which is '.' terminated from EEPROM and returns it's value
+uint8_t readUintFromEEPROM (volatile uint16_t *addreeprom) {
+  char params[4] = {0};                                           // max 3 (255) digits NULL terminated
+  uint8_t counter = 0;
   do
   {
-    switch (atoi(command))
+    params[counter++] = MFeeprom.read_char((*addreeprom)++);      // read character from eeprom and locate next buffer and eeprom location
+  }
+  while ( params[counter-1] != '.' && counter < sizeof(params));  // reads until limiter '.' and for safety reason not more then size of params[]
+  params[counter-1] = 0x00;                                       // replace '.' by NULL to terminate the string
+  return atoi(params);
+}
+
+// reads a string from EEPROM at given address which is ':' terminated and saves it in the configBuffer
+// once the configBuffer is not needed anymore, just read until the ":" termination -> see function below
+bool readNameFromEEPROM(uint16_t *addreeprom, char* buffer, uint16_t *addrbuffer)   {
+  char temp = 0;
+  do
+  {
+    temp = MFeeprom.read_char((*addreeprom)++);                   // read the first character
+      buffer[(*addrbuffer)++] = temp;                             // save character and locate next buffer position
+      if (*addrbuffer >= MEMLEN_CONFIG_BUFFER) {                  // configBuffer will be exceeded
+        return false;                                             // abort copying from EEPROM to configBuffer
+      }
+  } while (temp != ':');                                          // reads until limiter ':' and locates the next free buffer position
+  buffer[(*addrbuffer)-1] = 0x00;                                 // replace ':' by NULL, terminates the string
+  return true;
+}
+
+// reads the EEPRROM until end of command which ':' terminated
+bool readEndCommandFromEEPROM(uint16_t *addreeprom)   {
+  char temp = 0;
+  uint16_t length = MFeeprom.get_length();
+  do
+  {
+    temp = MFeeprom.read_char((*addreeprom)++);
+    if (*addreeprom > length)                                     // abort if EEPROM size will be exceeded
+      return false;
+  }
+  while (temp != ':');                                            // reads until limiter ':'
+  return true;
+}
+
+void readConfig()
+{
+  if (configLength == 0)                                          // do nothing if no config is available
+    return;
+  uint16_t addreeprom = MEM_OFFSET_CONFIG;                        // define first memory location where config is saved in EEPROM
+  uint16_t addrbuffer = 0;                                        // and start with first memory location from configBuffer
+  char params[6] = "";
+  char command = readUintFromEEPROM(&addreeprom);                 // read the first value from EEPROM, it's a device definition
+  bool copy_success = true;                                       // will be set to false if copying input names to configBuffer exceeds array dimensions
+                                                                  // not required anymore when pins instead of names are transferred to the UI
+
+  if (command == 0)                                               // just to be sure, configLength should also be 0
+    return;
+
+  do                                                              // go through the EEPROM until it is NULL terminated
+  {
+    switch (command)
     {
     case kTypeButton:
-      params[0] = strtok_r(NULL, ".", &p); // pin
-      params[1] = strtok_r(NULL, ":", &p); // name
-      AddButton(atoi(params[0]), params[1]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
+      AddButton(params[0], &configBuffer[addrbuffer]);            // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer); // copy the NULL terminated name to to configBuffer and set to next free memory location
       break;
 
     case kTypeOutput:
-      params[0] = strtok_r(NULL, ".", &p); // pin
-      params[1] = strtok_r(NULL, ":", &p); // Name
-      AddOutput(atoi(params[0]), params[1]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
+      AddOutput(params[0], &configBuffer[addrbuffer]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 
 #if MF_SEGMENT_SUPPORT == 1
     case kTypeLedSegment:
-      params[0] = strtok_r(NULL, ".", &p); // pin Data
-      params[1] = strtok_r(NULL, ".", &p); // pin Cs
-      params[2] = strtok_r(NULL, ".", &p); // pin Clk
-      params[3] = strtok_r(NULL, ".", &p); // brightness
-      params[4] = strtok_r(NULL, ".", &p); // numModules
-      params[5] = strtok_r(NULL, ":", &p); // Name
-                                           // int dataPin, int clkPin, int csPin, int numDevices, int brightness
-      AddLedSegment(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[4]), atoi(params[3]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin Data number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin CS number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the Pin CLK number
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the brightness
+      params[4] = readUintFromEEPROM(&addreeprom);                // get the number of modules
+      AddLedSegment(params[0], params[1], params[2], params[4], params[3]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
     case kTypeStepperDeprecated:
       // this is for backwards compatibility
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ".", &p); // pin3
-      params[3] = strtok_r(NULL, ".", &p); // pin4
-      params[4] = strtok_r(NULL, ".", &p); // btnPin1
-      params[5] = strtok_r(NULL, ":", &p); // Name
-      AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 0);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the Pin3 number
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the Pin4 number
+      params[4] = readUintFromEEPROM(&addreeprom);                // get the Button number
+      AddStepper(params[0], params[1], params[2], params[3], 0);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
     case kTypeStepper:
-      // AddStepper(int pin1, int pin2, int pin3, int pin4)
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ".", &p); // pin3
-      params[3] = strtok_r(NULL, ".", &p); // pin4
-      params[4] = strtok_r(NULL, ".", &p); // btnPin1
-      params[5] = strtok_r(NULL, ":", &p); // Name
-      AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the Pin3 number
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the Pin4 number
+      params[4] = readUintFromEEPROM(&addreeprom);                // get the Button number
+      AddStepper(params[0], params[1], params[2], params[3], params[4]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_SERVO_SUPPORT == 1
     case kTypeServo:
-      // AddServo(int pin)
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ":", &p); // Name
-      AddServo(atoi(params[0]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
+      AddServo(params[0]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
     case kTypeEncoderSingleDetent:
-      // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ":", &p); // Name
-      AddEncoder(atoi(params[0]), atoi(params[1]), 0, params[2]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      AddEncoder(params[0], params[1], 0, &configBuffer[addrbuffer]);                   // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to it and get the next free memory location
       break;
 
     case kTypeEncoder:
-      // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ".", &p); // encoder_type
-      params[3] = strtok_r(NULL, ":", &p); // Name
-      AddEncoder(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the type
+      AddEncoder(params[0], params[1], params[2], &configBuffer[addrbuffer]);           // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
       break;
 
 #if MF_LCD_SUPPORT == 1
     case kTypeLcdDisplayI2C:
-      // AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
-      params[0] = strtok_r(NULL, ".", &p); // address
-      params[1] = strtok_r(NULL, ".", &p); // cols
-      params[2] = strtok_r(NULL, ".", &p); // lines
-      params[3] = strtok_r(NULL, ":", &p); // Name
-      AddLcdDisplay(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the address
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the columns
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the lines
+      AddLcdDisplay(params[0], params[1], params[2]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_ANALOG_SUPPORT == 1
     case kTypeAnalogInput:
-      params[0] = strtok_r(NULL, ".", &p); // pin
-      params[1] = strtok_r(NULL, ".", &p); // sensitivity
-      params[2] = strtok_r(NULL, ":", &p); // name
-      AddAnalog(atoi(params[0]), params[2], atoi(params[1]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the pin number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the sensitivity
+      AddAnalog(params[0], &configBuffer[addrbuffer], params[1]); // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
       break;
 #endif
 
 #if MF_SHIFTER_SUPPORT == 1
     case kShiftRegister:
-      params[0] = strtok_r(NULL, ".", &p); // pin latch
-      params[1] = strtok_r(NULL, ".", &p); // pin clock
-      params[2] = strtok_r(NULL, ".", &p); // pin data
-      params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
-      params[4] = strtok_r(NULL, ":", &p); // name
-      AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the latch Pin
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the clock Pin
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the data Pin
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
+      AddShifter(params[0], params[1], params[2], params[3]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     case kTypeInputShifter:
-      params[0] = strtok_r(NULL, ".", &p); // pin latch
-      params[1] = strtok_r(NULL, ".", &p); // pin clock
-      params[2] = strtok_r(NULL, ".", &p); // pin data
-      params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
-      params[4] = strtok_r(NULL, ":", &p); // name
-      AddInputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the latch Pin
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the clock Pin
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the data Pin
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
+      AddInputShifter(params[0], params[1], params[2], params[3], &configBuffer[addrbuffer]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
     default:
-      // read to the end of the current command which is apparently not understood
-      strtok_r(NULL, ":", &p); // read to end of unknown command
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
     }
-    command = strtok_r(NULL, ".", &p);
-  } while (command != NULL);
+    command = readUintFromEEPROM(&addreeprom);
+  } while (command && copy_success);
+  if (!copy_success) {                                            // too much/long names for input devices
+    configBuffer[MEMLEN_CONFIG_BUFFER-1] = 0x00;                  // terminate the last copied (part of) string with 0x00
+  }
 }
 
 // Called when a received command has no attached function
@@ -899,7 +976,7 @@ void OnSetPin()
   int pin = cmdMessenger.readInt16Arg();
   int state = cmdMessenger.readInt16Arg();
   // Set led
-  analogWrite(pin, state);
+  outputs[pin].set(state);
   lastCommand = millis();
 }
 
