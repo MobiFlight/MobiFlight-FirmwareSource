@@ -83,7 +83,6 @@ uint16_t configLength = 0;
 boolean configActivated = false;
 
 bool powerSavingMode = false;
-uint8_t pinsRegistered[MODULE_MAX_PINS + 1];
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
@@ -202,7 +201,6 @@ void OnResetBoard()
   MFeeprom.init();
   configBuffer[0] = '\0';
   generateSerial(false);
-  clearRegisteredPins();
   lastCommand = millis();
   loadConfig();
   _restoreName();
@@ -325,44 +323,12 @@ void loop()
 #endif
 }
 
-bool isPinRegistered(uint8_t pin)
-{
-  return pinsRegistered[pin] != kTypeNotSet;
-}
-
-bool isPinRegisteredForType(uint8_t pin, uint8_t type)
-{
-  return pinsRegistered[pin] == type;
-}
-
-void registerPin(uint8_t pin, uint8_t type)
-{
-  pinsRegistered[pin] = type;
-}
-
-void clearRegisteredPins(uint8_t type)
-{
-  for (int i = 0; i != MODULE_MAX_PINS + 1; ++i)
-    if (pinsRegistered[i] == type)
-      pinsRegistered[i] = kTypeNotSet;
-}
-
-void clearRegisteredPins()
-{
-  for (int i = 0; i != MODULE_MAX_PINS + 1; ++i)
-    pinsRegistered[i] = kTypeNotSet;
-}
-
 //// OUTPUT /////
 void AddOutput(uint8_t pin = 1, char const *name = "Output")
 {
   if (outputsRegistered == MAX_OUTPUTS)
     return;
-  if (isPinRegistered(pin))
-    return;
-
   outputs[outputsRegistered] = MFOutput(pin);
-  registerPin(pin, kTypeOutput);
   outputsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added output"));
@@ -371,7 +337,6 @@ void AddOutput(uint8_t pin = 1, char const *name = "Output")
 
 void ClearOutputs()
 {
-  clearRegisteredPins(kTypeOutput);
   outputsRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared outputs"));
@@ -383,13 +348,7 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
 {
   if (buttonsRegistered == MAX_BUTTONS)
     return;
-
-  if (isPinRegistered(pin))
-    return;
-
   buttons[buttonsRegistered] = MFButton(pin, name);
-
-  registerPin(pin, kTypeButton);
   buttonsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added button ") /* + name */);
@@ -398,7 +357,6 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
 
 void ClearButtons()
 {
-  clearRegisteredPins(kTypeButton);
   buttonsRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared buttons"));
@@ -410,14 +368,8 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 {
   if (encodersRegistered == MAX_ENCODERS)
     return;
-  if (isPinRegistered(pin1) || isPinRegistered(pin2))
-    return;
-
   encoders[encodersRegistered] = MFEncoder();
   encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
-
-  registerPin(pin1, kTypeEncoder);
-  registerPin(pin2, kTypeEncoder);
   encodersRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added encoder"));
@@ -426,7 +378,6 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 
 void ClearEncoders()
 {
-  clearRegisteredPins(kTypeEncoder);
   encodersRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared encoders"));
@@ -441,14 +392,8 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
     return;
   inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
   inputShifters[inputShiftersRegistered].clear();
-  registerPin(latchPin, kTypeInputShifter);
-  registerPin(clockPin, kTypeInputShifter);
-  registerPin(dataPin, kTypeInputShifter);
-
   inputShifters[inputShiftersRegistered].attachHandler(handlerInputShifterOnChange);
-
   inputShiftersRegistered++;
-
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added input shifter"));
 #endif
@@ -460,8 +405,6 @@ void ClearInputShifters()
   {
     inputShifters[inputShiftersRegistered].detach();
   }
-
-  clearRegisteredPins(kTypeInputShifter);
   inputShiftersRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared input shifter"));
@@ -478,14 +421,7 @@ void AddLedSegment(int dataPin, int csPin, int clkPin, int numDevices, int brigh
   if (ledSegmentsRegistered == MAX_LEDSEGMENTS)
     return;
 
-  if (isPinRegistered(dataPin) || isPinRegistered(clkPin) || isPinRegistered(csPin))
-    return;
-
   ledSegments[ledSegmentsRegistered].attach(dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
-
-  registerPin(dataPin, kTypeLedSegment);
-  registerPin(csPin, kTypeLedSegment);
-  registerPin(clkPin, kTypeLedSegment);
   ledSegmentsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added Led Segment"));
@@ -494,7 +430,6 @@ void AddLedSegment(int dataPin, int csPin, int clkPin, int numDevices, int brigh
 
 void ClearLedSegments()
 {
-  clearRegisteredPins(kTypeLedSegment);
   for (int i = 0; i != ledSegmentsRegistered; i++)
   {
     ledSegments[ledSegmentsRegistered].detach();
@@ -525,26 +460,14 @@ void AddStepper(int pin1, int pin2, int pin3, int pin4, int btnPin1)
 {
   if (steppersRegistered == MAX_STEPPERS)
     return;
-  if (isPinRegistered(pin1) || isPinRegistered(pin2) || isPinRegistered(pin3) || isPinRegistered(pin4) || (btnPin1 > 0 && isPinRegistered(btnPin1)))
-  {
-#ifdef DEBUG
-    cmdMessenger.sendCmd(kStatus, F("Conflict with stepper"));
-#endif
-    return;
-  }
 
   steppers[steppersRegistered] = new MFStepper(pin1, pin2, pin3, pin4, btnPin1); // is our object
   steppers[steppersRegistered]->setMaxSpeed(STEPPER_SPEED);
   steppers[steppersRegistered]->setAcceleration(STEPPER_ACCEL);
 
-  registerPin(pin1, kTypeStepper);
-  registerPin(pin2, kTypeStepper);
-  registerPin(pin3, kTypeStepper);
-  registerPin(pin4, kTypeStepper);
   // autoreset is not released yet
   if (btnPin1 > 0)
   {
-    registerPin(btnPin1, kTypeStepper);
     // this triggers the auto reset if we need to reset
     steppers[steppersRegistered]->reset();
   }
@@ -563,7 +486,6 @@ void ClearSteppers()
   {
     delete steppers[steppersRegistered];
   }
-  clearRegisteredPins(kTypeStepper);
   steppersRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared steppers"));
@@ -577,11 +499,7 @@ void AddServo(int pin)
 {
   if (servosRegistered == MAX_MFSERVOS)
     return;
-  if (isPinRegistered(pin))
-    return;
-
   servos[servosRegistered].attach(pin, true);
-  registerPin(pin, kTypeServo);
   servosRegistered++;
 }
 
@@ -591,7 +509,6 @@ void ClearServos()
   {
     servos[servosRegistered].detach();
   }
-  clearRegisteredPins(kTypeServo);
   servosRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared servos"));
@@ -605,9 +522,6 @@ void AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, uint8_t lines = 2,
 {
   if (lcd_12cRegistered == MAX_MFLCD_I2C)
     return;
-  registerPin(SDA, kTypeLcdDisplayI2C);
-  registerPin(SCL, kTypeLcdDisplayI2C);
-
   lcd_I2C[lcd_12cRegistered].attach(address, cols, lines);
   lcd_12cRegistered++;
 #ifdef DEBUG
@@ -621,7 +535,6 @@ void ClearLcdDisplays()
   {
     lcd_I2C[lcd_12cRegistered].detach();
   }
-  clearRegisteredPins(kTypeLcdDisplayI2C);
   lcd_12cRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared lcdDisplays"));
@@ -635,12 +548,7 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
 {
   if (analogRegistered == MAX_ANALOG_INPUTS)
     return;
-
-  if (isPinRegistered(pin))
-    return;
-
   analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
-  registerPin(pin, kTypeAnalogInput);
   analogRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added analog device "));
@@ -649,7 +557,6 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
 
 void ClearAnalog()
 {
-  clearRegisteredPins(kTypeAnalogInput);
   analogRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared analog devices"));

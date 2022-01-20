@@ -23,7 +23,7 @@
 #define MF_INPUT_SHIFTER_SUPPORT 1
 #endif
 
-#define MODULE_MAX_PINS 21
+//#define MODULE_MAX_PINS 21
 #define MAX_OUTPUTS 18
 #define MAX_BUTTONS 18
 #define MAX_LEDSEGMENTS 1
