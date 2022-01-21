@@ -211,13 +211,6 @@ void OnResetBoard()
 // Setup function
 void setup()
 {
-  // Raspberry Pi devices based on the RP2040 need to have the SDA and SCL pins set to the
-  // ones defined in the MFBoards.h file for the device.
-#if defined(ARDUINO_ARCH_RP2040)
-  Wire.setSDA(PIN_WIRE0_SDA);
-  Wire.setSCL(PIN_WIRE0_SCL);
-#endif
-
   Serial.begin(115200);
   attachCommandCallbacks();
   attachEventCallbacks();
