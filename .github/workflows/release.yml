@@ -47,11 +47,15 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: firmware
-          path: .pio/build/**/mobiflight*.hex
+          path: |
+            .pio/build/**/mobiflight*.hex
+            .pio/build/**/mobiflight*.uf2
 
       - name: Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: .pio/build/**/mobiflight*.hex
+          files: |
+            .pio/build/**/mobiflight*.hex
+            .pio/build/**/mobiflight*.uf2
