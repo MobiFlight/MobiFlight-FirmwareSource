@@ -64,7 +64,8 @@ enum
   kSetShiftRegisterPins, // 27
   kAnalogChange,         // 28
   kInputShifterChange,   // 29
-  kLoadConfig            // 30  -> for testing via terminal
+  kLoadConfig,           // 30  -> for testing via terminal
+  kDebug = 0xFF          // 255 -> for Debug print
 };
 
 void attachCommandCallbacks();

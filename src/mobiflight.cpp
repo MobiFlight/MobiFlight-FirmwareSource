@@ -10,6 +10,7 @@ char foo;
 
 #include "mobiflight.h"
 #include <MFBoards.h>
+#include "allocateMem.h"
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
@@ -88,10 +89,10 @@ unsigned long lastCommand;
 
 MFEEPROM MFeeprom;
 
-MFOutput outputs[MAX_OUTPUTS];
+MFOutput *outputs[MAX_OUTPUTS];
 uint8_t outputsRegistered = 0;
 
-MFButton buttons[MAX_BUTTONS];
+MFButton *buttons[MAX_BUTTONS];
 uint8_t buttonsRegistered = 0;
 
 #if MF_SEGMENT_SUPPORT == 1
@@ -99,11 +100,11 @@ MFSegments ledSegments[MAX_LEDSEGMENTS];
 uint8_t ledSegmentsRegistered = 0;
 #endif
 
-MFEncoder encoders[MAX_ENCODERS];
+MFEncoder *encoders[MAX_ENCODERS];
 uint8_t encodersRegistered = 0;
 
 #if MF_STEPPER_SUPPORT == 1
-MFStepper *steppers[MAX_STEPPERS]; //
+MFStepper steppers[MAX_STEPPERS]; //
 uint8_t steppersRegistered = 0;
 #endif
 
@@ -118,17 +119,17 @@ uint8_t lcd_12cRegistered = 0;
 #endif
 
 #if MF_ANALOG_SUPPORT == 1
-MFAnalog analog[MAX_ANALOG_INPUTS];
+MFAnalog *analog[MAX_ANALOG_INPUTS];
 uint8_t analogRegistered = 0;
 #endif
 
 #if MF_SHIFTER_SUPPORT == 1
-MFShifter shiftregisters[MAX_SHIFTERS];
+MFShifter *shiftregisters[MAX_SHIFTERS];
 uint8_t shiftregisterRegistered = 0;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
-MFInputShifter inputShifters[MAX_INPUT_SHIFTERS];
+MFInputShifter *inputShifters[MAX_INPUT_SHIFTERS];
 uint8_t inputShiftersRegistered = 0;
 #endif
 
@@ -363,7 +364,15 @@ void AddOutput(uint8_t pin = 1, char const *name = "Output")
 {
   if (outputsRegistered == MAX_OUTPUTS)
     return;
-  outputs[outputsRegistered] = MFOutput(pin);
+  if (!FitInMemory(sizeof(MFOutput)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("Output does not fit in Memory"));
+    cmdMessenger.sendCmdEnd();
+    return;
+  }
+  outputs[outputsRegistered] = new (allocateMemory(sizeof(MFOutput))) MFOutput(pin);
   outputsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added output"));
@@ -383,7 +392,15 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
 {
   if (buttonsRegistered == MAX_BUTTONS)
     return;
-  buttons[buttonsRegistered] = MFButton(pin, name);
+  if (!FitInMemory(sizeof(MFButton)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("Button does not fit in Memory"));
+    cmdMessenger.sendCmdEnd();
+    return;
+  }
+  buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
   buttonsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added button ") /* + name */);
@@ -403,8 +420,17 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 {
   if (encodersRegistered == MAX_ENCODERS)
     return;
-  encoders[encodersRegistered] = MFEncoder();
-  encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
+
+  if (!FitInMemory(sizeof(MFEncoder)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("Encoders does not fit in Memory"));
+    cmdMessenger.sendCmdEnd();
+    return;
+  }
+  encoders[encodersRegistered] = new (allocateMemory(sizeof(MFEncoder))) MFEncoder;
+  encoders[encodersRegistered]->attach(pin1, pin2, encoder_type, name);
   encodersRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added encoder"));
@@ -425,9 +451,17 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
 {
   if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
     return;
-  inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
-  inputShifters[inputShiftersRegistered].clear();
-  inputShifters[inputShiftersRegistered].attachHandler(handlerInputShifterOnChange);
+  if (!FitInMemory(sizeof(MFInputShifter)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("InputShifter does not fit in Memory"));
+    cmdMessenger.sendCmdEnd();
+    return;
+  }
+  inputShifters[inputShiftersRegistered] = new (allocateMemory(sizeof(MFInputShifter))) MFInputShifter;
+  inputShifters[inputShiftersRegistered]->attach(latchPin, clockPin, dataPin, modules, name);
+  inputShifters[inputShiftersRegistered]->clear();
   inputShiftersRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added input shifter"));
@@ -438,7 +472,7 @@ void ClearInputShifters()
 {
   for (int i = 0; i < inputShiftersRegistered; i++)
   {
-    inputShifters[inputShiftersRegistered].detach();
+    inputShifters[i]->detach();
   }
   inputShiftersRegistered = 0;
 #ifdef DEBUG
@@ -467,7 +501,7 @@ void ClearLedSegments()
 {
   for (int i = 0; i != ledSegmentsRegistered; i++)
   {
-    ledSegments[ledSegmentsRegistered].detach();
+    ledSegments[i].detach();
   }
   ledSegmentsRegistered = 0;
 #ifdef DEBUG
@@ -484,7 +518,7 @@ void PowerSaveLedSegment(bool state)
 
   for (int i = 0; i != outputsRegistered; ++i)
   {
-    outputs[i].powerSavingMode(state);
+    outputs[i]->powerSavingMode(state);
   }
 }
 #endif
@@ -495,16 +529,14 @@ void AddStepper(int pin1, int pin2, int pin3, int pin4, int btnPin1)
 {
   if (steppersRegistered == MAX_STEPPERS)
     return;
-
-  steppers[steppersRegistered] = new MFStepper(pin1, pin2, pin3, pin4, btnPin1); // is our object
-  steppers[steppersRegistered]->setMaxSpeed(STEPPER_SPEED);
-  steppers[steppersRegistered]->setAcceleration(STEPPER_ACCEL);
-
+  steppers[steppersRegistered].attach(pin1, pin2, pin3, pin4, btnPin1);
+  steppers[steppersRegistered].setMaxSpeed(STEPPER_SPEED);
+  steppers[steppersRegistered].setAcceleration(STEPPER_ACCEL);
   // autoreset is not released yet
   if (btnPin1 > 0)
   {
     // this triggers the auto reset if we need to reset
-    steppers[steppersRegistered]->reset();
+    steppers[steppersRegistered].reset();
   }
 
   // all set
@@ -519,7 +551,7 @@ void ClearSteppers()
 {
   for (int i = 0; i != steppersRegistered; i++)
   {
-    delete steppers[steppersRegistered];
+    steppers[i].detach();
   }
   steppersRegistered = 0;
 #ifdef DEBUG
@@ -542,7 +574,7 @@ void ClearServos()
 {
   for (int i = 0; i != servosRegistered; i++)
   {
-    servos[servosRegistered].detach();
+    servos[i].detach();
   }
   servosRegistered = 0;
 #ifdef DEBUG
@@ -553,7 +585,7 @@ void ClearServos()
 
 #if MF_LCD_SUPPORT == 1
 //// LCD Display /////
-void AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, uint8_t lines = 2, char const *name = "LCD")
+void AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, uint8_t lines = 2)
 {
   if (lcd_12cRegistered == MAX_MFLCD_I2C)
     return;
@@ -568,7 +600,7 @@ void ClearLcdDisplays()
 {
   for (int i = 0; i != lcd_12cRegistered; i++)
   {
-    lcd_I2C[lcd_12cRegistered].detach();
+    lcd_I2C[i].detach();
   }
   lcd_12cRegistered = 0;
 #ifdef DEBUG
@@ -583,7 +615,15 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
 {
   if (analogRegistered == MAX_ANALOG_INPUTS)
     return;
-  analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
+  if (!FitInMemory(sizeof(MFAnalog)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("Analog does not fit in Memory"));
+    cmdMessenger.sendCmdEnd();
+    return;
+  }
+  analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
   analogRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added analog device "));
@@ -602,12 +642,21 @@ void ClearAnalog()
 
 #if MF_SHIFTER_SUPPORT == 1
 //// SHIFT REGISTER /////
-void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "Shifter")
+void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
 {
   if (shiftregisterRegistered == MAX_SHIFTERS)
     return;
-  shiftregisters[shiftregisterRegistered].attach(latchPin, clockPin, dataPin, modules);
-  shiftregisters[shiftregisterRegistered].clear();
+  if (!FitInMemory(sizeof(MFShifter)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("OutputShifter does not fit in Memory"));
+    cmdMessenger.sendCmdEnd();
+    return;
+  }
+  shiftregisters[shiftregisterRegistered] = new (allocateMemory(sizeof(MFShifter))) MFShifter;
+  shiftregisters[shiftregisterRegistered]->attach(latchPin, clockPin, dataPin, modules);
+  shiftregisters[shiftregisterRegistered]->clear();
   shiftregisterRegistered++;
 
 #ifdef DEBUG
@@ -619,7 +668,7 @@ void ClearShifters()
 {
   for (int i = 0; i != shiftregisterRegistered; i++)
   {
-    shiftregisters[shiftregisterRegistered].detach();
+    shiftregisters[i]->detach();
   }
 
   shiftregisterRegistered = 0;
@@ -727,6 +776,7 @@ void resetConfig()
   ClearInputShifters();
 #endif
 
+  ClearMemory();
   configLength = 0;
   configActivated = false;
 }
@@ -976,7 +1026,7 @@ void OnSetPin()
   int pin = cmdMessenger.readInt16Arg();
   int state = cmdMessenger.readInt16Arg();
   // Set led
-  outputs[pin].set(state);
+  outputs[pin]->set(state);
   lastCommand = millis();
 }
 
@@ -1016,7 +1066,7 @@ void OnSetModuleBrightness()
 void OnInitShiftRegister()
 {
   int module = cmdMessenger.readInt16Arg();
-  shiftregisters[module].clear();
+  shiftregisters[module]->clear();
   lastCommand = millis();
 }
 
@@ -1026,7 +1076,7 @@ void OnSetShiftRegisterPins()
   int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
   int value = cmdMessenger.readInt16Arg();
-  shiftregisters[module].setPins(pins, value);
+  shiftregisters[module]->setPins(pins, value);
   lastCommand = millis();
 }
 #endif
@@ -1035,7 +1085,7 @@ void OnSetShiftRegisterPins()
 void OnInitInputShiftRegister()
 {
   int module = cmdMessenger.readInt16Arg();
-  inputShifters[module].clear();
+  inputShifters[module]->clear();
   lastCommand = millis();
 }
 #endif
@@ -1048,7 +1098,7 @@ void OnSetStepper()
 
   if (stepper >= steppersRegistered)
     return;
-  steppers[stepper]->moveTo(newPos);
+  steppers[stepper].moveTo(newPos);
   lastCommand = millis();
 }
 
@@ -1058,7 +1108,7 @@ void OnResetStepper()
 
   if (stepper >= steppersRegistered)
     return;
-  steppers[stepper]->reset();
+  steppers[stepper].reset();
   lastCommand = millis();
 }
 
@@ -1068,7 +1118,7 @@ void OnSetZeroStepper()
 
   if (stepper >= steppersRegistered)
     return;
-  steppers[stepper]->setZero();
+  steppers[stepper].setZero();
   lastCommand = millis();
 }
 
@@ -1076,7 +1126,7 @@ void updateSteppers()
 {
   for (int i = 0; i != steppersRegistered; i++)
   {
-    steppers[i]->update();
+    steppers[i].update();
   }
 }
 #endif
@@ -1122,7 +1172,7 @@ void readButtons()
   lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].update();
+    buttons[i]->update();
   }
 }
 
@@ -1133,7 +1183,7 @@ void readEncoder()
   lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
-    encoders[i].update();
+    encoders[i]->update();
   }
 }
 
@@ -1146,7 +1196,7 @@ void readInputShifters()
 
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
-    inputShifters[i].update();
+    inputShifters[i]->update();
   }
 }
 #endif
@@ -1158,7 +1208,7 @@ void readAnalog()
   {
     for (int i = 0; i != analogRegistered; i++)
     {
-      analog[i].readBuffer();
+      analog[i]->readBuffer();
     }
     lastAnalogAverage = millis();
   }
@@ -1167,7 +1217,7 @@ void readAnalog()
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
-    analog[i].update();
+    analog[i]->update();
   }
 }
 #endif
@@ -1212,12 +1262,12 @@ void OnTrigger()
   // Trigger all button release events first...
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].triggerOnRelease();
+    buttons[i]->triggerOnRelease();
   }
   // ... then trigger all the press events
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].triggerOnPress();
+    buttons[i]->triggerOnPress();
   }
 
   // Retrigger all the input shifters. This automatically sends
@@ -1225,7 +1275,7 @@ void OnTrigger()
   #if MF_INPUT_SHIFTER_SUPPORT == 1
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
-    inputShifters[i].retrigger();
+    inputShifters[i]->retrigger();
   }
   #endif
 }
