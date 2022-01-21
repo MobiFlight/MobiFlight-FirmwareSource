@@ -8,7 +8,7 @@ firmware_version = os.environ.get('VERSION', "")
 if firmware_version == "":
     # When no version is specified default to "0.0.1" for
     # compatibility with MobiFlight desktop app version checks.
-    firmware_version = "0.0.1"
+    firmware_version = "2.0.1"
 
 # Strip any leading "v" that might be on the version and
 # any leading or trailing periods.
@@ -22,10 +22,10 @@ env.Append(CPPDEFINES=[
     f'BUILD_VERSION={firmware_version}'
 ])
 
-# The Pico board has to build differently on Linux so its environment name
-# has _linux on the end. Get rid of it so the firmware filename just says
-# "pico".
-board_base_name = env["PIOENV"].replace("_linux", "")
+# The Pico board has to build differently on Linux vs. windows so its environment
+# name has the build OS on the end. Remove that so the final firmware filename
+# matches the pattern for Arduino boards.
+board_base_name = env["PIOENV"].replace("_linux", "").replace("_windows", "")
 
 # Set the output filename to the name of the board and the version
 env.Replace(
