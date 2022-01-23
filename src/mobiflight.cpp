@@ -1070,22 +1070,31 @@ void readConfig()
 #endif
 
 #if MF_MUX_SUPPORT == 1
-    case kTypeMuxDriver:
-      // Repeated commands do not define more objects, but change the only existing one
-      params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
-      params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
-      params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
-      params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
-      AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
-      break;
+    // No longer a separate config command for the mux driver
+    // case kTypeMuxDriver:
+    //   // Repeated commands do not define more objects, but change the only existing one
+    //   params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
+    //   params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
+    //   params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
+    //   params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
+    //   AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
+    //   break;
 #endif
 
 #if MF_DIGIN_MUX_SUPPORT == 1
     case kTypeDigInMux:
       params[0] = strtok_r(NULL, ".", &p); // data pin
-      params[1] = strtok_r(NULL, ".", &p); // 8-bit registers (1-2)
-      params[2] = strtok_r(NULL, ":", &p); // name
-      AddDigInMux(atoi(params[0]), atoi(params[1]), params[2]);
+      // Mux driver section
+      // Repeated commands do not define more objects, but change the only existing one
+      params[1] = strtok_r(NULL, ".", &p); // Sel0 pin
+      params[2] = strtok_r(NULL, ".", &p); // Sel1 pin
+      params[3] = strtok_r(NULL, ".", &p); // Sel2 pin
+      params[4] = strtok_r(NULL, ":", &p); // Sel3 pin
+      AddMultiplexer(atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
+
+      params[5] = strtok_r(NULL, ".", &p); // 8-bit registers (1-2)
+      params[6] = strtok_r(NULL, ":", &p); // name
+      AddDigInMux(atoi(params[0]), atoi(params[5]), params[6]);
       break;
 #endif
 
