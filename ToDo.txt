@@ -26,7 +26,7 @@ MFServo.cpp
 MFStepper.cpp
 -> initialize _stepper dynamically
 -> class storage in own Buffer
--> really new attach(...) function. Or use the existing one ??
+-> think about new attach(...) function from https://github.com/elral/AccelStepper
 ------------------------------------------------------------------------------------------------------------------
 
 

@@ -8,9 +8,6 @@
 #include "allocateMem.h"
 #include "mobiflight.h"
 
-uint8_t MFStepper_stepperCount = 0;
-MFStepper *MFStepper_steppers[MAX_STEPPERS];
-
 MFStepper::MFStepper()
 {
   _initialized = false;
@@ -26,28 +23,26 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
 		cmdMessenger.sendCmdEnd();
     return;
   }
-  _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper;
-  _stepper->init(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
+  if (pin2 == pin4 && pin1 == pin3)   // if pin1/2 are identical to pin3/4
+  {                                   // init new stepper with external driver (step and direction)
+    _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin1);
+  }
+  else
+  {                                   // otherwise init new stepper in full 4 wire mode
+     _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
+  }
   _zeroPin=btnPin5;
   _zeroPinState=HIGH;
 
   if(_zeroPin) {
     pinMode(_zeroPin, INPUT_PULLUP);     // set pin to input
-  }  
+  }
+  _initialized = true;
   _resetting = false;
 }
 void MFStepper::detach()
 {
-  if (!_initialized)
-    return;
   _initialized = false;
-}
-
-
-void addStepper(MFStepper *stepper)
-{
-  MFStepper_steppers[MFStepper_stepperCount] = stepper;
-  MFStepper_stepperCount++;
 }
 
 void MFStepper::moveTo(long absolute)
