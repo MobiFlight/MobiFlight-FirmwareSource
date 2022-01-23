@@ -900,6 +900,10 @@ void resetConfig()
   ClearInputShifters();
 #endif
 
+#if MF_MUX_SUPPORT == 1
+  ClearMultiplexer();
+#endif
+
 #if MF_DIGIN_MUX_SUPPORT == 1
   ClearDigInMux();
 #endif
