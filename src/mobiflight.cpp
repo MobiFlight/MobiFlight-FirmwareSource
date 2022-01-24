@@ -458,7 +458,7 @@ void ClearInputShifters()
 {
   for (int i = 0; i < inputShiftersRegistered; i++)
   {
-    inputShifters[inputShiftersRegistered].detach();
+    inputShifters[i].detach();
   }
 
   clearRegisteredPins(kTypeInputShifter);
