@@ -39,12 +39,12 @@
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
 #define STEPPER_ACCEL 800
 
-#define MOBIFLIGHT_TYPE "MobiFlight Uno"
-#define MOBIFLIGHT_SERIAL "0987654321"
-#define MOBIFLIGHT_NAME "MobiFlight Uno"
-#define EEPROM_SIZE 1024 // EEPROMSizeUno
-#define MEMLEN_CONFIG 286
-#define MEMLEN_CONFIG_BUFFER    200     // max. size for configBuffer, contains only names from inputs
-#define MF_MAX_DEVICEMEM        250     // max. memory size for devices
+#define MOBIFLIGHT_TYPE         "MobiFlight Uno"
+#define MOBIFLIGHT_SERIAL       "0987654321"
+#define MOBIFLIGHT_NAME         "MobiFlight Uno"
+#define EEPROM_SIZE             1024    // EEPROMSizeUno
+#define MEMLEN_CONFIG           286     // max. size for config which wil be stored in EEPROM
+#define MEMLEN_CONFIG_BUFFER    220     // max. size for configBuffer, contains only names from inputs
+#define MF_MAX_DEVICEMEM        300     // max. memory size for devices
 
 #endif
