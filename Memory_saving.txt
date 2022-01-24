@@ -1,7 +1,0 @@
-                        Mega            ProMicro            Uno
-                        RAM/Flash       RAM/Flash           RAM/Flash
-start:                  4608/27022      2003/27378          1705/25158
-w/o registerPins:       4538/26442      1981/26806          1691/24576
-reduced configBuffer:   3838/26150      1767/26470          1601/24254
-own Buffer for Devices  2574/25670      1386/25888          1343/23646  Buffer size = 1 to compare
-own Buffer for Devices: 4573/25672      1885/25890          1592/23648
