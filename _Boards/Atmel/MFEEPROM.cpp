@@ -14,7 +14,7 @@
 MFEEPROM::MFEEPROM() {}
 
 uint16_t MFEEPROM::get_length(void) {
-    return EEPROM.length();
+    return eepromLength;
 }
 
 void MFEEPROM::read_block(uint16_t adr, char data[], uint16_t len) {
