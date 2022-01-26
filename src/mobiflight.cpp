@@ -848,7 +848,7 @@ void readConfig()
 
     case kTypeOutput:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
-      AddOutput(params[0], &configBuffer[addrbuffer]);
+      AddOutput(params[0]);
       copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 
@@ -949,7 +949,7 @@ void readConfig()
       params[2] = readUintFromEEPROM(&addreeprom);                // get the data Pin
       params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
       AddInputShifter(params[0], params[1], params[2], params[3], &configBuffer[addrbuffer]);
-      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
+      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
       break;
 #endif
 
