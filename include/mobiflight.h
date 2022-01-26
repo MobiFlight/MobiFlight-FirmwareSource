@@ -64,8 +64,7 @@ enum
   kSetShiftRegisterPins, // 27
   kAnalogChange,         // 28
   kInputShifterChange,   // 29
-  kLoadConfig,           // 30  -> for testing via terminal
-  kDebug = 0xFF          // 255 -> for Debug print
+  kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
 };
 
 void attachCommandCallbacks();
@@ -131,7 +130,6 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
 void ClearInputShifters();
 void readInputShifters();
 void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name);
-void onLoadConfig();
 void loadConfig();
 
 extern CmdMessenger cmdMessenger;
