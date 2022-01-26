@@ -157,11 +157,11 @@ void attachCommandCallbacks()
 
   cmdMessenger.attach(kGetInfo, OnGetInfo);
   cmdMessenger.attach(kGetConfig, OnGetConfig);
-  cmdMessenger.attach(kSetConfig, OnSetConfig);
-  cmdMessenger.attach(kResetConfig, OnResetConfig);
-  cmdMessenger.attach(kSaveConfig, OnSaveConfig);
-  cmdMessenger.attach(kActivateConfig, OnActivateConfig);
-  cmdMessenger.attach(kSetName, OnSetName);
+  cmdMessenger.attach(kSetConfig, OnSetConfig);                 // 3rd step, uploading new config block wise
+  cmdMessenger.attach(kResetConfig, OnResetConfig);             // 2nd step for uploading a new config
+  cmdMessenger.attach(kSaveConfig, OnSaveConfig);               // 4th step, not really required anymore, config is stored directly to EEPROM, changes in UI required as feedback is required for now
+  cmdMessenger.attach(kActivateConfig, OnActivateConfig);       // 5th step, reading config and activate
+  cmdMessenger.attach(kSetName, OnSetName);                     // 1st step, write name
   cmdMessenger.attach(kGenNewSerial, OnGenNewSerial);
 
 #if MF_STEPPER_SUPPORT == 1
@@ -170,7 +170,7 @@ void attachCommandCallbacks()
 #endif
 
   cmdMessenger.attach(kTrigger, OnTrigger);
-  cmdMessenger.attach(kResetBoard, OnResetBoard);
+//  cmdMessenger.attach(kResetBoard, OnResetBoard);               // why is this command coming from the UI additional to OnActivateConfig?
 
 #if MF_LCD_SUPPORT == 1
   cmdMessenger.attach(kSetLcdDisplayI2C, OnSetLcdDisplayI2C);
@@ -183,7 +183,7 @@ void attachCommandCallbacks()
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Attached callbacks"));
 #endif
-  cmdMessenger.attach(kLoadConfig, onLoadConfig); // -> check if required, was only used during testing but might be sensefull/required
+
 }
 
 // Callbacks that define what commands we issue upon internal events
@@ -205,13 +205,13 @@ void ResetBoard()
   loadConfig();
   _restoreName();
 }
-
+/*
 void OnResetBoard()
 {
-  resetConfig();    // was part of loadConfig();
+  resetConfig();        // was part of loadConfig(), but not needed on initial start up
   ResetBoard();
 }
-
+*/
 // Setup function
 void setup()
 {
@@ -219,7 +219,7 @@ void setup()
   attachCommandCallbacks();
   attachEventCallbacks();
   cmdMessenger.printLfCr();
-  OnResetBoard();
+  ResetBoard();
   // Time Gap between Inputs, do not read at the same loop
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   lastInputShifterUpdate = millis() + 6;
@@ -257,7 +257,7 @@ bool readConfigLength()
     configLength++;
     if (addreeprom > length)                                      // abort if EEPROM size will be exceeded
     {
-      cmdMessenger.sendCmd(kStatus, F("Loading config failed"));   // text or "-1" like config upload?
+      cmdMessenger.sendCmd(kStatus, F("Loading config failed"));  // text or "-1" like config upload?
       return false;
     }
   }
@@ -277,19 +277,6 @@ void loadConfig()
     readConfig();
     _activateConfig();
   }
-}
-
-void onLoadConfig()
-{
-  readConfigLength();
-}
-
-void _storeConfig()
-{
-// this is a command coming from the UI
-// the complete config is transferred in severall blocks, after the last block the config was saved here
-// as now the config blocks are stored directly to the EEPROM, it is not required here anymore
-// _storeConfig() should be renamed or just deleted (changes in the connector also required)
 }
 
 void SetPowerSavingMode(bool state)
@@ -367,9 +354,7 @@ void AddOutput(uint8_t pin = 1, char const *name = "Output")
   if (!FitInMemory(sizeof(MFOutput)))
   {
     // Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("Output does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
     return;
   }
   outputs[outputsRegistered] = new (allocateMemory(sizeof(MFOutput))) MFOutput(pin);
@@ -395,9 +380,7 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
   if (!FitInMemory(sizeof(MFButton)))
   {
     // Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("Button does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmd(kStatus, F("Button does not fit in Memory"));
     return;
   }
   buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
@@ -424,9 +407,7 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
   if (!FitInMemory(sizeof(MFEncoder)))
   {
     // Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("Encoders does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmd(kStatus, F("Encoders does not fit in Memory"));
     return;
   }
   encoders[encodersRegistered] = new (allocateMemory(sizeof(MFEncoder))) MFEncoder;
@@ -454,9 +435,7 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
   if (!FitInMemory(sizeof(MFInputShifter)))
   {
     // Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("InputShifter does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmd(kStatus, F("InputShifter does not fit in Memory"));
     return;
   }
   inputShifters[inputShiftersRegistered] = new (allocateMemory(sizeof(MFInputShifter))) MFInputShifter;
@@ -618,9 +597,7 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
   if (!FitInMemory(sizeof(MFAnalog)))
   {
     // Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("Analog does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
     return;
   }
   analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
@@ -649,9 +626,7 @@ void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t mod
   if (!FitInMemory(sizeof(MFShifter)))
   {
     // Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("OutputShifter does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
     return;
   }
   shiftregisters[shiftregisterRegistered] = new (allocateMemory(sizeof(MFShifter))) MFShifter;
@@ -736,7 +711,7 @@ void OnSetConfig()
     cmdMessenger.sendCmd(kStatus, configLength);
   }
   else
-    cmdMessenger.sendCmd(kStatus, -1);
+    cmdMessenger.sendCmd(kStatus, -1);                             // last successfull saving block is already NULL terminated, nothing more todo
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Setting config end"));
 #endif
@@ -789,7 +764,6 @@ void OnResetConfig()
 
 void OnSaveConfig()
 {
-  _storeConfig();
   cmdMessenger.sendCmd(kConfigSaved, F("OK"));
 }
 
@@ -850,7 +824,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)   {
 
 void readConfig()
 {
-  if (configLength == 0)                                          // do nothing if no config is available
+  if (configLength == 0)                                          // do nothing if no config is available   
     return;
   uint16_t addreeprom = MEM_OFFSET_CONFIG;                        // define first memory location where config is saved in EEPROM
   uint16_t addrbuffer = 0;                                        // and start with first memory location from configBuffer
@@ -926,7 +900,7 @@ void readConfig()
     case kTypeEncoderSingleDetent:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
       params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
-      AddEncoder(params[0], params[1], 0, &configBuffer[addrbuffer]);                   // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      AddEncoder(params[0], params[1], 0, &configBuffer[addrbuffer]);             // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
       copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to it and get the next free memory location
       break;
 
@@ -934,7 +908,7 @@ void readConfig()
       params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
       params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
       params[2] = readUintFromEEPROM(&addreeprom);                // get the type
-      AddEncoder(params[0], params[1], params[2], &configBuffer[addrbuffer]);           // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      AddEncoder(params[0], params[1], params[2], &configBuffer[addrbuffer]);     // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
       copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
       break;
 
@@ -1011,10 +985,13 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
-  for (uint16_t i = 1; i < configLength; i++)
+  if (configLength > 0)
   {
-    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+    cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
+    for (uint16_t i = 1; i < configLength; i++)
+    {
+      cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+    }
   }
   cmdMessenger.sendCmdEnd();
 }
@@ -1225,9 +1202,10 @@ void readAnalog()
 void OnGenNewSerial()
 {
   generateSerial(true);
-  cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdEnd();
+//  cmdMessenger.sendCmdStart(kInfo);
+//  cmdMessenger.sendCmdArg(serial);
+//  cmdMessenger.sendCmdEnd();
+  cmdMessenger.sendCmd(kInfo,serial);
 }
 
 void OnSetName()
