@@ -472,7 +472,7 @@ void ClearInputShifters()
 {
   for (int i = 0; i < inputShiftersRegistered; i++)
   {
-    inputShifters[inputShiftersRegistered].detach();
+    inputShifters[i].detach();
   }
 
   clearRegisteredPins(kTypeInputShifter);
@@ -511,7 +511,7 @@ void ClearLedSegments()
   clearRegisteredPins(kTypeLedSegment);
   for (int i = 0; i != ledSegmentsRegistered; i++)
   {
-    ledSegments[ledSegmentsRegistered].detach();
+    ledSegments[i].detach();
   }
   ledSegmentsRegistered = 0;
 #ifdef DEBUG
@@ -575,7 +575,7 @@ void ClearSteppers()
 {
   for (int i = 0; i != steppersRegistered; i++)
   {
-    delete steppers[steppersRegistered];
+    delete steppers[i];
   }
   clearRegisteredPins(kTypeStepper);
   steppersRegistered = 0;
@@ -603,7 +603,7 @@ void ClearServos()
 {
   for (int i = 0; i != servosRegistered; i++)
   {
-    servos[servosRegistered].detach();
+    servos[i].detach();
   }
   clearRegisteredPins(kTypeServo);
   servosRegistered = 0;
@@ -633,7 +633,7 @@ void ClearLcdDisplays()
 {
   for (int i = 0; i != lcd_12cRegistered; i++)
   {
-    lcd_I2C[lcd_12cRegistered].detach();
+    lcd_I2C[i].detach();
   }
   clearRegisteredPins(kTypeLcdDisplayI2C);
   lcd_12cRegistered = 0;
@@ -691,7 +691,7 @@ void ClearOutputShifters()
 {
   for (int i = 0; i != outputShifterRegistered; i++)
   {
-    outputShifters[outputShifterRegistered].detach();
+    outputShifters[i].detach();
   }
 
   outputShifterRegistered = 0;
