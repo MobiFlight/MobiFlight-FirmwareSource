@@ -45,4 +45,6 @@
 #define EEPROM_SIZE 4096 // EEPROMSizeMega
 #define MEMLEN_CONFIG 1496
 
+#define RANDOM_SEED_INPUT A0
+
 #endif
