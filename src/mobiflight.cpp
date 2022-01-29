@@ -53,8 +53,8 @@ char foo;
 #include <MFAnalog.h>
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-#include <MFShifter.h>
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+#include <MFOutputShifter.h>
 #endif
 
 const uint8_t MEM_OFFSET_NAME = 0;
@@ -131,9 +131,9 @@ MFAnalog analog[MAX_ANALOG_INPUTS];
 uint8_t analogRegistered = 0;
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-MFShifter shiftregisters[MAX_SHIFTERS];
-uint8_t shiftregisterRegistered = 0;
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+MFOutputShifter outputShifters[MAX_OUTPUT_SHIFTERS];
+uint8_t outputShifterRegistered = 0;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
@@ -184,8 +184,8 @@ void attachCommandCallbacks()
   cmdMessenger.attach(kSetLcdDisplayI2C, OnSetLcdDisplayI2C);
 #endif
 
-#if MF_SHIFTER_SUPPORT
-  cmdMessenger.attach(kSetShiftRegisterPins, OnSetShiftRegisterPins);
+#if MF_OUTPUT_SHIFTER_SUPPORT
+  cmdMessenger.attach(kSetShiftRegisterPins, OnSetOutputShifterPins);
 #endif
 
 #ifdef DEBUG
@@ -672,31 +672,31 @@ void ClearAnalog()
 
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
 //// SHIFT REGISTER /////
-void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "Shifter")
+void AddOutputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "OutputShifter")
 {
-  if (shiftregisterRegistered == MAX_SHIFTERS)
+  if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
     return;
-  shiftregisters[shiftregisterRegistered].attach(latchPin, clockPin, dataPin, modules);
-  shiftregisters[shiftregisterRegistered].clear();
-  shiftregisterRegistered++;
+  outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
+  outputShifters[outputShifterRegistered].clear();
+  outputShifterRegistered++;
 
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Added Shifter"));
+  cmdMessenger.sendCmd(kStatus, F("Added Output Shifter"));
 #endif
 }
 
-void ClearShifters()
+void ClearOutputShifters()
 {
-  for (int i = 0; i != shiftregisterRegistered; i++)
+  for (int i = 0; i != outputShifterRegistered; i++)
   {
-    shiftregisters[shiftregisterRegistered].detach();
+    outputShifters[outputShifterRegistered].detach();
   }
 
-  shiftregisterRegistered = 0;
+  outputShifterRegistered = 0;
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Cleared Shifter"));
+  cmdMessenger.sendCmd(kStatus, F("Cleared Output Shifter"));
 #endif
 }
 #endif
@@ -791,8 +791,8 @@ void resetConfig()
   ClearAnalog();
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-  ClearShifters();
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+  ClearOutputShifters();
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
@@ -939,14 +939,14 @@ void readConfig()
       break;
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
     case kShiftRegister:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
-      AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      AddOutputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
       break;
 #endif
 
@@ -1042,21 +1042,21 @@ void OnSetModuleBrightness()
 
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-void OnInitShiftRegister()
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+void OnInitOutputShifter()
 {
   int module = cmdMessenger.readInt16Arg();
-  shiftregisters[module].clear();
+  outputShifters[module].clear();
   lastCommand = millis();
 }
 
-void OnSetShiftRegisterPins()
+void OnSetOutputShifterPins()
 {
 
   int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
   int value = cmdMessenger.readInt16Arg();
-  shiftregisters[module].setPins(pins, value);
+  outputShifters[module].setPins(pins, value);
   lastCommand = millis();
 }
 #endif
