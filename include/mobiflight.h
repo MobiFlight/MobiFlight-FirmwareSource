@@ -3,6 +3,7 @@
 
 #include <MFEncoder.h>
 #include <MFAnalog.h>
+#include <CmdMessenger.h>
 
 #define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
 #define MF_SERVO_DELAY_MS 5          // Time between servo updates
@@ -66,6 +67,7 @@ enum
   kAnalogChange,         // 28
   kInputShifterChange,   // 29
   kMPXDigitalInChange,   // 30
+  kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
 };
 
 void attachCommandCallbacks();
@@ -75,11 +77,6 @@ void loadConfig();
 void _storeConfig();
 void SetPowerSavingMode(bool state);
 void updatePowerSaving();
-bool isPinRegistered(uint8_t pin);
-bool isPinRegisteredForType(uint8_t pin, uint8_t type);
-void registerPin(uint8_t pin, uint8_t type);
-void clearRegisteredPins(uint8_t type);
-void clearRegisteredPins();
 void AddOutput(uint8_t pin, char const *name);
 void ClearOutputs();
 void AddButton(uint8_t pin, char const *name, bool repeat);
@@ -129,9 +126,9 @@ void readAnalog();
 void AddAnalog(uint8_t pin, char const *name, uint8_t sensitivity);
 void ClearAnalog();
 void handlerOnAnalogChange(int value, uint8_t pin, const char *name);
-void OnInitShiftRegister();
-void OnSetShiftRegisterPins();
-void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
+void OnInitOutputShifter();
+void OnSetOutputShifterPins();
+void AddOutputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
 void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name);
 void ClearInputShifters();
 void readInputShifters();
@@ -144,5 +141,9 @@ void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name
 void ClearMPXDigitalIn();
 void readMPXDigitalIn();
 void handlerMPXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name);
+
+void loadConfig();
+
+extern CmdMessenger cmdMessenger;
 
 #endif

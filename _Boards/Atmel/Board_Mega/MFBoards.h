@@ -16,8 +16,8 @@
 #ifndef MF_ANALOG_SUPPORT
 #define MF_ANALOG_SUPPORT    1
 #endif
-#ifndef MF_SHIFTER_SUPPORT
-#define MF_SHIFTER_SUPPORT   1
+#ifndef MF_OUTPUT_SHIFTER_SUPPORT
+#define MF_OUTPUT_SHIFTER_SUPPORT   1
 #endif
 #ifndef MF_MPX_SUPPORT
 #endif
@@ -32,7 +32,7 @@
 #define MF_INPUT_SHIFTER_SUPPORT 1
 #endif
 
-#define MODULE_MAX_PINS 69
+//#define MODULE_MAX_PINS 69
 #define MAX_OUTPUTS     40
 #define MAX_BUTTONS     68
 #define MAX_LEDSEGMENTS 4
@@ -41,7 +41,7 @@
 #define MAX_MFSERVOS    10
 #define MAX_MFLCD_I2C   2
 #define MAX_ANALOG_INPUTS 16
-#define MAX_SHIFTERS 4
+#define MAX_OUTPUT_SHIFTERS 4
 #define MAX_INPUT_SHIFTERS 4
 #define MAX_DIG_IN_MPX  1
 
@@ -49,10 +49,14 @@
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
 #define STEPPER_ACCEL 800
 
-#define MOBIFLIGHT_TYPE "MobiFlight Mega"
-#define MOBIFLIGHT_SERIAL "1234567890"
-#define MOBIFLIGHT_NAME "MobiFlight Mega"
-#define EEPROM_SIZE 4096 // EEPROMSizeMega
-#define MEMLEN_CONFIG 1496
+#define MOBIFLIGHT_TYPE         "MobiFlight Mega"
+#define MOBIFLIGHT_SERIAL       "1234567890"
+#define MOBIFLIGHT_NAME         "MobiFlight Mega"
+#define EEPROM_SIZE             4096    // EEPROMSizeMega
+#define MEMLEN_CONFIG           1496    // max. size for config which wil be stored in EEPROM
+#define MEMLEN_CONFIG_BUFFER    1000    // max. size for configBuffer, contains only names from inputs
+#define MF_MAX_DEVICEMEM        1500    // max. memory size for devices
+
+#define RANDOM_SEED_INPUT A0
 
 #endif
