@@ -3,6 +3,8 @@
 // Copyright (C) 2013-2014
 
 #include "MFServo.h"
+#include "allocateMem.h"
+#include "mobiflight.h"
 
 void MFServo::moveTo(int absolute)
 {
@@ -11,7 +13,7 @@ void MFServo::moveTo(int absolute)
     {
 			_targetPos = newValue;
 			if (!_initialized) {
-			  _servo.attach(_pin);
+			  _servo->attach(_pin);
 				_initialized = true;
 			}
     }
@@ -28,18 +30,27 @@ void MFServo::update() {
     if (_currentPos > _targetPos) _currentPos--;
     else _currentPos++;
         
-    _servo.write(_currentPos);
+    _servo->write(_currentPos);
 }
 
 void MFServo::detach() { 
   if (_initialized) {
-    _servo.detach(); 
+    _servo->detach(); 
     _initialized = false; 
   }
 }
 
 void MFServo::attach(uint8_t pin, bool enable)
 {
+	if (!FitInMemory(sizeof(Servo)))
+	{
+		// Error Message to Connector
+		cmdMessenger.sendCmdStart(kDebug);
+		cmdMessenger.sendCmdArg(F("Servo does not fit in Memory"));
+		cmdMessenger.sendCmdEnd();
+		return;
+	}
+	_servo = new (allocateMemory(sizeof(Servo))) Servo;
 	_initialized = false;
 	_targetPos = 0;
 	_currentPos = 0;
