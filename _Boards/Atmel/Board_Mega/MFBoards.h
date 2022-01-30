@@ -16,8 +16,8 @@
 #ifndef MF_ANALOG_SUPPORT
 #define MF_ANALOG_SUPPORT    1
 #endif
-#ifndef MF_SHIFTER_SUPPORT
-#define MF_SHIFTER_SUPPORT   1
+#ifndef MF_OUTPUT_SHIFTER_SUPPORT
+#define MF_OUTPUT_SHIFTER_SUPPORT 1
 #endif
 #ifndef MF_MPX_SUPPORT
 #endif
@@ -41,7 +41,7 @@
 #define MAX_MFSERVOS    10
 #define MAX_MFLCD_I2C   2
 #define MAX_ANALOG_INPUTS 16
-#define MAX_SHIFTERS 4
+#define MAX_OUTPUT_SHIFTERS 4
 #define MAX_INPUT_SHIFTERS 4
 #define MAX_DIG_IN_MPX  1
 
@@ -54,5 +54,7 @@
 #define MOBIFLIGHT_NAME "MobiFlight Mega"
 #define EEPROM_SIZE 4096 // EEPROMSizeMega
 #define MEMLEN_CONFIG 1496
+
+#define RANDOM_SEED_INPUT A0
 
 #endif
