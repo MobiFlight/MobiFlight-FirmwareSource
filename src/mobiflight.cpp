@@ -52,8 +52,8 @@ char foo;
 #include <MFAnalog.h>
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-#include <MFShifter.h>
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+#include <MFOutputShifter.h>
 #endif
 
 const uint8_t MEM_OFFSET_NAME = 0;
@@ -62,11 +62,17 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-uint32_t lastAnalogAverage = 0;
-uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
+
+#if MF_ANALOG_SUPPORT == 1
+uint32_t lastAnalogAverage = 0;
+uint32_t lastAnalogRead = 0;
+#endif
+
+#if MF_SERVO_SUPPORT == 1
 uint32_t lastServoUpdate = 0;
+#endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 uint32_t lastInputShifterUpdate = 0;
@@ -123,9 +129,9 @@ MFAnalog *analog[MAX_ANALOG_INPUTS];
 uint8_t analogRegistered = 0;
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-MFShifter *shiftregisters[MAX_SHIFTERS];
-uint8_t shiftregisterRegistered = 0;
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+MFOutputShifter *outputShifters[MAX_OUTPUT_SHIFTERS];
+uint8_t outputShifterRegistered = 0;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
@@ -176,8 +182,8 @@ void attachCommandCallbacks()
   cmdMessenger.attach(kSetLcdDisplayI2C, OnSetLcdDisplayI2C);
 #endif
 
-#if MF_SHIFTER_SUPPORT
-  cmdMessenger.attach(kSetShiftRegisterPins, OnSetShiftRegisterPins);
+#if MF_OUTPUT_SHIFTER_SUPPORT
+  cmdMessenger.attach(kSetShiftRegisterPins, OnSetOutputShifterPins);
 #endif
 
 #ifdef DEBUG
@@ -220,15 +226,23 @@ void setup()
   attachEventCallbacks();
   cmdMessenger.printLfCr();
   ResetBoard();
-  // Time Gap between Inputs, do not read at the same loop
+
+// Time Gap between Inputs, do not read at the same loop
+  lastButtonUpdate = millis();
+  lastEncoderUpdate = millis() + 2;
+
+#if MF_ANALOG_SUPPORT == 1
+  lastAnalogAverage = millis() + 4;
+  lastAnalogRead = millis() + 4;
+#endif
+
+#if MF_SERVO_SUPPORT == 1
+  lastServoUpdate = millis();
+#endif
+
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   lastInputShifterUpdate = millis() + 6;
 #endif
-  lastAnalogAverage = millis() + 4;
-  lastAnalogRead = millis() + 4;
-  lastButtonUpdate = millis();
-  lastEncoderUpdate = millis() + 2;
-  lastServoUpdate = millis();
 }
 
 void generateSerial(bool force)
@@ -236,7 +250,7 @@ void generateSerial(bool force)
   MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(RANDOM_SEED_INPUT));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
@@ -617,38 +631,38 @@ void ClearAnalog()
 
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
 //// SHIFT REGISTER /////
 void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
 {
-  if (shiftregisterRegistered == MAX_SHIFTERS)
+  if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
     return;
-  if (!FitInMemory(sizeof(MFShifter)))
+  if (!FitInMemory(sizeof(MFOutputShifter)))
   {
     // Error Message to Connector
     cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
     return;
   }
-  shiftregisters[shiftregisterRegistered] = new (allocateMemory(sizeof(MFShifter))) MFShifter;
-  shiftregisters[shiftregisterRegistered]->attach(latchPin, clockPin, dataPin, modules);
-  shiftregisters[shiftregisterRegistered]->clear();
-  shiftregisterRegistered++;
+  outputShifters[outputShifterRegistered] = new (allocateMemory(sizeof(MFOutputShifter))) MFOutputShifter;
+  outputShifters[outputShifterRegistered]->attach(latchPin, clockPin, dataPin, modules);
+  outputShifters[outputShifterRegistered]->clear();
+  outputShifterRegistered++;
 
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Added Shifter"));
+  cmdMessenger.sendCmd(kStatus, F("Added Output Shifter"));
 #endif
 }
 
-void ClearShifters()
+void ClearOutputShifters()
 {
-  for (int i = 0; i != shiftregisterRegistered; i++)
+  for (int i = 0; i != outputShifterRegistered; i++)
   {
-    shiftregisters[i]->detach();
+    outputShifters[i]->detach();
   }
 
-  shiftregisterRegistered = 0;
+  outputShifterRegistered = 0;
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Cleared Shifter"));
+  cmdMessenger.sendCmd(kStatus, F("Cleared Output Shifter"));
 #endif
 }
 #endif
@@ -743,8 +757,8 @@ void resetConfig()
   ClearAnalog();
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-  ClearShifters();
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+  ClearOutputShifters();
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
@@ -931,7 +945,7 @@ void readConfig()
       break;
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
     case kShiftRegister:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the latch Pin
       params[1] = readUintFromEEPROM(&addreeprom);                // get the clock Pin
@@ -1039,21 +1053,21 @@ void OnSetModuleBrightness()
 
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-void OnInitShiftRegister()
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+void OnInitOutputShifter()
 {
   int module = cmdMessenger.readInt16Arg();
-  shiftregisters[module]->clear();
+  outputShifters[module]->clear();
   lastCommand = millis();
 }
 
-void OnSetShiftRegisterPins()
+void OnSetOutputShifterPins()
 {
 
   int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
   int value = cmdMessenger.readInt16Arg();
-  shiftregisters[module]->setPins(pins, value);
+  outputShifters[module]->setPins(pins, value);
   lastCommand = millis();
 }
 #endif
@@ -1248,12 +1262,12 @@ void OnTrigger()
     buttons[i]->triggerOnPress();
   }
 
-  // Retrigger all the input shifters. This automatically sends
-  // the release events first followed by press events.
-  #if MF_INPUT_SHIFTER_SUPPORT == 1
+// Retrigger all the input shifters. This automatically sends
+// the release events first followed by press events.
+#if MF_INPUT_SHIFTER_SUPPORT == 1
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
     inputShifters[i]->retrigger();
   }
-  #endif
+#endif
 }
