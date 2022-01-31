@@ -33,7 +33,7 @@ public:
 
 private:
     LedControl _ledControl;
-    bool _initialized;
+    //bool _initialized;
     byte _moduleCount;
 };
 #endif

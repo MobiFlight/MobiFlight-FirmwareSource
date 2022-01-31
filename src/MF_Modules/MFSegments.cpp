@@ -4,16 +4,17 @@
 
 #include "MFSegments.h"
 
+#define _initialized  (_moduleCount == 0)
+
 MFSegments::MFSegments()
 {
-  _initialized = false;
+  _moduleCount = 0;
 }
 
 void MFSegments::display(byte module, char *string, byte points, byte mask, bool convertPoints)
 {
   if (!_initialized)
     return;
-
   byte digit = 8;
   byte pos = 0;
   for (int i = 0; i != 8; i++)
@@ -32,14 +33,18 @@ void MFSegments::setBrightness(byte module, byte value)
     return;
   if (module < _moduleCount)
   {
-    _ledControl.setIntensity(module, value);
+    if(value) {
+      _ledControl.setIntensity(module, value);
+      _ledControl.shutdown(module, false);
+    } else {
+      _ledControl.shutdown(module, true);
+    }
   }
 }
 
 void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
 {
   _ledControl.begin(dataPin, clkPin, csPin, moduleCount);
-  _initialized = true;
   _moduleCount = moduleCount;
   for (int i = 0; i != _moduleCount; ++i)
   {
@@ -51,7 +56,7 @@ void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, by
 
 void MFSegments::detach()
 {
-  _initialized = false;
+  _moduleCount = 0;
 }
 
 void MFSegments::powerSavingMode(bool state)
