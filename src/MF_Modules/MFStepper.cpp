@@ -25,7 +25,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
   }
   if (pin2 == pin4 && pin1 == pin3)   // if pin1/2 are identical to pin3/4
   {                                   // init new stepper with external driver (step and direction)
-    _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin1);
+    _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2);
   }
   else
   {                                   // otherwise init new stepper in full 4 wire mode
