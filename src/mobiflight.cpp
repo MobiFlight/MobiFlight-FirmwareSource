@@ -53,8 +53,8 @@ char foo;
 #include <MFAnalog.h>
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-#include <MFShifter.h>
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+#include <MFOutputShifter.h>
 #endif
 
 const uint8_t MEM_OFFSET_NAME = 0;
@@ -63,11 +63,17 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-uint32_t lastAnalogAverage = 0;
-uint32_t lastAnalogRead = 0;
 uint32_t lastButtonUpdate = 0;
 uint32_t lastEncoderUpdate = 0;
+
+#if MF_ANALOG_SUPPORT == 1
+uint32_t lastAnalogAverage = 0;
+uint32_t lastAnalogRead = 0;
+#endif
+
+#if MF_SERVO_SUPPORT == 1
 uint32_t lastServoUpdate = 0;
+#endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 uint32_t lastInputShifterUpdate = 0;
@@ -125,9 +131,9 @@ MFAnalog analog[MAX_ANALOG_INPUTS];
 uint8_t analogRegistered = 0;
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-MFShifter shiftregisters[MAX_SHIFTERS];
-uint8_t shiftregisterRegistered = 0;
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+MFOutputShifter outputShifters[MAX_OUTPUT_SHIFTERS];
+uint8_t outputShifterRegistered = 0;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
@@ -178,8 +184,8 @@ void attachCommandCallbacks()
   cmdMessenger.attach(kSetLcdDisplayI2C, OnSetLcdDisplayI2C);
 #endif
 
-#if MF_SHIFTER_SUPPORT
-  cmdMessenger.attach(kSetShiftRegisterPins, OnSetShiftRegisterPins);
+#if MF_OUTPUT_SHIFTER_SUPPORT
+  cmdMessenger.attach(kSetShiftRegisterPins, OnSetOutputShifterPins);
 #endif
 
 #ifdef DEBUG
@@ -216,15 +222,23 @@ void setup()
   attachEventCallbacks();
   cmdMessenger.printLfCr();
   OnResetBoard();
+
+  lastButtonUpdate = millis();
+  lastEncoderUpdate = millis() + 2;
+
+#if MF_ANALOG_SUPPORT == 1
+  lastAnalogAverage = millis() + 4;
+  lastAnalogRead = millis() + 4;
+#endif
+
+#if MF_SERVO_SUPPORT == 1
+  lastServoUpdate = millis();
+#endif
+
   // Time Gap between Inputs, do not read at the same loop
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   lastInputShifterUpdate = millis() + 6;
 #endif
-  lastAnalogAverage = millis() + 4;
-  lastAnalogRead = millis() + 4;
-  lastButtonUpdate = millis();
-  lastEncoderUpdate = millis() + 2;
-  lastServoUpdate = millis();
 }
 
 void generateSerial(bool force)
@@ -232,7 +246,7 @@ void generateSerial(bool force)
   MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
   if (!force && serial[0] == 'S' && serial[1] == 'N')
     return;
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(RANDOM_SEED_INPUT));
   sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
   sprintf(&serial[7], "%03x", (unsigned int)random(4095));
   MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
@@ -458,7 +472,7 @@ void ClearInputShifters()
 {
   for (int i = 0; i < inputShiftersRegistered; i++)
   {
-    inputShifters[inputShiftersRegistered].detach();
+    inputShifters[i].detach();
   }
 
   clearRegisteredPins(kTypeInputShifter);
@@ -497,7 +511,7 @@ void ClearLedSegments()
   clearRegisteredPins(kTypeLedSegment);
   for (int i = 0; i != ledSegmentsRegistered; i++)
   {
-    ledSegments[ledSegmentsRegistered].detach();
+    ledSegments[i].detach();
   }
   ledSegmentsRegistered = 0;
 #ifdef DEBUG
@@ -561,7 +575,7 @@ void ClearSteppers()
 {
   for (int i = 0; i != steppersRegistered; i++)
   {
-    delete steppers[steppersRegistered];
+    delete steppers[i];
   }
   clearRegisteredPins(kTypeStepper);
   steppersRegistered = 0;
@@ -589,7 +603,7 @@ void ClearServos()
 {
   for (int i = 0; i != servosRegistered; i++)
   {
-    servos[servosRegistered].detach();
+    servos[i].detach();
   }
   clearRegisteredPins(kTypeServo);
   servosRegistered = 0;
@@ -619,7 +633,7 @@ void ClearLcdDisplays()
 {
   for (int i = 0; i != lcd_12cRegistered; i++)
   {
-    lcd_I2C[lcd_12cRegistered].detach();
+    lcd_I2C[i].detach();
   }
   clearRegisteredPins(kTypeLcdDisplayI2C);
   lcd_12cRegistered = 0;
@@ -658,31 +672,31 @@ void ClearAnalog()
 
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
 //// SHIFT REGISTER /////
-void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "Shifter")
+void AddOutputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "OutputShifter")
 {
-  if (shiftregisterRegistered == MAX_SHIFTERS)
+  if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
     return;
-  shiftregisters[shiftregisterRegistered].attach(latchPin, clockPin, dataPin, modules);
-  shiftregisters[shiftregisterRegistered].clear();
-  shiftregisterRegistered++;
+  outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
+  outputShifters[outputShifterRegistered].clear();
+  outputShifterRegistered++;
 
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Added Shifter"));
+  cmdMessenger.sendCmd(kStatus, F("Added Output Shifter"));
 #endif
 }
 
-void ClearShifters()
+void ClearOutputShifters()
 {
-  for (int i = 0; i != shiftregisterRegistered; i++)
+  for (int i = 0; i != outputShifterRegistered; i++)
   {
-    shiftregisters[shiftregisterRegistered].detach();
+    outputShifters[i].detach();
   }
 
-  shiftregisterRegistered = 0;
+  outputShifterRegistered = 0;
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Cleared Shifter"));
+  cmdMessenger.sendCmd(kStatus, F("Cleared Output Shifter"));
 #endif
 }
 #endif
@@ -777,8 +791,8 @@ void resetConfig()
   ClearAnalog();
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-  ClearShifters();
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+  ClearOutputShifters();
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
@@ -925,14 +939,14 @@ void readConfig()
       break;
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
     case kShiftRegister:
       params[0] = strtok_r(NULL, ".", &p); // pin latch
       params[1] = strtok_r(NULL, ".", &p); // pin clock
       params[2] = strtok_r(NULL, ".", &p); // pin data
       params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
       params[4] = strtok_r(NULL, ":", &p); // name
-      AddShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      AddOutputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
       break;
 #endif
 
@@ -1028,21 +1042,21 @@ void OnSetModuleBrightness()
 
 #endif
 
-#if MF_SHIFTER_SUPPORT == 1
-void OnInitShiftRegister()
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+void OnInitOutputShifter()
 {
   int module = cmdMessenger.readInt16Arg();
-  shiftregisters[module].clear();
+  outputShifters[module].clear();
   lastCommand = millis();
 }
 
-void OnSetShiftRegisterPins()
+void OnSetOutputShifterPins()
 {
 
   int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
   int value = cmdMessenger.readInt16Arg();
-  shiftregisters[module].setPins(pins, value);
+  outputShifters[module].setPins(pins, value);
   lastCommand = millis();
 }
 #endif
