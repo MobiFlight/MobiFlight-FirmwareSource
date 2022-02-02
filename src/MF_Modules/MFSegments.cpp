@@ -4,8 +4,6 @@
 
 #include "MFSegments.h"
 
-#define _initialized  (_moduleCount != 0)
-
 MFSegments::MFSegments()
 {
   _moduleCount = 0;
@@ -13,7 +11,7 @@ MFSegments::MFSegments()
 
 void MFSegments::display(byte module, char *string, byte points, byte mask, bool convertPoints)
 {
-  if (!_initialized)
+  if (_moduleCount == 0)
     return;
   byte digit = 8;
   byte pos = 0;
@@ -29,7 +27,7 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
 
 void MFSegments::setBrightness(byte module, byte value)
 {
-  if (!_initialized)
+  if (_moduleCount == 0)
     return;
   if (module < _moduleCount)
   {
@@ -70,7 +68,7 @@ void MFSegments::powerSavingMode(bool state)
 
 void MFSegments::test()
 {
-  if (!_initialized)
+  if (_moduleCount == 0)
     return;
   byte _delay = 10;
   byte module = 0;
