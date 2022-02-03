@@ -6,14 +6,13 @@
 
 MFSegments::MFSegments()
 {
-  _initialized = false;
+  _moduleCount = 0;
 }
 
 void MFSegments::display(byte module, char *string, byte points, byte mask, bool convertPoints)
 {
-  if (!_initialized)
+  if (_moduleCount == 0)
     return;
-
   byte digit = 8;
   byte pos = 0;
   for (int i = 0; i != 8; i++)
@@ -28,18 +27,23 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
 
 void MFSegments::setBrightness(byte module, byte value)
 {
-  if (!_initialized)
+  if (_moduleCount == 0)
     return;
   if (module < _moduleCount)
   {
-    _ledControl.setIntensity(module, value);
+    if(value) 
+    {
+      _ledControl.setIntensity(module, value-1);
+      _ledControl.shutdown(module, false);
+    } else {
+      _ledControl.shutdown(module, true);
+    }
   }
 }
 
 void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
 {
   _ledControl.begin(dataPin, clkPin, csPin, moduleCount);
-  _initialized = true;
   _moduleCount = moduleCount;
   for (int i = 0; i != _moduleCount; ++i)
   {
@@ -51,7 +55,7 @@ void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, by
 
 void MFSegments::detach()
 {
-  _initialized = false;
+  _moduleCount = 0;
 }
 
 void MFSegments::powerSavingMode(bool state)
@@ -64,7 +68,7 @@ void MFSegments::powerSavingMode(bool state)
 
 void MFSegments::test()
 {
-  if (!_initialized)
+  if (_moduleCount == 0)
     return;
   byte _delay = 10;
   byte module = 0;

@@ -32,8 +32,7 @@ public:
     void setBrightness(byte module, byte value);
 
 private:
-    LedControl _ledControl;
-    bool _initialized;
-    byte _moduleCount;
+    LedControl  _ledControl;
+    byte        _moduleCount;
 };
 #endif
