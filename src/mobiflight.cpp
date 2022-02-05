@@ -82,7 +82,7 @@ char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
-char configBuffer[MEMLEN_CONFIG_BUFFER] = "";
+char nameBuffer[MEMLEN_CONFIG_BUFFER] = "";
 
 uint16_t configLength = 0;
 boolean configActivated = false;
@@ -205,7 +205,7 @@ void attachEventCallbacks()
 void ResetBoard()
 {
   MFeeprom.init();
-  configBuffer[0] = '\0';
+  nameBuffer[0] = '\0';
   generateSerial(false);
   lastCommand = millis();
   loadConfig();
@@ -284,7 +284,7 @@ void loadConfig()
 {
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Restored config"));
-  cmdMessenger.sendCmd(kStatus, configBuffer);
+  cmdMessenger.sendCmd(kStatus, nameBuffer);
 #endif
   if (readConfigLength())
   {
@@ -806,16 +806,16 @@ uint8_t readUintFromEEPROM (volatile uint16_t *addreeprom) {
   return atoi(params);
 }
 
-// reads a string from EEPROM at given address which is ':' terminated and saves it in the configBuffer
-// once the configBuffer is not needed anymore, just read until the ":" termination -> see function below
+// reads a string from EEPROM at given address which is ':' terminated and saves it in the nameBuffer
+// once the nameBuffer is not needed anymore, just read until the ":" termination -> see function below
 bool readNameFromEEPROM(uint16_t *addreeprom, char* buffer, uint16_t *addrbuffer)   {
   char temp = 0;
   do
   {
     temp = MFeeprom.read_char((*addreeprom)++);                   // read the first character
       buffer[(*addrbuffer)++] = temp;                             // save character and locate next buffer position
-      if (*addrbuffer >= MEMLEN_CONFIG_BUFFER) {                  // configBuffer will be exceeded
-        return false;                                             // abort copying from EEPROM to configBuffer
+      if (*addrbuffer >= MEMLEN_CONFIG_BUFFER) {                  // nameBuffer will be exceeded
+        return false;                                             // abort copying from EEPROM to nameBuffer
       }
   } while (temp != ':');                                          // reads until limiter ':' and locates the next free buffer position
   buffer[(*addrbuffer)-1] = 0x00;                                 // replace ':' by NULL, terminates the string
@@ -841,10 +841,10 @@ void readConfig()
   if (configLength == 0)                                          // do nothing if no config is available   
     return;
   uint16_t addreeprom = MEM_OFFSET_CONFIG;                        // define first memory location where config is saved in EEPROM
-  uint16_t addrbuffer = 0;                                        // and start with first memory location from configBuffer
+  uint16_t addrbuffer = 0;                                        // and start with first memory location from nameBuffer
   char params[6] = "";
   char command = readUintFromEEPROM(&addreeprom);                 // read the first value from EEPROM, it's a device definition
-  bool copy_success = true;                                       // will be set to false if copying input names to configBuffer exceeds array dimensions
+  bool copy_success = true;                                       // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                                   // not required anymore when pins instead of names are transferred to the UI
 
   if (command == 0)                                               // just to be sure, configLength should also be 0
@@ -856,8 +856,8 @@ void readConfig()
     {
     case kTypeButton:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
-      AddButton(params[0], &configBuffer[addrbuffer]);            // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer); // copy the NULL terminated name to to configBuffer and set to next free memory location
+      AddButton(params[0], &nameBuffer[addrbuffer]);              // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 
     case kTypeOutput:
@@ -914,16 +914,16 @@ void readConfig()
     case kTypeEncoderSingleDetent:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
       params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
-      AddEncoder(params[0], params[1], 0, &configBuffer[addrbuffer]);             // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to it and get the next free memory location
+      AddEncoder(params[0], params[1], 0, &nameBuffer[addrbuffer]);             // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to it and get the next free memory location
       break;
 
     case kTypeEncoder:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
       params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
       params[2] = readUintFromEEPROM(&addreeprom);                // get the type
-      AddEncoder(params[0], params[1], params[2], &configBuffer[addrbuffer]);     // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
+      AddEncoder(params[0], params[1], params[2], &nameBuffer[addrbuffer]);     // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 
 #if MF_LCD_SUPPORT == 1
@@ -940,8 +940,8 @@ void readConfig()
     case kTypeAnalogInput:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the pin number
       params[1] = readUintFromEEPROM(&addreeprom);                // get the sensitivity
-      AddAnalog(params[0], &configBuffer[addrbuffer], params[1]); // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
+      AddAnalog(params[0], &nameBuffer[addrbuffer], params[1]);   // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 #endif
 
@@ -962,8 +962,8 @@ void readConfig()
       params[1] = readUintFromEEPROM(&addreeprom);                // get the clock Pin
       params[2] = readUintFromEEPROM(&addreeprom);                // get the data Pin
       params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
-      AddInputShifter(params[0], params[1], params[2], params[3], &configBuffer[addrbuffer]);
-      copy_success = readNameFromEEPROM(&addreeprom, configBuffer, &addrbuffer);  // copy the NULL terminated name to to configBuffer and set to next free memory location
+      AddInputShifter(params[0], params[1], params[2], params[3], &nameBuffer[addrbuffer]);
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 #endif
 
@@ -973,7 +973,7 @@ void readConfig()
     command = readUintFromEEPROM(&addreeprom);
   } while (command && copy_success);
   if (!copy_success) {                                            // too much/long names for input devices
-    configBuffer[MEMLEN_CONFIG_BUFFER-1] = 0x00;                  // terminate the last copied (part of) string with 0x00
+    nameBuffer[MEMLEN_CONFIG_BUFFER-1] = 0x00;                    // terminate the last copied (part of) string with 0x00
   }
 }
 
