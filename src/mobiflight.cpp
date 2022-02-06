@@ -10,6 +10,7 @@ char foo;
 
 #include "mobiflight.h"
 #include <MFBoards.h>
+#include "allocateMem.h"
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
@@ -19,14 +20,12 @@ char foo;
 //#define DEBUG 1
 
 #include "MFEEPROM.h"
-#include <CmdMessenger.h>
 
 #if MF_SEGMENT_SUPPORT == 1
 #include <MFSegments.h>
 #endif
 
 #include <MFButton.h>
-#include <MFEncoder.h>
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 #include <MFInputShifter.h>
@@ -83,13 +82,12 @@ char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
 
-char configBuffer[MEM_LEN_CONFIG] = "";
+char nameBuffer[MEMLEN_CONFIG_BUFFER] = "";
 
 uint16_t configLength = 0;
 boolean configActivated = false;
 
 bool powerSavingMode = false;
-uint8_t pinsRegistered[MODULE_MAX_PINS + 1];
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
@@ -97,10 +95,10 @@ unsigned long lastCommand;
 
 MFEEPROM MFeeprom;
 
-MFOutput outputs[MAX_OUTPUTS];
+MFOutput *outputs[MAX_OUTPUTS];
 uint8_t outputsRegistered = 0;
 
-MFButton buttons[MAX_BUTTONS];
+MFButton *buttons[MAX_BUTTONS];
 uint8_t buttonsRegistered = 0;
 
 #if MF_SEGMENT_SUPPORT == 1
@@ -108,11 +106,11 @@ MFSegments ledSegments[MAX_LEDSEGMENTS];
 uint8_t ledSegmentsRegistered = 0;
 #endif
 
-MFEncoder encoders[MAX_ENCODERS];
+MFEncoder *encoders[MAX_ENCODERS];
 uint8_t encodersRegistered = 0;
 
 #if MF_STEPPER_SUPPORT == 1
-MFStepper *steppers[MAX_STEPPERS]; //
+MFStepper steppers[MAX_STEPPERS]; //
 uint8_t steppersRegistered = 0;
 #endif
 
@@ -127,17 +125,17 @@ uint8_t lcd_12cRegistered = 0;
 #endif
 
 #if MF_ANALOG_SUPPORT == 1
-MFAnalog analog[MAX_ANALOG_INPUTS];
+MFAnalog *analog[MAX_ANALOG_INPUTS];
 uint8_t analogRegistered = 0;
 #endif
 
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
-MFOutputShifter outputShifters[MAX_OUTPUT_SHIFTERS];
+MFOutputShifter *outputShifters[MAX_OUTPUT_SHIFTERS];
 uint8_t outputShifterRegistered = 0;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
-MFInputShifter inputShifters[MAX_INPUT_SHIFTERS];
+MFInputShifter *inputShifters[MAX_INPUT_SHIFTERS];
 uint8_t inputShiftersRegistered = 0;
 #endif
 
@@ -165,11 +163,11 @@ void attachCommandCallbacks()
 
   cmdMessenger.attach(kGetInfo, OnGetInfo);
   cmdMessenger.attach(kGetConfig, OnGetConfig);
-  cmdMessenger.attach(kSetConfig, OnSetConfig);
-  cmdMessenger.attach(kResetConfig, OnResetConfig);
-  cmdMessenger.attach(kSaveConfig, OnSaveConfig);
-  cmdMessenger.attach(kActivateConfig, OnActivateConfig);
-  cmdMessenger.attach(kSetName, OnSetName);
+  cmdMessenger.attach(kSetConfig, OnSetConfig);                 // 3rd step, uploading new config block wise
+  cmdMessenger.attach(kResetConfig, OnResetConfig);             // 2nd step for uploading a new config
+  cmdMessenger.attach(kSaveConfig, OnSaveConfig);               // 4th step, not really required anymore, config is stored directly to EEPROM, changes in UI required as feedback is required for now
+  cmdMessenger.attach(kActivateConfig, OnActivateConfig);       // 5th step, reading config and activate
+  cmdMessenger.attach(kSetName, OnSetName);                     // 1st step, write name
   cmdMessenger.attach(kGenNewSerial, OnGenNewSerial);
 
 #if MF_STEPPER_SUPPORT == 1
@@ -178,7 +176,7 @@ void attachCommandCallbacks()
 #endif
 
   cmdMessenger.attach(kTrigger, OnTrigger);
-  cmdMessenger.attach(kResetBoard, OnResetBoard);
+//  cmdMessenger.attach(kResetBoard, OnResetBoard);               // why is this command coming from the UI additional to OnActivateConfig?
 
 #if MF_LCD_SUPPORT == 1
   cmdMessenger.attach(kSetLcdDisplayI2C, OnSetLcdDisplayI2C);
@@ -191,6 +189,7 @@ void attachCommandCallbacks()
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Attached callbacks"));
 #endif
+
 }
 
 // Callbacks that define what commands we issue upon internal events
@@ -203,17 +202,22 @@ void attachEventCallbacks()
 #endif
 }
 
-void OnResetBoard()
+void ResetBoard()
 {
   MFeeprom.init();
-  configBuffer[0] = '\0';
+  nameBuffer[0] = '\0';
   generateSerial(false);
-  clearRegisteredPins();
   lastCommand = millis();
   loadConfig();
   _restoreName();
 }
-
+/*
+void OnResetBoard()
+{
+  resetConfig();        // was part of loadConfig(), but not needed on initial start up
+  ResetBoard();
+}
+*/
 // Setup function
 void setup()
 {
@@ -221,8 +225,9 @@ void setup()
   attachCommandCallbacks();
   attachEventCallbacks();
   cmdMessenger.printLfCr();
-  OnResetBoard();
+  ResetBoard();
 
+// Time Gap between Inputs, do not read at the same loop
   lastButtonUpdate = millis();
   lastEncoderUpdate = millis() + 2;
 
@@ -235,7 +240,6 @@ void setup()
   lastServoUpdate = millis();
 #endif
 
-  // Time Gap between Inputs, do not read at the same loop
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   lastInputShifterUpdate = millis() + 6;
 #endif
@@ -254,22 +258,39 @@ void generateSerial(bool force)
     MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
 }
 
-void loadConfig()
+// reads the EEPRROM until NULL termination and returns the number of characters incl. NULL termination, starting from given address
+bool readConfigLength()
 {
-  resetConfig();
-  MFeeprom.read_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
-#ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Restored config"));
-  cmdMessenger.sendCmd(kStatus, configBuffer);
-#endif
-  configLength = strlen(configBuffer);
-  readConfig();
-  _activateConfig();
+  char temp = 0;
+  uint16_t addreeprom = MEM_OFFSET_CONFIG;
+  uint16_t length = MFeeprom.get_length();
+  configLength = 0;
+  do
+  {
+    temp = MFeeprom.read_char(addreeprom++);
+    configLength++;
+    if (addreeprom > length)                                      // abort if EEPROM size will be exceeded
+    {
+      cmdMessenger.sendCmd(kStatus, F("Loading config failed"));  // text or "-1" like config upload?
+      return false;
+    }
+  }
+  while (temp != 0x00);                                           // reads until NULL
+  configLength--;
+  return true;
 }
 
-void _storeConfig()
+void loadConfig()
 {
-  MFeeprom.write_block(MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
+#ifdef DEBUG
+  cmdMessenger.sendCmd(kStatus, F("Restored config"));
+  cmdMessenger.sendCmd(kStatus, nameBuffer);
+#endif
+  if (readConfigLength())
+  {
+    readConfig();
+    _activateConfig();
+  }
 }
 
 void SetPowerSavingMode(bool state)
@@ -339,44 +360,18 @@ void loop()
 #endif
 }
 
-bool isPinRegistered(uint8_t pin)
-{
-  return pinsRegistered[pin] != kTypeNotSet;
-}
-
-bool isPinRegisteredForType(uint8_t pin, uint8_t type)
-{
-  return pinsRegistered[pin] == type;
-}
-
-void registerPin(uint8_t pin, uint8_t type)
-{
-  pinsRegistered[pin] = type;
-}
-
-void clearRegisteredPins(uint8_t type)
-{
-  for (int i = 0; i != MODULE_MAX_PINS + 1; ++i)
-    if (pinsRegistered[i] == type)
-      pinsRegistered[i] = kTypeNotSet;
-}
-
-void clearRegisteredPins()
-{
-  for (int i = 0; i != MODULE_MAX_PINS + 1; ++i)
-    pinsRegistered[i] = kTypeNotSet;
-}
-
 //// OUTPUT /////
 void AddOutput(uint8_t pin = 1, char const *name = "Output")
 {
   if (outputsRegistered == MAX_OUTPUTS)
     return;
-  if (isPinRegistered(pin))
+  if (!FitInMemory(sizeof(MFOutput)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
     return;
-
-  outputs[outputsRegistered] = MFOutput(pin);
-  registerPin(pin, kTypeOutput);
+  }
+  outputs[outputsRegistered] = new (allocateMemory(sizeof(MFOutput))) MFOutput(pin);
   outputsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added output"));
@@ -385,7 +380,6 @@ void AddOutput(uint8_t pin = 1, char const *name = "Output")
 
 void ClearOutputs()
 {
-  clearRegisteredPins(kTypeOutput);
   outputsRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared outputs"));
@@ -397,13 +391,13 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
 {
   if (buttonsRegistered == MAX_BUTTONS)
     return;
-
-  if (isPinRegistered(pin))
+  if (!FitInMemory(sizeof(MFButton)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmd(kStatus, F("Button does not fit in Memory"));
     return;
-
-  buttons[buttonsRegistered] = MFButton(pin, name);
-
-  registerPin(pin, kTypeButton);
+  }
+  buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
   buttonsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added button ") /* + name */);
@@ -412,7 +406,6 @@ void AddButton(uint8_t pin = 1, char const *name = "Button")
 
 void ClearButtons()
 {
-  clearRegisteredPins(kTypeButton);
   buttonsRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared buttons"));
@@ -424,14 +417,15 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 {
   if (encodersRegistered == MAX_ENCODERS)
     return;
-  if (isPinRegistered(pin1) || isPinRegistered(pin2))
+
+  if (!FitInMemory(sizeof(MFEncoder)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmd(kStatus, F("Encoders does not fit in Memory"));
     return;
-
-  encoders[encodersRegistered] = MFEncoder();
-  encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
-
-  registerPin(pin1, kTypeEncoder);
-  registerPin(pin2, kTypeEncoder);
+  }
+  encoders[encodersRegistered] = new (allocateMemory(sizeof(MFEncoder))) MFEncoder;
+  encoders[encodersRegistered]->attach(pin1, pin2, encoder_type, name);
   encodersRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added encoder"));
@@ -440,7 +434,6 @@ void AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, ch
 
 void ClearEncoders()
 {
-  clearRegisteredPins(kTypeEncoder);
   encodersRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared encoders"));
@@ -453,16 +446,16 @@ void AddInputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_
 {
   if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
     return;
-  inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
-  inputShifters[inputShiftersRegistered].clear();
-  registerPin(latchPin, kTypeInputShifter);
-  registerPin(clockPin, kTypeInputShifter);
-  registerPin(dataPin, kTypeInputShifter);
-
-  inputShifters[inputShiftersRegistered].attachHandler(handlerInputShifterOnChange);
-
+  if (!FitInMemory(sizeof(MFInputShifter)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmd(kStatus, F("InputShifter does not fit in Memory"));
+    return;
+  }
+  inputShifters[inputShiftersRegistered] = new (allocateMemory(sizeof(MFInputShifter))) MFInputShifter;
+  inputShifters[inputShiftersRegistered]->attach(latchPin, clockPin, dataPin, modules, name);
+  inputShifters[inputShiftersRegistered]->clear();
   inputShiftersRegistered++;
-
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added input shifter"));
 #endif
@@ -472,10 +465,8 @@ void ClearInputShifters()
 {
   for (int i = 0; i < inputShiftersRegistered; i++)
   {
-    inputShifters[i].detach();
+    inputShifters[i]->detach();
   }
-
-  clearRegisteredPins(kTypeInputShifter);
   inputShiftersRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared input shifter"));
@@ -492,14 +483,7 @@ void AddLedSegment(int dataPin, int csPin, int clkPin, int numDevices, int brigh
   if (ledSegmentsRegistered == MAX_LEDSEGMENTS)
     return;
 
-  if (isPinRegistered(dataPin) || isPinRegistered(clkPin) || isPinRegistered(csPin))
-    return;
-
   ledSegments[ledSegmentsRegistered].attach(dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
-
-  registerPin(dataPin, kTypeLedSegment);
-  registerPin(csPin, kTypeLedSegment);
-  registerPin(clkPin, kTypeLedSegment);
   ledSegmentsRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added Led Segment"));
@@ -508,7 +492,6 @@ void AddLedSegment(int dataPin, int csPin, int clkPin, int numDevices, int brigh
 
 void ClearLedSegments()
 {
-  clearRegisteredPins(kTypeLedSegment);
   for (int i = 0; i != ledSegmentsRegistered; i++)
   {
     ledSegments[i].detach();
@@ -528,7 +511,7 @@ void PowerSaveLedSegment(bool state)
 
   for (int i = 0; i != outputsRegistered; ++i)
   {
-    outputs[i].powerSavingMode(state);
+    outputs[i]->powerSavingMode(state);
   }
 }
 #endif
@@ -539,28 +522,14 @@ void AddStepper(int pin1, int pin2, int pin3, int pin4, int btnPin1)
 {
   if (steppersRegistered == MAX_STEPPERS)
     return;
-  if (isPinRegistered(pin1) || isPinRegistered(pin2) || isPinRegistered(pin3) || isPinRegistered(pin4) || (btnPin1 > 0 && isPinRegistered(btnPin1)))
-  {
-#ifdef DEBUG
-    cmdMessenger.sendCmd(kStatus, F("Conflict with stepper"));
-#endif
-    return;
-  }
-
-  steppers[steppersRegistered] = new MFStepper(pin1, pin2, pin3, pin4, btnPin1); // is our object
-  steppers[steppersRegistered]->setMaxSpeed(STEPPER_SPEED);
-  steppers[steppersRegistered]->setAcceleration(STEPPER_ACCEL);
-
-  registerPin(pin1, kTypeStepper);
-  registerPin(pin2, kTypeStepper);
-  registerPin(pin3, kTypeStepper);
-  registerPin(pin4, kTypeStepper);
+  steppers[steppersRegistered].attach(pin1, pin2, pin3, pin4, btnPin1);
+  steppers[steppersRegistered].setMaxSpeed(STEPPER_SPEED);
+  steppers[steppersRegistered].setAcceleration(STEPPER_ACCEL);
   // autoreset is not released yet
   if (btnPin1 > 0)
   {
-    registerPin(btnPin1, kTypeStepper);
     // this triggers the auto reset if we need to reset
-    steppers[steppersRegistered]->reset();
+    steppers[steppersRegistered].reset();
   }
 
   // all set
@@ -575,9 +544,8 @@ void ClearSteppers()
 {
   for (int i = 0; i != steppersRegistered; i++)
   {
-    delete steppers[i];
+    steppers[i].detach();
   }
-  clearRegisteredPins(kTypeStepper);
   steppersRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared steppers"));
@@ -591,11 +559,7 @@ void AddServo(int pin)
 {
   if (servosRegistered == MAX_MFSERVOS)
     return;
-  if (isPinRegistered(pin))
-    return;
-
   servos[servosRegistered].attach(pin, true);
-  registerPin(pin, kTypeServo);
   servosRegistered++;
 }
 
@@ -605,7 +569,6 @@ void ClearServos()
   {
     servos[i].detach();
   }
-  clearRegisteredPins(kTypeServo);
   servosRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared servos"));
@@ -615,13 +578,10 @@ void ClearServos()
 
 #if MF_LCD_SUPPORT == 1
 //// LCD Display /////
-void AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, uint8_t lines = 2, char const *name = "LCD")
+void AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, uint8_t lines = 2)
 {
   if (lcd_12cRegistered == MAX_MFLCD_I2C)
     return;
-  registerPin(SDA, kTypeLcdDisplayI2C);
-  registerPin(SCL, kTypeLcdDisplayI2C);
-
   lcd_I2C[lcd_12cRegistered].attach(address, cols, lines);
   lcd_12cRegistered++;
 #ifdef DEBUG
@@ -635,7 +595,6 @@ void ClearLcdDisplays()
   {
     lcd_I2C[i].detach();
   }
-  clearRegisteredPins(kTypeLcdDisplayI2C);
   lcd_12cRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared lcdDisplays"));
@@ -649,12 +608,13 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
 {
   if (analogRegistered == MAX_ANALOG_INPUTS)
     return;
-
-  if (isPinRegistered(pin))
+  if (!FitInMemory(sizeof(MFAnalog)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
     return;
-
-  analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
-  registerPin(pin, kTypeAnalogInput);
+  }
+  analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
   analogRegistered++;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added analog device "));
@@ -663,7 +623,6 @@ void AddAnalog(uint8_t pin = 1, char const *name = "AnalogInput", uint8_t sensit
 
 void ClearAnalog()
 {
-  clearRegisteredPins(kTypeAnalogInput);
   analogRegistered = 0;
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared analog devices"));
@@ -674,12 +633,19 @@ void ClearAnalog()
 
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
 //// SHIFT REGISTER /////
-void AddOutputShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name = "OutputShifter")
+void AddShifter(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
 {
   if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
     return;
-  outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
-  outputShifters[outputShifterRegistered].clear();
+  if (!FitInMemory(sizeof(MFOutputShifter)))
+  {
+    // Error Message to Connector
+    cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
+    return;
+  }
+  outputShifters[outputShifterRegistered] = new (allocateMemory(sizeof(MFOutputShifter))) MFOutputShifter;
+  outputShifters[outputShifterRegistered]->attach(latchPin, clockPin, dataPin, modules);
+  outputShifters[outputShifterRegistered]->clear();
   outputShifterRegistered++;
 
 #ifdef DEBUG
@@ -691,7 +657,7 @@ void ClearOutputShifters()
 {
   for (int i = 0; i != outputShifterRegistered; i++)
   {
-    outputShifters[i].detach();
+    outputShifters[i]->detach();
   }
 
   outputShifterRegistered = 0;
@@ -754,12 +720,12 @@ void OnSetConfig()
 
   if (configLength + cfgLen + 1 < MEM_LEN_CONFIG)
   {
-    memcpy(&configBuffer[configLength], cfg, cfgLen + 1); // save the received config string including the terminatung NULL (+1)
+    MFeeprom.write_block(MEM_OFFSET_CONFIG + configLength, cfg, cfgLen+1);    // save the received config string including the terminatung NULL (+1) to EEPROM
     configLength += cfgLen;
     cmdMessenger.sendCmd(kStatus, configLength);
   }
   else
-    cmdMessenger.sendCmd(kStatus, -1);
+    cmdMessenger.sendCmd(kStatus, -1);                             // last successfull saving block is already NULL terminated, nothing more todo
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Setting config end"));
 #endif
@@ -799,6 +765,7 @@ void resetConfig()
   ClearInputShifters();
 #endif
 
+  ClearMemory();
   configLength = 0;
   configActivated = false;
 }
@@ -811,7 +778,6 @@ void OnResetConfig()
 
 void OnSaveConfig()
 {
-  _storeConfig();
   cmdMessenger.sendCmd(kConfigSaved, F("OK"));
 }
 
@@ -827,146 +793,188 @@ void _activateConfig()
   cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
-void readConfig()
-{
-  if (configLength == 0)
-    return;
-  char *p = NULL;
-
-  char *command = strtok_r(configBuffer, ".", &p);
-  char *params[6];
-  if (*command == 0)
-    return;
-
+// reads an ascii value which is '.' terminated from EEPROM and returns it's value
+uint8_t readUintFromEEPROM (volatile uint16_t *addreeprom) {
+  char params[4] = {0};                                           // max 3 (255) digits NULL terminated
+  uint8_t counter = 0;
   do
   {
-    switch (atoi(command))
+    params[counter++] = MFeeprom.read_char((*addreeprom)++);      // read character from eeprom and locate next buffer and eeprom location
+  }
+  while ( params[counter-1] != '.' && counter < sizeof(params));  // reads until limiter '.' and for safety reason not more then size of params[]
+  params[counter-1] = 0x00;                                       // replace '.' by NULL to terminate the string
+  return atoi(params);
+}
+
+// reads a string from EEPROM at given address which is ':' terminated and saves it in the nameBuffer
+// once the nameBuffer is not needed anymore, just read until the ":" termination -> see function below
+bool readNameFromEEPROM(uint16_t *addreeprom, char* buffer, uint16_t *addrbuffer)   {
+  char temp = 0;
+  do
+  {
+    temp = MFeeprom.read_char((*addreeprom)++);                   // read the first character
+      buffer[(*addrbuffer)++] = temp;                             // save character and locate next buffer position
+      if (*addrbuffer >= MEMLEN_CONFIG_BUFFER) {                  // nameBuffer will be exceeded
+        return false;                                             // abort copying from EEPROM to nameBuffer
+      }
+  } while (temp != ':');                                          // reads until limiter ':' and locates the next free buffer position
+  buffer[(*addrbuffer)-1] = 0x00;                                 // replace ':' by NULL, terminates the string
+  return true;
+}
+
+// reads the EEPRROM until end of command which ':' terminated
+bool readEndCommandFromEEPROM(uint16_t *addreeprom)   {
+  char temp = 0;
+  uint16_t length = MFeeprom.get_length();
+  do
+  {
+    temp = MFeeprom.read_char((*addreeprom)++);
+    if (*addreeprom > length)                                     // abort if EEPROM size will be exceeded
+      return false;
+  }
+  while (temp != ':');                                            // reads until limiter ':'
+  return true;
+}
+
+void readConfig()
+{
+  if (configLength == 0)                                          // do nothing if no config is available   
+    return;
+  uint16_t addreeprom = MEM_OFFSET_CONFIG;                        // define first memory location where config is saved in EEPROM
+  uint16_t addrbuffer = 0;                                        // and start with first memory location from nameBuffer
+  char params[6] = "";
+  char command = readUintFromEEPROM(&addreeprom);                 // read the first value from EEPROM, it's a device definition
+  bool copy_success = true;                                       // will be set to false if copying input names to nameBuffer exceeds array dimensions
+                                                                  // not required anymore when pins instead of names are transferred to the UI
+
+  if (command == 0)                                               // just to be sure, configLength should also be 0
+    return;
+
+  do                                                              // go through the EEPROM until it is NULL terminated
+  {
+    switch (command)
     {
     case kTypeButton:
-      params[0] = strtok_r(NULL, ".", &p); // pin
-      params[1] = strtok_r(NULL, ":", &p); // name
-      AddButton(atoi(params[0]), params[1]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
+      AddButton(params[0], &nameBuffer[addrbuffer]);              // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 
     case kTypeOutput:
-      params[0] = strtok_r(NULL, ".", &p); // pin
-      params[1] = strtok_r(NULL, ":", &p); // Name
-      AddOutput(atoi(params[0]), params[1]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
+      AddOutput(params[0]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 
 #if MF_SEGMENT_SUPPORT == 1
     case kTypeLedSegment:
-      params[0] = strtok_r(NULL, ".", &p); // pin Data
-      params[1] = strtok_r(NULL, ".", &p); // pin Cs
-      params[2] = strtok_r(NULL, ".", &p); // pin Clk
-      params[3] = strtok_r(NULL, ".", &p); // brightness
-      params[4] = strtok_r(NULL, ".", &p); // numModules
-      params[5] = strtok_r(NULL, ":", &p); // Name
-                                           // int dataPin, int clkPin, int csPin, int numDevices, int brightness
-      AddLedSegment(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[4]), atoi(params[3]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin Data number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin CS number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the Pin CLK number
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the brightness
+      params[4] = readUintFromEEPROM(&addreeprom);                // get the number of modules
+      AddLedSegment(params[0], params[1], params[2], params[4], params[3]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
     case kTypeStepperDeprecated:
       // this is for backwards compatibility
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ".", &p); // pin3
-      params[3] = strtok_r(NULL, ".", &p); // pin4
-      params[4] = strtok_r(NULL, ".", &p); // btnPin1
-      params[5] = strtok_r(NULL, ":", &p); // Name
-      AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), 0);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the Pin3 number
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the Pin4 number
+      params[4] = readUintFromEEPROM(&addreeprom);                // get the Button number
+      AddStepper(params[0], params[1], params[2], params[3], 0);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
     case kTypeStepper:
-      // AddStepper(int pin1, int pin2, int pin3, int pin4)
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ".", &p); // pin3
-      params[3] = strtok_r(NULL, ".", &p); // pin4
-      params[4] = strtok_r(NULL, ".", &p); // btnPin1
-      params[5] = strtok_r(NULL, ":", &p); // Name
-      AddStepper(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), atoi(params[4]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the Pin3 number
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the Pin4 number
+      params[4] = readUintFromEEPROM(&addreeprom);                // get the Button number
+      AddStepper(params[0], params[1], params[2], params[3], params[4]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_SERVO_SUPPORT == 1
     case kTypeServo:
-      // AddServo(int pin)
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ":", &p); // Name
-      AddServo(atoi(params[0]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin number
+      AddServo(params[0]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
     case kTypeEncoderSingleDetent:
-      // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ":", &p); // Name
-      AddEncoder(atoi(params[0]), atoi(params[1]), 0, params[2]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      AddEncoder(params[0], params[1], 0, &nameBuffer[addrbuffer]);             // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to it and get the next free memory location
       break;
 
     case kTypeEncoder:
-      // AddEncoder(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t encoder_type = 0, String name = "Encoder")
-      params[0] = strtok_r(NULL, ".", &p); // pin1
-      params[1] = strtok_r(NULL, ".", &p); // pin2
-      params[2] = strtok_r(NULL, ".", &p); // encoder_type
-      params[3] = strtok_r(NULL, ":", &p); // Name
-      AddEncoder(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the Pin1 number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the Pin2 number
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the type
+      AddEncoder(params[0], params[1], params[2], &nameBuffer[addrbuffer]);     // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 
 #if MF_LCD_SUPPORT == 1
     case kTypeLcdDisplayI2C:
-      // AddLcdDisplay(uint8_t address = 0x24, uint8_t cols = 16, lines = 2, String name = "Lcd")
-      params[0] = strtok_r(NULL, ".", &p); // address
-      params[1] = strtok_r(NULL, ".", &p); // cols
-      params[2] = strtok_r(NULL, ".", &p); // lines
-      params[3] = strtok_r(NULL, ":", &p); // Name
-      AddLcdDisplay(atoi(params[0]), atoi(params[1]), atoi(params[2]), params[3]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the address
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the columns
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the lines
+      AddLcdDisplay(params[0], params[1], params[2]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_ANALOG_SUPPORT == 1
     case kTypeAnalogInput:
-      params[0] = strtok_r(NULL, ".", &p); // pin
-      params[1] = strtok_r(NULL, ".", &p); // sensitivity
-      params[2] = strtok_r(NULL, ":", &p); // name
-      AddAnalog(atoi(params[0]), params[2], atoi(params[1]));
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the pin number
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the sensitivity
+      AddAnalog(params[0], &nameBuffer[addrbuffer], params[1]);   // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 #endif
 
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
     case kShiftRegister:
-      params[0] = strtok_r(NULL, ".", &p); // pin latch
-      params[1] = strtok_r(NULL, ".", &p); // pin clock
-      params[2] = strtok_r(NULL, ".", &p); // pin data
-      params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
-      params[4] = strtok_r(NULL, ":", &p); // name
-      AddOutputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the latch Pin
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the clock Pin
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the data Pin
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
+      AddShifter(params[0], params[1], params[2], params[3]);
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
       break;
 #endif
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     case kTypeInputShifter:
-      params[0] = strtok_r(NULL, ".", &p); // pin latch
-      params[1] = strtok_r(NULL, ".", &p); // pin clock
-      params[2] = strtok_r(NULL, ".", &p); // pin data
-      params[3] = strtok_r(NULL, ".", &p); // number of daisy chained modules
-      params[4] = strtok_r(NULL, ":", &p); // name
-      AddInputShifter(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]), params[4]);
+      params[0] = readUintFromEEPROM(&addreeprom);                // get the latch Pin
+      params[1] = readUintFromEEPROM(&addreeprom);                // get the clock Pin
+      params[2] = readUintFromEEPROM(&addreeprom);                // get the data Pin
+      params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
+      AddInputShifter(params[0], params[1], params[2], params[3], &nameBuffer[addrbuffer]);
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
       break;
 #endif
 
     default:
-      // read to the end of the current command which is apparently not understood
-      strtok_r(NULL, ":", &p); // read to end of unknown command
+      copy_success = readEndCommandFromEEPROM(&addreeprom);       // check EEPROM until end of name
     }
-    command = strtok_r(NULL, ".", &p);
-  } while (command != NULL);
+    command = readUintFromEEPROM(&addreeprom);
+  } while (command && copy_success);
+  if (!copy_success) {                                            // too much/long names for input devices
+    nameBuffer[MEMLEN_CONFIG_BUFFER-1] = 0x00;                    // terminate the last copied (part of) string with 0x00
+  }
 }
 
 // Called when a received command has no attached function
@@ -991,10 +999,13 @@ void OnGetConfig()
 {
   lastCommand = millis();
   cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
-  for (uint16_t i = 1; i < configLength; i++)
+  if (configLength > 0)
   {
-    cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+    cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
+    for (uint16_t i = 1; i < configLength; i++)
+    {
+      cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+    }
   }
   cmdMessenger.sendCmdEnd();
 }
@@ -1006,7 +1017,8 @@ void OnSetPin()
   int pin = cmdMessenger.readInt16Arg();
   int state = cmdMessenger.readInt16Arg();
   // Set led
-  analogWrite(pin, state);
+  analogWrite(pin, state);        // why does the UI sends the pin number and not the x.th output number like other devices?
+//  outputs[pin]->set(state);
   lastCommand = millis();
 }
 
@@ -1046,7 +1058,7 @@ void OnSetModuleBrightness()
 void OnInitOutputShifter()
 {
   int module = cmdMessenger.readInt16Arg();
-  outputShifters[module].clear();
+  outputShifters[module]->clear();
   lastCommand = millis();
 }
 
@@ -1056,7 +1068,7 @@ void OnSetOutputShifterPins()
   int module = cmdMessenger.readInt16Arg();
   char *pins = cmdMessenger.readStringArg();
   int value = cmdMessenger.readInt16Arg();
-  outputShifters[module].setPins(pins, value);
+  outputShifters[module]->setPins(pins, value);
   lastCommand = millis();
 }
 #endif
@@ -1065,7 +1077,7 @@ void OnSetOutputShifterPins()
 void OnInitInputShiftRegister()
 {
   int module = cmdMessenger.readInt16Arg();
-  inputShifters[module].clear();
+  inputShifters[module]->clear();
   lastCommand = millis();
 }
 #endif
@@ -1078,7 +1090,7 @@ void OnSetStepper()
 
   if (stepper >= steppersRegistered)
     return;
-  steppers[stepper]->moveTo(newPos);
+  steppers[stepper].moveTo(newPos);
   lastCommand = millis();
 }
 
@@ -1088,7 +1100,7 @@ void OnResetStepper()
 
   if (stepper >= steppersRegistered)
     return;
-  steppers[stepper]->reset();
+  steppers[stepper].reset();
   lastCommand = millis();
 }
 
@@ -1098,7 +1110,7 @@ void OnSetZeroStepper()
 
   if (stepper >= steppersRegistered)
     return;
-  steppers[stepper]->setZero();
+  steppers[stepper].setZero();
   lastCommand = millis();
 }
 
@@ -1106,7 +1118,7 @@ void updateSteppers()
 {
   for (int i = 0; i != steppersRegistered; i++)
   {
-    steppers[i]->update();
+    steppers[i].update();
   }
 }
 #endif
@@ -1152,7 +1164,7 @@ void readButtons()
   lastButtonUpdate = millis();
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].update();
+    buttons[i]->update();
   }
 }
 
@@ -1163,7 +1175,7 @@ void readEncoder()
   lastEncoderUpdate = millis();
   for (int i = 0; i != encodersRegistered; i++)
   {
-    encoders[i].update();
+    encoders[i]->update();
   }
 }
 
@@ -1176,7 +1188,7 @@ void readInputShifters()
 
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
-    inputShifters[i].update();
+    inputShifters[i]->update();
   }
 }
 #endif
@@ -1188,7 +1200,7 @@ void readAnalog()
   {
     for (int i = 0; i != analogRegistered; i++)
     {
-      analog[i].readBuffer();
+      analog[i]->readBuffer();
     }
     lastAnalogAverage = millis();
   }
@@ -1197,7 +1209,7 @@ void readAnalog()
   lastAnalogRead = millis();
   for (int i = 0; i != analogRegistered; i++)
   {
-    analog[i].update();
+    analog[i]->update();
   }
 }
 #endif
@@ -1205,9 +1217,10 @@ void readAnalog()
 void OnGenNewSerial()
 {
   generateSerial(true);
-  cmdMessenger.sendCmdStart(kInfo);
-  cmdMessenger.sendCmdArg(serial);
-  cmdMessenger.sendCmdEnd();
+//  cmdMessenger.sendCmdStart(kInfo);
+//  cmdMessenger.sendCmdArg(serial);
+//  cmdMessenger.sendCmdEnd();
+  cmdMessenger.sendCmd(kInfo,serial);
 }
 
 void OnSetName()
@@ -1242,12 +1255,12 @@ void OnTrigger()
   // Trigger all button release events first...
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].triggerOnRelease();
+    buttons[i]->triggerOnRelease();
   }
   // ... then trigger all the press events
   for (int i = 0; i != buttonsRegistered; i++)
   {
-    buttons[i].triggerOnPress();
+    buttons[i]->triggerOnPress();
   }
 
 // Retrigger all the input shifters. This automatically sends
@@ -1255,7 +1268,7 @@ void OnTrigger()
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   for (int i = 0; i != inputShiftersRegistered; i++)
   {
-    inputShifters[i].retrigger();
+    inputShifters[i]->retrigger();
   }
 #endif
 }

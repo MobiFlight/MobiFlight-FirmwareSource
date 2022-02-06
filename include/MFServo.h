@@ -36,7 +36,7 @@ private:
 		uint8_t _pin;
 		int			_mapRange[4];
     bool    _initialized;
-    Servo   _servo;
+    Servo   *_servo;
     long    _targetPos;
     long    _currentPos;    
     int     speed;
