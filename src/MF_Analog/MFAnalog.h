@@ -1,19 +1,15 @@
-// MFSegments.h
+// MFAnalog.h
 //
 /// \mainpage MF MFAnalog module for MobiFlight Framework
 /// \par Revision History
 /// \version 1.0 Initial release
 /// \author  Manfred Berry (manfred@nystedberry.info) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2021 Manfred Berry
+/// \version 1.1 Floating Average added
 
-#ifndef MFAnalog_h
-#define MFAnalog_h
+#pragma once
 
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
 
 #define ADC_MAX_AVERAGE                 8           // must be 2^n
 #define ADC_MAX_AVERAGE_LOG2            3           // please calculate LOG2(ADC_MAX_AVERAGE)
@@ -47,4 +43,3 @@ private:
     volatile uint8_t ADC_Average_Pointer = 0;       // points to the actual position in ADC_BUFFER
     uint32_t      _lastReadBuffer;
 };
-#endif 

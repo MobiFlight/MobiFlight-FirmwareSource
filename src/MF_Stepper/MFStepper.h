@@ -6,19 +6,10 @@
 /// \author  Sebastian Moebius (mobiflight@moebiuz.de) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2013-2014 Sebastian Moebius
 
-#ifndef MFStepper_h
-#define MFStepper_h
+#pragma once
 
-#include <stdlib.h>
-#include <AccelStepper.h>
-#include "MFButton.h"
-
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
+#include <AccelStepper.h>
 
 /////////////////////////////////////////////////////////////////////
 /// \class MFStepper MFStepper.h <MFServo.h>
@@ -48,4 +39,3 @@ private:
     void setZeroInReset(void);
 
 };
-#endif

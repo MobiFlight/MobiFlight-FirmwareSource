@@ -6,16 +6,9 @@
 /// \author  Sebastian Moebius (mobiflight@moebiuz.de) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2013-2014 Sebastian Moebius
 
-#ifndef MFSegments_h
-#define MFSegments_h
+#pragma once
 
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
-
 #include <LedControl.h>
 
 /////////////////////////////////////////////////////////////////////
@@ -32,7 +25,6 @@ public:
     void setBrightness(byte module, byte value);
 
 private:
-    LedControl  *_ledControl;
+    LedControl  _ledControl;
     byte        _moduleCount;
 };
-#endif

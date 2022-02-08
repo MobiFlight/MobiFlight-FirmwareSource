@@ -3,8 +3,6 @@
 // Copyright (C) 2013-2021
 
 #include "MFSegments.h"
-#include "allocateMem.h"
-#include "mobiflight.h"
 
 MFSegments::MFSegments()
 {
@@ -22,7 +20,7 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
     digit--;
     if (((1 << digit) & mask) == 0)
       continue;
-    _ledControl->setChar(module, digit, string[pos], ((1 << digit) & points));
+    _ledControl.setChar(module, digit, string[pos], ((1 << digit) & points));
     pos++;
   }
 }
@@ -35,32 +33,23 @@ void MFSegments::setBrightness(byte module, byte value)
   {
     if(value) 
     {
-      _ledControl->setIntensity(module, value-1);
-      _ledControl->shutdown(module, false);
+      _ledControl.setIntensity(module, value-1);
+      _ledControl.shutdown(module, false);
     } else {
-      _ledControl->shutdown(module, true);
+      _ledControl.shutdown(module, true);
     }
   }
 }
 
 void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
 {
-  if (!FitInMemory(sizeof(LedControl)))
-	{
-		// Error Message to Connector
-    cmdMessenger.sendCmdStart(kDebug);
-    cmdMessenger.sendCmdArg(F("7Segment does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
-		return;
-	}
-  _ledControl = new (allocateMemory(sizeof(LedControl))) LedControl;
-  _ledControl->begin(dataPin, clkPin, csPin, moduleCount);
+  _ledControl.begin(dataPin, clkPin, csPin, moduleCount);
   _moduleCount = moduleCount;
   for (int i = 0; i != _moduleCount; ++i)
   {
     setBrightness(i, brightness);
-    _ledControl->shutdown(i, false);
-    _ledControl->clearDisplay(i);
+    _ledControl.shutdown(i, false);
+    _ledControl.clearDisplay(i);
   }
 }
 
@@ -73,7 +62,7 @@ void MFSegments::powerSavingMode(bool state)
 {
   for (byte i = 0; i != _moduleCount; ++i)
   {
-    _ledControl->shutdown(i, state);
+    _ledControl.shutdown(i, state);
   }
 }
 
@@ -89,7 +78,7 @@ void MFSegments::test()
   {
     for (module = 0; module != _moduleCount; ++module)
     {
-      _ledControl->setDigit(module, digit, 8, 1);
+      _ledControl.setDigit(module, digit, 8, 1);
     }
     delay(_delay);
   }
@@ -98,7 +87,7 @@ void MFSegments::test()
   {
     for (module = 0; module != _moduleCount; ++module)
     {
-      _ledControl->setChar(module, 7 - digit, '-', false);
+      _ledControl.setChar(module, 7 - digit, '-', false);
     }
     delay(_delay);
   }
@@ -107,7 +96,7 @@ void MFSegments::test()
   {
     for (module = 0; module != _moduleCount; ++module)
     {
-      _ledControl->setChar(module, 7 - digit, ' ', false);
+      _ledControl.setChar(module, 7 - digit, ' ', false);
     }
     delay(_delay);
   }

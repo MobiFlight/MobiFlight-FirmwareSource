@@ -18,16 +18,9 @@
 // 18.01.2014 created by Matthias Hertel
 // -----
 
-#ifndef MFEncoder_h
-#define MFEncoder_h
+#pragma once
 
-#include <stdlib.h>
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
 
 extern "C"
 {
@@ -93,4 +86,3 @@ private:
     uint32_t                  _positionTimePrev;    // time previous position change was detected
     uint32_t                  _lastFastDec;
 };
-#endif 

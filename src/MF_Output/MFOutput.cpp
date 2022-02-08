@@ -1,7 +1,3 @@
-// MFOutput.cpp
-//
-// Copyright (C) 2013-2014
-
 #include "MFOutput.h"
 
 MFOutput::MFOutput(uint8_t pin)
