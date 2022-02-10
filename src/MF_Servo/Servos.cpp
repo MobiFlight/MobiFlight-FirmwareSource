@@ -34,7 +34,7 @@ void Clear()
 {
   for (int i = 0; i != servosRegistered; i++)
   {
-    servos[servosRegistered]->detach();
+    servos[i]->detach();
   }
   servosRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER

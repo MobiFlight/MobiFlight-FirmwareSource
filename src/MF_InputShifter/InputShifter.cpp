@@ -44,7 +44,7 @@ void Clear()
 {
     for (int i = 0; i < inputShiftersRegistered; i++)
     {
-        inputShifters[inputShiftersRegistered]->detach();
+        inputShifters[i]->detach();
     }
     inputShiftersRegistered = 0;
     #ifdef DEBUG2CMDMESSENGER

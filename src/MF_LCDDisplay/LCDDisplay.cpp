@@ -33,7 +33,7 @@ void Clear()
 {
   for (int i = 0; i != lcd_12cRegistered; i++)
   {
-    lcd_I2C[lcd_12cRegistered]->detach();
+    lcd_I2C[i]->detach();
   }
   lcd_12cRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER

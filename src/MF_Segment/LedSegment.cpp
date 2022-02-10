@@ -33,7 +33,7 @@ void Clear()
 {
   for (int i = 0; i != ledSegmentsRegistered; i++)
   {
-    ledSegments[ledSegmentsRegistered]->detach();
+    ledSegments[i]->detach();
   }
   ledSegmentsRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
