@@ -54,7 +54,7 @@ void SetPowerSavingMode(bool state)
 {
   // disable the lights ;)
   powerSavingMode = state;
-//  Output::PowerSave(state);     // why is this uncommeted in the main branch??
+  Output::PowerSave(state);
 #if MF_SEGMENT_SUPPORT == 1
   LedSegment::PowerSave(state);
 #endif
