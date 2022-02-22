@@ -56,12 +56,12 @@ char foo;
 #include <MFOutputShifter.h>
 #endif
 
-#if MF_MPX_SUPPORT == 1
-#include <MFMultiplex.h>
+#if MF_MUX_SUPPORT == 1
+#include <MFMuxDriver.h>
 #endif
 
-#if MF_MPX_DIGIN_SUPPORT == 1
-#include <MFMPXDigitalIn.h>
+#if MF_DIGIN_MUX_SUPPORT == 1
+#include <MFDigInMux.h>
 #endif
 
 const uint8_t MEM_OFFSET_NAME = 0;
@@ -82,15 +82,14 @@ uint32_t lastAnalogRead = 0;
 uint32_t lastServoUpdate = 0;
 #endif
 
-#if MF_MPX_DIGIN_SUPPORT == 1
-uint32_t lastMPXDigInputUpdate = 0;
-#endif
-
 #if MF_INPUT_SHIFTER_SUPPORT == 1
 uint32_t lastInputShifterUpdate = 0;
 #endif
 
-const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
+#if MF_DIGIN_MUX_SUPPORT == 1
+uint32_t lastDigInMuxUpdate = 0;
+#endif
+
 char serial[MEM_LEN_SERIAL] = MOBIFLIGHT_SERIAL;
 char name[MEM_LEN_NAME] = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG = MEMLEN_CONFIG;
@@ -152,13 +151,13 @@ MFInputShifter *inputShifters[MAX_INPUT_SHIFTERS];
 uint8_t inputShiftersRegistered = 0;
 #endif
 
-#if MF_MPX_SUPPORT == 1
-MFMultiplex MPX;
+#if MF_MUX_SUPPORT == 1
+MFMuxDriver MUX;
 #endif
 
-#if MF_MPX_DIGIN_SUPPORT == 1
-MFMPXDigitalIn digitalInMPX[MAX_DIG_IN_MPX];
-uint8_t digitalInMPXRegistered = 0;
+#if MF_DIGIN_MUX_SUPPORT == 1
+MFDigInMux digInMux[MAX_DIGIN_MUX];
+uint8_t digInMuxRegistered = 0;
 #endif
 
 // Callbacks define on which received commands we take action
@@ -244,29 +243,28 @@ void OnResetBoard()
 void setup()
 {
   Serial.begin(115200);
-#if MF_MPX_DIGIN_SUPPORT == 1
-  MFMPXDigitalIn::setMPX(&MPX);
+#if MF_DIGIN_MUX_SUPPORT == 1
+  MFDigInMux::setMux(&MUX);
 #endif
   attachCommandCallbacks();
   attachEventCallbacks();
   cmdMessenger.printLfCr();
   ResetBoard();
-
   // Time Gap between Inputs, do not read at the same loop
-  lastButtonUpdate = millis();
-  lastEncoderUpdate = millis() + 2;
-
+#if MF_DIGIN_MUX_SUPPORT == 1
+  lastDigInMuxUpdate 	= millis() + 8;
+#endif
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+  lastInputShifterUpdate = millis() + 6;
+#endif
 #if MF_ANALOG_SUPPORT == 1
   lastAnalogAverage = millis() + 4;
   lastAnalogRead    = millis() + 4;
 #endif
-
+  lastButtonUpdate  = millis();
+  lastEncoderUpdate = millis() + 2;
 #if MF_SERVO_SUPPORT == 1
-  lastServoUpdate = millis();
-#endif
-
-#if MF_INPUT_SHIFTER_SUPPORT == 1
-  lastInputShifterUpdate = millis() + 6;
+  lastServoUpdate   = millis();
 #endif
 }
 
@@ -364,7 +362,7 @@ void loop()
   if (!configActivated)
     return;
 
-  MPX.nextChannel();
+  MUX.nextChannel();
 
   readButtons();
   readEncoder();
@@ -373,8 +371,8 @@ void loop()
   readInputShifters();
 #endif
 
-#if MF_MPX_DIGIN_SUPPORT == 1
-  readMPXDigitalIn();
+#if MF_DIGIN_MUX_SUPPORT == 1
+  readDigInMux();
 #endif
 
 #if MF_ANALOG_SUPPORT == 1
@@ -505,70 +503,59 @@ void ClearInputShifters()
 }
 #endif
 
-#if MF_MPX_SUPPORT == 1
+#if MF_MUX_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
-  if (isPinRegistered(Sel0Pin) || isPinRegistered(Sel1Pin)||isPinRegistered(Sel2Pin) || isPinRegistered(Sel3Pin))
-     return;
-
-  registerPin(Sel0Pin, kTypeMultiplexer);
-  registerPin(Sel1Pin, kTypeMultiplexer);
-  registerPin(Sel2Pin, kTypeMultiplexer);
-  registerPin(Sel3Pin, kTypeMultiplexer);
-  MPX.attach(Sel0Pin, Sel1Pin, Sel2Pin, Sel3Pin);
+  MUX.attach(Sel0Pin, Sel1Pin, Sel2Pin, Sel3Pin);
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Added multiplexer"));
 #endif
 }
 #endif
 
-#if MF_MPX_SUPPORT == 1
-  //// MULTIPLEXER SELUECTOR /////
+#if MF_MUX_SUPPORT == 1
+  //// MULTIPLEXER SELECTOR /////
 void ClearMultiplexer()
 {
-  MPX.detach();
-  clearRegisteredPins(kTypeMultiplexer);
+  MUX.detach();
 #ifdef DEBUG
   cmdMessenger.sendCmd(kStatus, F("Cleared Multiplexer selector"));
 #endif
 }
 #endif
 
-#if MF_MPX_DIGIN_SUPPORT == 1
+#if MF_DIGIN_MUX_SUPPORT == 1
   //// DIGITAL INPUT MULTIPLEXER /////
-void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name = "MPXDigIn")
+void AddDigInMux(uint8_t dataPin, uint8_t nRegs, char const *name = "MUXDigIn", bool mode = MFDigInMux::MUX_MODE_FAST)
 {
-  if (digitalInMPXRegistered == MAX_DIG_IN_MPX)
+  if (digInMuxRegistered == MAX_DIGIN_MUX)
     return;
-  if (isPinRegistered(dataPin))
-    return;
-  MFMPXDigitalIn *DIMPX = &digitalInMPX[digitalInMPXRegistered];
-  registerPin(dataPin, kTypeMPXDigitalIn);
-  DIMPX->attach(dataPin, halfSize, name);
-  DIMPX->clear();
-  DIMPX->setLazyMode(mode!=0);
-  DIMPX->attachHandler(handlerMPXDigitalInOnChange);
-  digitalInMPXRegistered++;
+  MFDigInMux *DIMUX = &digInMux[digInMuxRegistered];
+  DIMUX->attach(dataPin, (nRegs==1), name);
+  DIMUX->clear();
+  DIMUX->setLazyMode(mode==MFDigInMux::MUX_MODE_LAZY);
+  DIMUX->attachHandler(handlerDigInMuxOnChange);
+  digInMuxRegistered++;
 
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Added digital input MPX"));
+  cmdMessenger.sendCmd(kStatus, F("Added digital input MUX"));
 #endif
 }
 
-void ClearMPXDigitalIn()
+void ClearDigInMux()
 {
-  for (int i = 0; i < digitalInMPXRegistered; i++){
-    digitalInMPX[digitalInMPXRegistered].detach();
+  for (int i = 0; i < digInMuxRegistered; i++){
+    digInMux[digInMuxRegistered].detach();
   }
-  clearRegisteredPins(kTypeMPXDigitalIn);
-  digitalInMPXRegistered = 0;
+  digInMuxRegistered = 0;
 #ifdef DEBUG
-  cmdMessenger.sendCmd(kStatus, F("Cleared digital input MPX"));
+  cmdMessenger.sendCmd(kStatus, F("Cleared digital input MUX"));
 #endif
 }
 
 #endif
+
 
 //// OUTPUTS /////
 
@@ -802,11 +789,11 @@ void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
   cmdMessenger.sendCmdEnd();
 };
 
-#if MF_MPX_DIGIN_SUPPORT == 1
+#if MF_DIGIN_MUX_SUPPORT == 1
 //// EVENT HANDLER /////
-void handlerMPXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name)
+void handlerDigInMuxOnChange(uint8_t eventId, uint8_t channel, const char *name)
 {
-  cmdMessenger.sendCmdStart(kMPXDigitalInChange);
+  cmdMessenger.sendCmdStart(kDigInMuxChange);
   cmdMessenger.sendCmdArg(name);
   cmdMessenger.sendCmdArg(channel);
   cmdMessenger.sendCmdArg(eventId);
@@ -872,6 +859,15 @@ void resetConfig()
 #if MF_INPUT_SHIFTER_SUPPORT == 1
   ClearInputShifters();
 #endif
+
+#if MF_MUX_SUPPORT == 1
+  ClearMultiplexer();
+#endif
+
+#if MF_DIGIN_MUX_SUPPORT == 1
+  ClearDigInMux();
+#endif
+
   ClearMemory();
 
   configLength = 0;
@@ -1064,26 +1060,6 @@ void readConfig()
       break;
 #endif
 
-#if MF_MPX_SUPPORT == 1
-    case kTypeMultiplexer:
-      // Repeated commands do not define more objects, but change the only existing one
-      params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
-      params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
-      params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
-      params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
-      AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
-      break;
-#endif
-
-#if MF_MPX_DIGIN_SUPPORT == 1
-    case kTypeMPXDigitalIn:
-      params[0] = strtok_r(NULL, ".", &p); // data pin
-      params[1] = strtok_r(NULL, ".", &p); // half-size
-      params[2] = strtok_r(NULL, ":", &p); // name
-      AddMPXDigitalIn(atoi(params[0]), (bool)atoi(params[1]), params[2]);
-      break;
-#endif
-
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     case kTypeInputShifter:
       params[0] = readUintFromEEPROM(&addreeprom);                // get the latch Pin
@@ -1092,6 +1068,35 @@ void readConfig()
       params[3] = readUintFromEEPROM(&addreeprom);                // get the number of daisy chained modules
       AddInputShifter(params[0], params[1], params[2], params[3], &nameBuffer[addrbuffer]);
       copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);  // copy the NULL terminated name to to nameBuffer and set to next free memory location
+      break;
+#endif
+
+#if MF_MUX_SUPPORT == 1
+    // No longer a separate config command for the mux driver
+    // case kTypeMuxDriver:
+    //   // Repeated commands do not define more objects, but change the only existing one
+    //   params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
+    //   params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
+    //   params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
+    //   params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
+    //   AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
+    //   break;
+#endif
+
+#if MF_DIGIN_MUX_SUPPORT == 1
+    case kTypeDigInMux:
+      params[0] = readUintFromEEPROM(&addreeprom); // data pin
+      // Mux driver section
+      // Repeated commands do not define more objects, but change the only existing one
+      params[1] = readUintFromEEPROM(&addreeprom); // Sel0 pin
+      params[2] = readUintFromEEPROM(&addreeprom); // Sel1 pin
+      params[3] = readUintFromEEPROM(&addreeprom); // Sel2 pin
+      params[4] = readUintFromEEPROM(&addreeprom); // Sel3 pin
+      AddMultiplexer(params[1], params[2], params[3], params[4]);
+
+      params[5] = readUintFromEEPROM(&addreeprom); // 8-bit registers (1-2)
+      AddDigInMux(params[0], params[5], &nameBuffer[addrbuffer]);
+      copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
       break;
 #endif
 
@@ -1320,16 +1325,16 @@ void readInputShifters()
 }
 #endif
 
-#if MF_MPX_DIGIN_SUPPORT == 1
-void readMPXDigitalIn()
+#if MF_DIGIN_MUX_SUPPORT == 1
+void readDigInMux()
 {
-  if (millis() - lastMPXDigInputUpdate <= MF_BUTTON_DEBOUNCE_MS)
+  if (millis() - lastDigInMuxUpdate <= MF_BUTTON_DEBOUNCE_MS)
     return;
-  lastMPXDigInputUpdate = millis();
+  lastDigInMuxUpdate = millis();
 
-  for (int i = 0; i != digitalInMPXRegistered; i++)
+  for (int i = 0; i != digInMuxRegistered; i++)
   {
-    digitalInMPX[i].update();
+    digInMux[i].update();
   }
 }
 #endif
@@ -1411,5 +1416,14 @@ void OnTrigger()
   {
     inputShifters[i]->retrigger();
   }
-#endif
+  #endif
+
+  // Retrigger all the DigInMux devices. This automatically sends
+  // the release events first followed by press events.
+  #if MF_DIGIN_MUX_SUPPORT == 1
+  for (int i = 0; i != digInMuxRegistered; i++)
+  {
+    digInMux[i].retrigger();
+  }
+  #endif
 }

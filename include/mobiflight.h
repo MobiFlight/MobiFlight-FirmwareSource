@@ -5,10 +5,10 @@
 #include <MFAnalog.h>
 #include <CmdMessenger.h>
 
-#define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
-#define MF_SERVO_DELAY_MS 5          // Time between servo updates
+#define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
+#define MF_SERVO_DELAY_MS 		   5 // Time between servo updates
 #define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
-#define MF_ANALOGREAD_DELAY_MS 50    // time between sending analog values
+#define MF_ANALOGREAD_DELAY_MS 	  50 // time between sending analog values
 
 enum
 {
@@ -25,8 +25,8 @@ enum
   kShiftRegister,           // 10 Shift register support (example: 74HC595, TLC592X)
   kTypeAnalogInput,         // 11 Analog Device with 1 pin
   kTypeInputShifter,        // 12 Input shift register support (example: 74HC165)
-  kTypeMultiplexer,         // 13 Multiplexer selector support (generates select outputs)
-  kTypeMPXDigitalIn,        // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
+  kTypeMuxDriver,           // 13 Multiplexer selector support (generates select outputs)
+  kTypeDigInMux,            // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
 };
 
 // This is the list of recognized commands. These can be commands that can either be sent or received.
@@ -66,7 +66,7 @@ enum
   kSetShiftRegisterPins, // 27
   kAnalogChange,         // 28
   kInputShifterChange,   // 29
-  kMPXDigitalInChange,   // 30
+  kDigInMuxChange,   	 // 30
   kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
 };
 
@@ -137,10 +137,10 @@ void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
 void AddMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin);
 void ClearMultiplexer();
 
-void AddMPXDigitalIn(uint8_t dataPin, bool halfSize, bool mode, char const *name);
-void ClearMPXDigitalIn();
-void readMPXDigitalIn();
-void handlerMPXDigitalInOnChange(uint8_t eventId, uint8_t channel, const char *name);
+void AddDigInMux(uint8_t dataPin, bool halfSize, bool mode, char const *name);
+void ClearDigInMux();
+void readDigInMux();
+void handlerDigInMuxOnChange(uint8_t eventId, uint8_t channel, const char *name);
 
 void loadConfig();
 
