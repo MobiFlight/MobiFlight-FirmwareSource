@@ -15,7 +15,7 @@ void MFOutputShifter::setPin(uint8_t pin, uint8_t value, uint8_t refresh)
 
   uint8_t idx = (pin & 0xF8)>>3;
   uint8_t msk = (0x01 << (pin & 0x07));
-  //if(idx < _moduleCount) return;
+
   if (value > 0) {
     _outputBuffer[idx] |= msk;  
   } else {
@@ -88,7 +88,7 @@ void MFOutputShifter::updateShiftRegister()
 {
    digitalWrite(_latchPin, LOW);
    for (uint8_t i = _moduleCount; i>0 ; i--) {
-      shiftOut(_dataPin, _clockPin, MSBFIRST, _outputBuffer[i]); //LSBFIRST, MSBFIRST,
+      shiftOut(_dataPin, _clockPin, MSBFIRST, _outputBuffer[i - 1]); //LSBFIRST, MSBFIRST,
    }    
    digitalWrite(_latchPin, HIGH);
 }
