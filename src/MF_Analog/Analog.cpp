@@ -3,7 +3,7 @@
 #include "allocateMem.h"
 #include "mobiflight.h"
 #include "commandmessenger.h"
-#include "analog.h"
+#include "Analog.h"
 #include "MFBoards.h"
 
 #if MF_ANALOG_SUPPORT == 1

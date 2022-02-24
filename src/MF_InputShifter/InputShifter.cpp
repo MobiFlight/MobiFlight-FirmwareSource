@@ -3,7 +3,7 @@
 #include "allocateMem.h"
 #include "mobiflight.h"
 #include "commandmessenger.h"
-#include "inputShifter.h"
+#include "InputShifter.h"
 #include "MFBoards.h"
 
 namespace InputShifter

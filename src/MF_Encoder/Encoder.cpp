@@ -3,7 +3,7 @@
 #include "allocateMem.h"
 #include "mobiflight.h"
 #include "commandmessenger.h"
-#include "encoder.h"
+#include "Encoder.h"
 #include "MFBoards.h"
 
 namespace Encoder

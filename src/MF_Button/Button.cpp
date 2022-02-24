@@ -3,7 +3,7 @@
 #include "allocateMem.h"
 #include "mobiflight.h"
 #include "commandmessenger.h"
-#include "button.h"
+#include "Button.h"
 #include "MFBoards.h"
 
 namespace Button
