@@ -7,15 +7,9 @@
 // Copyright (C) 2021 Manfred Berry
 // Modified 2022 Giorgio Croci Candiani
 
-#ifndef MFOutputShifter_h
-#define MFOutputShifter_h
+#pragma once
 
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
 
 // Maximum number of shifters allowed on an individual chain. While this is currently set to 4
 // there is no technical limit in the code for how many can be chained. It is constrained only
@@ -45,4 +39,3 @@ private:
     uint8_t _outputBuffer[MAX_CHAINED_OUTPUT_SHIFTERS];
     bool _initialized = false;
 };
-#endif

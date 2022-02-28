@@ -6,16 +6,9 @@
 /// \author  Sebastian Moebius (mobiflight@moebiuz.de) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2013-2014 Sebastian Moebius
 
-#ifndef MFButton_h
-#define MFButton_h
+#pragma once
 
-#include <stdlib.h>
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
 
 extern "C"
 {
@@ -48,4 +41,3 @@ private:
     bool          _state;
     
 };
-#endif 

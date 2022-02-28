@@ -2,11 +2,10 @@
 //
 // Copyright (C) 2013-2014
 
-#include "MFBoards.h"
 #include "MFStepper.h"
-#include "MFButton.h"
 #include "allocateMem.h"
 #include "mobiflight.h"
+#include "commandmessenger.h"
 
 MFStepper::MFStepper()
 {
@@ -18,9 +17,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
   if (!FitInMemory(sizeof(AccelStepper)))
   {
     // Error Message to Connector
-		cmdMessenger.sendCmdStart(kDebug);
-		cmdMessenger.sendCmdArg(F("Stepper does not fit in Memory"));
-		cmdMessenger.sendCmdEnd();
+		cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
     return;
   }
   if (pin2 == pin4 && pin1 == pin3)   // if pin1/2 are identical to pin3/4
@@ -40,6 +37,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
   _initialized = true;
   _resetting = false;
 }
+
 void MFStepper::detach()
 {
   _initialized = false;

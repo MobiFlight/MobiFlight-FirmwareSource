@@ -6,16 +6,9 @@
 /// \author  Sebastian Moebius (mobiflight@moebiuz.de) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2013-2014 Sebastian Moebius
 
-#ifndef MFOutput_h
-#define MFOutput_h
+#pragma once
 
-#include <stdlib.h>
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
 
 /////////////////////////////////////////////////////////////////////
 /// \class MFOutput MFOutput.h <MFOutput.h>
@@ -30,4 +23,3 @@ private:
     uint8_t       _pin;
     uint8_t       _value;
 };
-#endif 

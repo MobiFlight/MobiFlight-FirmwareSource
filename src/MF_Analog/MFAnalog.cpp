@@ -1,7 +1,3 @@
-// MFSegments.cpp
-//
-// Copyright (C) 2021
-
 #include "MFAnalog.h"
 
 analogEvent   MFAnalog::_handler = NULL; 

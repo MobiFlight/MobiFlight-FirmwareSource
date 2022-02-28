@@ -6,16 +6,9 @@
 /// \author  Sebastian Moebius (info@mobiflight.com) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 // Copyright (C) 2013-2014 Sebastian Moebius
 
-#ifndef MFLCDDisplay_h
-#define MFLCDDisplay_h
+#pragma once
 
-#if ARDUINO >= 100
 #include <Arduino.h>
-#else
-#include <WProgram.h>
-#include <wiring.h>
-#endif
-
 #include <LiquidCrystal_I2C.h>
 
 /////////////////////////////////////////////////////////////////////
@@ -31,7 +24,7 @@ public:
     void powerSavingMode(bool state);
 
 private:
-    LiquidCrystal_I2C *_lcdDisplay;
+    LiquidCrystal_I2C _lcdDisplay;
     bool _initialized;
     byte _address;
     byte _cols;
@@ -39,4 +32,3 @@ private:
 
     void _printCentered(const char *str, uint8_t line);
 };
-#endif

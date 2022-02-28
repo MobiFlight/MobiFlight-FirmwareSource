@@ -1,7 +1,3 @@
-// MFButton.cpp
-//
-// Copyright (C) 2013-2014
-
 #include "MFButton.h"
 
 buttonEvent   MFButton::_handler = NULL;
