@@ -2,7 +2,7 @@
 #include "MFBoards.h"
 #include "mobiflight.h"
 #include "allocateMem.h"
-#include "CommandMessenger.h"
+#include "commandmessenger.h"
 
 char deviceBuffer[MF_MAX_DEVICEMEM] = {0};
 uint16_t nextPointer = 0;
