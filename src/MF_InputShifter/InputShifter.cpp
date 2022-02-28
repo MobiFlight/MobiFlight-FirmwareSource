@@ -68,5 +68,14 @@ void OnTrigger()
     {
         inputShifters[i]->retrigger();
     }
+    setLastCommandMillis();
 }
+
+void OnInit()     // not used anywhere!?
+{
+  int module = cmdMessenger.readInt16Arg();
+  inputShifters[module]->clear();
+  setLastCommandMillis();
+}
+
 }       // end of namespace InputShifter
