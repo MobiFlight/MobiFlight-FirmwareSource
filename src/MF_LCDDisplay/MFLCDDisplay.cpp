@@ -59,10 +59,10 @@ void MFLCDDisplay::test()
     preLines = (_lines / 2) - 1;    // floor needs much Flash and for integer it's the same
   }
 
-  _printCentered("MF wishes", preLines++);
+  _printCentered("MobiFlight", preLines++);
   if (_lines > 1)
   {
-    _printCentered("Happy Holidays!!", preLines++);
+    _printCentered("Rocks!!!", preLines++);
   }
 
   _lcdDisplay.setCursor(0, 0);
