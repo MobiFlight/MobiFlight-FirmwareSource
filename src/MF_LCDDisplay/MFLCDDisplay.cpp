@@ -62,7 +62,7 @@ void MFLCDDisplay::test()
   _printCentered("MobiFlight", preLines++);
   if (_lines > 1)
   {
-    _printCentered("Rocks!!!", preLines++);
+    _printCentered("Rocks!", preLines++);
   }
 
   _lcdDisplay.setCursor(0, 0);
