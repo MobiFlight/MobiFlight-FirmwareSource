@@ -10,26 +10,33 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
+
 #if MF_ANALOG_SUPPORT == 1
-#include "Analog.h"
+    #include "Analog.h"
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
-#include "InputShifter.h"
+    #include "InputShifter.h"
 #endif
 #if MF_SEGMENT_SUPPORT == 1
-#include "LedSegment.h"
+    #include "LedSegment.h"
 #endif
 #if MF_STEPPER_SUPPORT == 1
-#include "Stepper.h"
+    #include "Stepper.h"
 #endif
 #if MF_SERVO_SUPPORT == 1
-#include "Servos.h"
+    #include "Servos.h"
 #endif
 #if MF_LCD_SUPPORT == 1
-#include "LCDDisplay.h"
+    #include "LCDDisplay.h"
 #endif
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
-#include "OutputShifter.h"
+    #include "OutputShifter.h"
+#endif
+#if MF_MUX_SUPPORT == 1
+#include "MFMuxDriver.h"
+#endif
+#if MF_DIGIN_MUX_SUPPORT == 1
+#include "DigInMux.h"
 #endif
 
 // The build version comes from an environment variable
@@ -37,7 +44,11 @@
 #define STR_VALUE(arg)  STRINGIZER(arg)
 #define VERSION         STR_VALUE(BUILD_VERSION)
 
-MFEEPROM      MFeeprom;
+MFEEPROM    MFeeprom;
+
+#if MF_MUX_SUPPORT == 1
+extern      MFMuxDriver MUX;
+#endif
 
 const uint8_t MEM_OFFSET_NAME   = 0;
 const uint8_t MEM_LEN_NAME      = 48;
@@ -60,8 +71,8 @@ void          _activateConfig();
 // ************************************************************
 // configBuffer handling
 // ************************************************************
-// reads the EEPRROM until NULL termination and returns the number of characters incl. NULL termination, starting from given address
-bool          readConfigLength()
+// reads the EEPROM until NUL terminator and returns the number of characters incl. terminator, starting from given address
+bool readConfigLength()
 {
     char     temp       = 0;
     uint16_t addreeprom = MEM_OFFSET_CONFIG;
@@ -116,27 +127,35 @@ void resetConfig()
     Button::Clear();
     Encoder::Clear();
     Output::Clear();
+
 #if MF_SEGMENT_SUPPORT == 1
     LedSegment::Clear();
 #endif
+
 #if MF_SERVO_SUPPORT == 1
     Servos::Clear();
 #endif
+
 #if MF_STEPPER_SUPPORT == 1
     Stepper::Clear();
 #endif
+
 #if MF_LCD_SUPPORT == 1
     LCDDisplay::Clear();
 #endif
+
 #if MF_ANALOG_SUPPORT == 1
     Analog::Clear();
 #endif
+
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
     OutputShifter::Clear();
 #endif
+
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::Clear();
 #endif
+
     configLength    = 0;
     configActivated = false;
 }
@@ -184,7 +203,7 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
     do {
         temp                    = MFeeprom.read_char((*addreeprom)++); // read the first character
         buffer[(*addrbuffer)++] = temp;                                // save character and locate next buffer position
-        if (*addrbuffer >= MEMLEN_NAMES_BUFFER) {                      // nameBuffer will be exceeded
+        if (*addrbuffer >= MEMLEN_NAMES_BUFFER) {                     // nameBuffer will be exceeded
             return false;                                              // abort copying from EEPROM to nameBuffer
         }
     } while (temp != ':');            // reads until limiter ':' and locates the next free buffer position
@@ -339,12 +358,40 @@ void readConfig()
             break;
 #endif
 
+#if MF_MUX_SUPPORT == 1
+            // No longer a separate config command for the mux driver
+            // case kTypeMuxDriver:
+            //   params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
+            //   params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
+            //   params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
+            //   params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
+            //   AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
+            //   break;
+#endif
+
+#if MF_DIGIN_MUX_SUPPORT == 1
+        case kTypeDigInMux:
+            params[0] = readUintFromEEPROM(&addreeprom); // data pin
+            // Mux driver section
+            // Repeated commands do not define more objects, but change the only existing one
+            // therefore beware that all DigInMux configuration commands are consistent!
+            params[1] = readUintFromEEPROM(&addreeprom); // Sel0 pin
+            params[2] = readUintFromEEPROM(&addreeprom); // Sel1 pin
+            params[3] = readUintFromEEPROM(&addreeprom); // Sel2 pin
+            params[4] = readUintFromEEPROM(&addreeprom); // Sel3 pin
+            MUX.attach(params[1], params[2], params[3], params[4]);
+            params[5] = readUintFromEEPROM(&addreeprom); // 8-bit registers (1-2)
+            DigInMux::Add(params[0], params[5], &nameBuffer[addrbuffer]);
+            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
+            break;
+#endif
+
         default:
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
         }
         command = readUintFromEEPROM(&addreeprom);
     } while (command && copy_success);
-    if (!copy_success) {                            // too much/long names for input devices
+    if (!copy_success) {                             // too much/long names for input devices
         nameBuffer[MEMLEN_NAMES_BUFFER - 1] = 0x00; // terminate the last copied (part of) string with 0x00
         cmdMessenger.sendCmd(kStatus, F("Failure on reading config"));
     }
