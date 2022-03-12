@@ -2,6 +2,7 @@
 #include "MFBoards.h"
 #include "mobiflight.h"
 #include "allocateMem.h"
+#include "commandmessenger.h"
 
 char deviceBuffer[MF_MAX_DEVICEMEM] = {0};
 uint16_t nextPointer = 0;
@@ -12,14 +13,10 @@ char * allocateMemory(uint8_t size)
     nextPointer = actualPointer + size;
     if (nextPointer >= MF_MAX_DEVICEMEM)
     {
-#ifdef DEBUG
-        cmdMessenger.sendCmdStart(kStatus);
-        cmdMessenger.sendCmdArg(F("BufferOverflow!"));
-        cmdMessenger.sendCmdEnd();
-#endif
+        cmdMessenger.sendCmd(kStatus,F("DeviceBuffer Overflow!"));
         return nullptr;
     }
-#ifdef DEBUG
+#ifdef DEBUG2CMDMESSENGER
     cmdMessenger.sendCmdStart(kStatus);
     cmdMessenger.sendCmdArg(F("BufferUsage"));
     cmdMessenger.sendCmdArg(nextPointer);
