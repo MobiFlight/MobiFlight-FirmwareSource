@@ -46,10 +46,8 @@ enum {
     kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
 };
 
-void        attachCommandCallbacks();
-uint32_t    getLastCommandMillis();
-void        setLastCommandMillis();
+void                attachCommandCallbacks();
+uint32_t            getLastCommandMillis();
+void                setLastCommandMillis();
 
-extern CmdMessenger     cmdMessenger;
-
-// commandmessenger.h
+extern CmdMessenger cmdMessenger;

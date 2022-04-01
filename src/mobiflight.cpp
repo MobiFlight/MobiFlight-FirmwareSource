@@ -31,34 +31,33 @@
 #include "DigInMux.h"
 #endif
 
-#define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
-#define MF_ENCODER_DEBOUNCE_MS 1     // time between encoder updates
-#define MF_INSHIFTER_POLL_MS 10      // time between input shift reg updates
-#define MF_INMUX_POLL_MS 10          // time between dig input mux updates
-#define MF_SERVO_DELAY_MS 5          // time between servo updates
+#define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
+#define MF_ENCODER_DEBOUNCE_MS    1  // time between encoder updates
+#define MF_INSHIFTER_POLL_MS      10 // time between input shift reg updates
+#define MF_INMUX_POLL_MS          10 // time between dig input mux updates
+#define MF_SERVO_DELAY_MS         5  // time between servo updates
 #define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
-#define MF_ANALOGREAD_DELAY_MS 50    // time between sending analog values
+#define MF_ANALOGREAD_DELAY_MS    50 // time between sending analog values
 
-bool powerSavingMode = false;
+bool                powerSavingMode   = false;
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
 #if MF_MUX_SUPPORT == 1
 MFMuxDriver MUX;
 #endif
-
 // ==================================================
 //   Polling interval counters
 // ==================================================
 
 typedef struct {
-    uint32_t Buttons = 0;
+    uint32_t Buttons  = 0;
     uint32_t Encoders = 0;
 #if MF_SERVO_SUPPORT == 1
     uint32_t Servos = 0;
 #endif
 #if MF_ANALOG_SUPPORT == 1
     uint32_t AnalogAverage = 0;
-    uint32_t Analog = 0;
+    uint32_t Analog        = 0;
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     uint32_t InputShifters = 0;
@@ -70,17 +69,17 @@ typedef struct {
 
 lastUpdate_t lastUpdate;
 
-void initPollIntervals(void)
+void         initPollIntervals(void)
 {
     // Init Time Gap between Inputs, do not read at the same loop
-    lastUpdate.Buttons = millis();
+    lastUpdate.Buttons  = millis();
     lastUpdate.Encoders = millis();
 #if MF_SERVO_SUPPORT == 1
     lastUpdate.Servos = millis() + 2;
 #endif
 #if MF_ANALOG_SUPPORT == 1
     lastUpdate.AnalogAverage = millis() + 4;
-    lastUpdate.Analog = millis() + 4;
+    lastUpdate.Analog        = millis() + 4;
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     lastUpdate.InputShifters = millis() + 6;
@@ -164,11 +163,6 @@ void loop()
     // do not perform updates
     // to prevent mangling input for config (shared buffers)
     if (getStatusConfig()) {
-
-        // Following instruction currently not necessary: include only
-        // when a new channel should be selected for every iteration
-        // (e.g. future mod: multiplexed devices)
-        // MUX.nextChannel();
 
         timedUpdate(Button::read, &lastUpdate.Buttons, MF_BUTTON_DEBOUNCE_MS);
 

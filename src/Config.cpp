@@ -43,11 +43,10 @@
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg)  STRINGIZER(arg)
 #define VERSION         STR_VALUE(BUILD_VERSION)
-
-MFEEPROM    MFeeprom;
+MFEEPROM      MFeeprom;
 
 #if MF_MUX_SUPPORT == 1
-extern      MFMuxDriver MUX;
+extern        MFMuxDriver MUX;
 #endif
 
 const uint8_t MEM_OFFSET_NAME   = 0;
@@ -71,7 +70,7 @@ void          _activateConfig();
 // ************************************************************
 // configBuffer handling
 // ************************************************************
-// reads the EEPROM until NUL terminator and returns the number of characters incl. terminator, starting from given address
+// reads the EEPRROM until NULL termination and returns the number of characters incl. NULL termination, starting from given address
 bool readConfigLength()
 {
     char     temp       = 0;
@@ -127,35 +126,26 @@ void resetConfig()
     Button::Clear();
     Encoder::Clear();
     Output::Clear();
-
 #if MF_SEGMENT_SUPPORT == 1
     LedSegment::Clear();
 #endif
-
 #if MF_SERVO_SUPPORT == 1
     Servos::Clear();
 #endif
-
 #if MF_STEPPER_SUPPORT == 1
     Stepper::Clear();
 #endif
-
 #if MF_LCD_SUPPORT == 1
     LCDDisplay::Clear();
 #endif
-
 #if MF_ANALOG_SUPPORT == 1
     Analog::Clear();
 #endif
-
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
     OutputShifter::Clear();
 #endif
-
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::Clear();
-#endif
-
     configLength    = 0;
     configActivated = false;
 }
@@ -203,7 +193,7 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
     do {
         temp                    = MFeeprom.read_char((*addreeprom)++); // read the first character
         buffer[(*addrbuffer)++] = temp;                                // save character and locate next buffer position
-        if (*addrbuffer >= MEMLEN_NAMES_BUFFER) {                     // nameBuffer will be exceeded
+        if (*addrbuffer >= MEMLEN_NAMES_BUFFER) {                      // nameBuffer will be exceeded
             return false;                                              // abort copying from EEPROM to nameBuffer
         }
     } while (temp != ':');            // reads until limiter ':' and locates the next free buffer position
@@ -391,7 +381,7 @@ void readConfig()
         }
         command = readUintFromEEPROM(&addreeprom);
     } while (command && copy_success);
-    if (!copy_success) {                             // too much/long names for input devices
+    if (!copy_success) {                            // too much/long names for input devices
         nameBuffer[MEMLEN_NAMES_BUFFER - 1] = 0x00; // terminate the last copied (part of) string with 0x00
         cmdMessenger.sendCmd(kStatus, F("Failure on reading config"));
     }
