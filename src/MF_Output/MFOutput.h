@@ -1,25 +1,23 @@
-// MFButton.h
 //
-/// \mainpage MF Button module for MobiFlight Framework
-/// \par Revision History
-/// \version 1.0 Initial release
-/// \author  Sebastian Moebius (mobiflight@moebiuz.de) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
-// Copyright (C) 2013-2014 Sebastian Moebius
+// MFOutput.h
+//
+// (C) MobiFlight Project 2022
+//
 
 #pragma once
 
 #include <Arduino.h>
 
-/////////////////////////////////////////////////////////////////////
-/// \class MFOutput MFOutput.h <MFOutput.h>
 class MFOutput
 {
 public:
     MFOutput(uint8_t pin = 1);
     void set(uint8_t value);
     void powerSavingMode(bool state);
-    
+
 private:
-    uint8_t       _pin;
-    uint8_t       _value;
+    uint8_t _pin;
+    uint8_t _value;
 };
+
+// MFOutput.h
