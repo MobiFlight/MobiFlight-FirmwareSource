@@ -1,18 +1,14 @@
+//
 // MFLCDDisplay.h
 //
-/// \mainpage MFLCDDisplay module for MobiFlight Framework
-/// \par Revision History
-/// \version 1.0 Initial release
-/// \author  Sebastian Moebius (info@mobiflight.com) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
-// Copyright (C) 2013-2014 Sebastian Moebius
+// (C) MobiFlight Project 2022
+//
 
 #pragma once
 
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 
-/////////////////////////////////////////////////////////////////////
-/// \class MFLCDDisplay MFLCDDisplay.h <MFLCDDisplay.h>
 class MFLCDDisplay
 {
 public:
@@ -25,10 +21,12 @@ public:
 
 private:
     LiquidCrystal_I2C _lcdDisplay;
-    bool _initialized;
-    byte _address;
-    byte _cols;
-    byte _lines;
+    bool              _initialized;
+    byte              _address;
+    byte              _cols;
+    byte              _lines;
 
-    void _printCentered(const char *str, uint8_t line);
+    void              _printCentered(const char *str, uint8_t line);
 };
+
+// MFLCDDisplay.h

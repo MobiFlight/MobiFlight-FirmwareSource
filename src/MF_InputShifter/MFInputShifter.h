@@ -1,3 +1,9 @@
+//
+// MFInputShifter.h
+//
+// (C) MobiFlight Project 2022
+//
+
 #pragma once
 
 #include <Arduino.h>
@@ -7,41 +13,39 @@
 // by available memory (one byte required per chip) and the time it takes to read all the bits in.
 #define MAX_CHAINED_INPUT_SHIFTERS 4
 
-extern "C"
-{
-  typedef void (*inputShifterEvent)(byte, uint8_t, const char *);
+extern "C" {
+typedef void (*inputShifterEvent)(byte, uint8_t, const char *);
 };
 
-enum
-{
-  inputShifterOnPress,
-  inputShifterOnRelease,
+enum {
+    inputShifterOnPress,
+    inputShifterOnRelease,
 };
 
-/////////////////////////////////////////////////////////////////////
-/// \class MFInputShifter MFInputShifter.h <MFInputShifter.h>
 class MFInputShifter
 {
 public:
-  MFInputShifter(const char *name = "InputShifter");
-  void attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name);
-  static void attachHandler(inputShifterEvent newHandler);
-  void clear();
-  void detach();
-  void retrigger();
-  void update();
+    MFInputShifter(const char *name = "InputShifter");
+    void        attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name);
+    static void attachHandler(inputShifterEvent newHandler);
+    void        clear();
+    void        detach();
+    void        retrigger();
+    void        update();
 
 private:
-  const char *_name;
-  uint8_t _latchPin;    // SH/~LD (latch) pin
-  uint8_t _clockPin;    // CLK (clock) pin
-  uint8_t _dataPin;     // SDO (data) pin
-  uint8_t _moduleCount; // Number of 8 bit modules in series.
-  bool _initialized = false;
-  uint8_t _lastState[MAX_CHAINED_INPUT_SHIFTERS];
+    const char              *_name;
+    uint8_t                  _latchPin;    // SH/~LD (latch) pin
+    uint8_t                  _clockPin;    // CLK (clock) pin
+    uint8_t                  _dataPin;     // SDO (data) pin
+    uint8_t                  _moduleCount; // Number of 8 bit modules in series.
+    bool                     _initialized = false;
+    uint8_t                  _lastState[MAX_CHAINED_INPUT_SHIFTERS];
 
-  void detectChanges(uint8_t lastState, uint8_t currentState, uint8_t module);
-  void trigger(uint8_t pin, bool state);
-  void clearLastState();
-  static inputShifterEvent _inputHandler;
+    void                     detectChanges(uint8_t lastState, uint8_t currentState, uint8_t module);
+    void                     trigger(uint8_t pin, bool state);
+    void                     clearLastState();
+    static inputShifterEvent _inputHandler;
 };
+
+// MFInputShifter.h

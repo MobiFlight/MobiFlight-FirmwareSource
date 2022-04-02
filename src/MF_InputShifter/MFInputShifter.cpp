@@ -1,6 +1,9 @@
-// MFSegments.cpp
+// 
+// MFInputShifter.cpp
 //
-// Copyright (C) 2021
+// (C) MobiFlight Project 2022
+//
+
 #include "MFInputShifter.h"
 
 inputShifterEvent MFInputShifter::_inputHandler = NULL;
@@ -38,16 +41,14 @@ void MFInputShifter::update()
 
   // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
   // called it will pull in the data from each chained module.
-  for (int i = 0; i < _moduleCount; i++)
-  {
+    for (uint8_t i = 0; i < _moduleCount; i++) {
     uint8_t currentState;
 
     currentState = shiftIn(_dataPin, _clockPin, MSBFIRST);
 
     // If an input changed on the current module from the last time it was read
     // then hand it off to figure out which bits specifically changed.
-    if (currentState != _lastState[i])
-    {
+        if (currentState != _lastState[i]) {
       detectChanges(_lastState[i], currentState, i);
       _lastState[i] = currentState;
     }
@@ -60,12 +61,10 @@ void MFInputShifter::update()
 // of a byte's worth of input.
 void MFInputShifter::detectChanges(uint8_t lastState, uint8_t currentState, uint8_t module)
 {
-  for (uint8_t i = 0; i < 8; i++)
-  {
+    for (uint8_t i = 0; i < 8; i++) {
     // If last and current input state for the bit are different
     // then the input changed and the handler for the bit needs to fire
-    if ((lastState & 1) ^ (currentState & 1))
-    {
+        if ((lastState & 1) ^ (currentState & 1)) {
       // When triggering event the pin is the actual pin on the chip offset by 8 bits for each
       // module beyond the first that it's on. The state of the trigger is the bit currently
       // in position 0 of currentState.
@@ -90,22 +89,18 @@ void MFInputShifter::retrigger()
   // The current state for all attached modules is stored in the _lastState
   // array so future update() calls will work off whatever was read by the
   // retrigger flow.
-  for (int module = 0; module < _moduleCount; module++)
-  {
+    for (int module = 0; module < _moduleCount; module++) {
     _lastState[module] = shiftIn(_dataPin, _clockPin, MSBFIRST);
   }
 
   digitalWrite(_latchPin, LOW); // disable shifting and enable input latching
 
-  // Trigger all the released buttons
-  for (int module = 0; module < _moduleCount; module++)
-  {
+    // Trigger all the released buttons
+    for (int module = 0; module < _moduleCount; module++) {
     state = _lastState[module];
-    for (uint8_t i = 0; i < 8; i++)
-    {
-      // Only trigger if the button is in the off position
-      if (state & 1)
-      {
+        for (uint8_t i = 0; i < 8; i++) {
+            // Only trigger if the button is in the off position
+            if (state & 1) {
         trigger(i + (module * 8), HIGH);
       }
 
@@ -113,15 +108,12 @@ void MFInputShifter::retrigger()
     }
   }
 
-  // Trigger all the pressed buttons
-  for (int module = 0; module < _moduleCount; module++)
-  {
+    // Trigger all the pressed buttons
+    for (int module = 0; module < _moduleCount; module++) {
     state = _lastState[module];
-    for (uint8_t i = 0; i < 8; i++)
-    {
-      // Only trigger if the button is in the on position
-      if (!(state & 1))
-      {
+        for (uint8_t i = 0; i < 8; i++) {
+            // Only trigger if the button is in the on position
+            if (!(state & 1)) {
         trigger(i + (module * 8), LOW);
       }
 
@@ -134,12 +126,9 @@ void MFInputShifter::retrigger()
 // if a handler is registered.
 void MFInputShifter::trigger(uint8_t pin, bool state)
 {
-  if (state == LOW && _inputHandler != NULL)
-  {
+    if (state == LOW && _inputHandler != NULL) {
     (*_inputHandler)(inputShifterOnPress, pin, _name);
-  }
-  else if (_inputHandler != NULL)
-  {
+    } else if (_inputHandler != NULL) {
     (*_inputHandler)(inputShifterOnRelease, pin, _name);
   }
 }
@@ -167,8 +156,9 @@ void MFInputShifter::clear()
 // Sets the last recorded state of every bit on every shifter to 0.
 void MFInputShifter::clearLastState()
 {
-  for (int i = 0; i < MAX_CHAINED_INPUT_SHIFTERS; i++)
-  {
+    for (uint8_t i = 0; i < MAX_CHAINED_INPUT_SHIFTERS; i++) {
     _lastState[i] = 0;
   }
 }
+
+// MFInputShifter.cpp

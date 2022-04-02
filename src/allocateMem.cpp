@@ -1,19 +1,20 @@
-#include <Arduino.h>
-#include "MFBoards.h"
+//
+// allocatemem.cpp
+//
+// (C) MobiFlight Project 2022
+//
+
 #include "mobiflight.h"
-#include "allocateMem.h"
-#include "commandmessenger.h"
 
-char deviceBuffer[MF_MAX_DEVICEMEM] = {0};
-uint16_t nextPointer = 0;
+char     deviceBuffer[MF_MAX_DEVICEMEM] = {0};
+uint16_t nextPointer                    = 0;
 
-char * allocateMemory(uint8_t size)
+char    *allocateMemory(uint8_t size)
 {
     uint16_t actualPointer = nextPointer;
-    nextPointer = actualPointer + size;
-    if (nextPointer >= MF_MAX_DEVICEMEM)
-    {
-        cmdMessenger.sendCmd(kStatus,F("DeviceBuffer Overflow!"));
+    nextPointer            = actualPointer + size;
+    if (nextPointer >= MF_MAX_DEVICEMEM) {
+        cmdMessenger.sendCmd(kStatus, F("DeviceBuffer Overflow!"));
         return nullptr;
     }
 #ifdef DEBUG2CMDMESSENGER
@@ -25,16 +26,21 @@ char * allocateMemory(uint8_t size)
     return &deviceBuffer[actualPointer];
 }
 
-void ClearMemory() {
+void ClearMemory()
+{
     nextPointer = 0;
 }
 
-uint16_t GetAvailableMemory() {
+uint16_t GetAvailableMemory()
+{
     return MF_MAX_DEVICEMEM - nextPointer;
 }
 
-bool FitInMemory(uint8_t size) {
+bool FitInMemory(uint8_t size)
+{
     if (nextPointer + size > MF_MAX_DEVICEMEM)
         return false;
     return true;
 }
+
+// allocatemem.cpp

@@ -1,52 +1,55 @@
+//
 // MFMuxDriver.cpp
 //
-// Copyright (C) 2021
+// (C) MobiFlight Project 2022
+//
 
-#include "MFMuxDriver.h"
 #include "mobiflight.h"
+#include "MFMuxDriver.h"
 
 MFMuxDriver::MFMuxDriver(void)
 {
     _flags = 0x00;
-    for(uint8_t i=0; i<4; i++) {
+    for (uint8_t i = 0; i < 4; i++) {
         _selPin[i] = 0xFF;
     }
 }
 
 // Registers a new MUX input block and configures the driver pins
 void MFMuxDriver::
-attach( uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
+    attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
-    _selPin[0]  = Sel0Pin;
-    _selPin[1]  = Sel1Pin;
-    _selPin[2]  = Sel2Pin;
-    _selPin[3]  = Sel3Pin;
-    _flags      = 0x00;
+    _selPin[0] = Sel0Pin;
+    _selPin[1] = Sel1Pin;
+    _selPin[2] = Sel2Pin;
+    _selPin[3] = Sel3Pin;
+    _flags     = 0x00;
 
-    for(uint8_t i=0; i<4; i++) pinMode(_selPin[i], OUTPUT);
+    for (uint8_t i = 0; i < 4; i++)
+        pinMode(_selPin[i], OUTPUT);
     bitSet(_flags, MUX_INITED);
-    
+
     setChannel(0);
 }
 
 void MFMuxDriver::detach()
 {
-    for(uint8_t i=0; i<4; i++) {
-        if(_selPin[i] == 0xFF) continue;
+    for (uint8_t i = 0; i < 4; i++) {
+        if (_selPin[i] == 0xFF) continue;
         pinMode(_selPin[i], INPUT_PULLUP);
         _selPin[i] = 0xFF;
     }
     bitClear(_flags, MUX_INITED);
 }
 
-/// \brief Sets the driver lines to select the specified channel
+// Sets the driver lines to select the specified channel
 void MFMuxDriver::setChannel(uint8_t value)
 {
-    if(!bitRead(_flags, MUX_INITED)) return;
-    if(value > 15) return;
+    if (!bitRead(_flags, MUX_INITED)) return;
+    if (value > 15) return;
 
     // Ideally, setChannel() should change all pins atomically (at the same time):
-    // since it doesn't, be advised that there will be signal glitches because 
+    // since it doesn't, be advised that there will be signal glitches because
     // the actual code - which is not latched - spans several values as the single bits are changed.
     // This should not be an issue, because e.g. in an input mux the output is only read at the end,
     // once the code is stable.
@@ -54,34 +57,35 @@ void MFMuxDriver::setChannel(uint8_t value)
     // However, this effect might have to be taken into account.
 
     _channel = value;
-    for(uint8_t i=0; i<4; i++) {
+    for (uint8_t i = 0; i < 4; i++) {
         digitalWrite(_selPin[i], (value & 0x01));
         value >>= 1;
     }
 }
 
-/// \brief Returns currently selected channel
+// Returns currently selected channel
 uint8_t MFMuxDriver::getChannel(void)
 {
     return _channel;
 }
 
-/// \brief  Increments current channel, wraps around to 0
+// Increments current channel, wraps around to 0
 uint8_t MFMuxDriver::nextChannel(void)
 {
-    setChannel((++_channel)%16);
+    setChannel((++_channel) % 16);
     return _channel;
 }
 
-/// \brief  Temporarily stores current channel for later retrieval
+// Temporarily stores current channel for later retrieval
 void MFMuxDriver::saveChannel(void)
 {
     _savedChannel = _channel;
 }
 
-/// \brief  Restored previously stored channel
+// Restored previously stored channel
 void MFMuxDriver::restoreChannel(void)
 {
     setChannel(_savedChannel);
 }
 
+// MFMuxDriver.cpp
