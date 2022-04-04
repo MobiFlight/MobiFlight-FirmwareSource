@@ -8,19 +8,19 @@
 #define MFBoardMicro_h
 
 #ifndef MF_SEGMENT_SUPPORT
-#define MF_SEGMENT_SUPPORT 1
+#define MF_SEGMENT_SUPPORT   1
 #endif
 #ifndef MF_LCD_SUPPORT
-#define MF_LCD_SUPPORT 1
+#define MF_LCD_SUPPORT       1
 #endif
 #ifndef MF_STEPPER_SUPPORT
-#define MF_STEPPER_SUPPORT 1
+#define MF_STEPPER_SUPPORT   1
 #endif
 #ifndef MF_SERVO_SUPPORT
 #define MF_SERVO_SUPPORT 1
 #endif
 #ifndef MF_ANALOG_SUPPORT
-#define MF_ANALOG_SUPPORT 1
+#define MF_ANALOG_SUPPORT    1
 #endif
 #ifndef MF_OUTPUT_SHIFTER_SUPPORT
 #define MF_OUTPUT_SHIFTER_SUPPORT 1
@@ -28,8 +28,15 @@
 #ifndef MF_INPUT_SHIFTER_SUPPORT
 #define MF_INPUT_SHIFTER_SUPPORT 1
 #endif
+#ifndef MF_MUX_SUPPORT
+#define MF_MUX_SUPPORT       1
+#endif
+#ifndef MF_DIGIN_MUX_SUPPORT
+#define MF_MUX_SUPPORT       1
+#define MF_DIGIN_MUX_SUPPORT 1
+#endif
 
-//#define MODULE_MAX_PINS 21
+
 #define MAX_OUTPUTS         18
 #define MAX_BUTTONS         18
 #define MAX_LEDSEGMENTS     1
@@ -40,6 +47,7 @@
 #define MAX_ANALOG_INPUTS   5
 #define MAX_OUTPUT_SHIFTERS 2
 #define MAX_INPUT_SHIFTERS  2
+#define MAX_DIGIN_MUX       1
 
 #define STEPS         64
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?

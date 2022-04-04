@@ -27,10 +27,14 @@
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
 #include "OutputShifter.h"
 #endif
+#if MF_DIGIN_MUX_SUPPORT == 1
+#include "DigInMux.h"
+#endif
 
 #define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
 #define MF_ENCODER_DEBOUNCE_MS    1  // time between encoder updates
 #define MF_INSHIFTER_POLL_MS      10 // time between input shift reg updates
+#define MF_INMUX_POLL_MS          10 // time between dig input mux updates
 #define MF_SERVO_DELAY_MS         5  // time between servo updates
 #define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
 #define MF_ANALOGREAD_DELAY_MS    50 // time between sending analog values
@@ -38,6 +42,9 @@
 bool                powerSavingMode   = false;
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
+#if MF_MUX_SUPPORT == 1
+MFMuxDriver MUX;
+#endif
 // ==================================================
 //   Polling interval counters
 // ==================================================
@@ -54,6 +61,9 @@ typedef struct {
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     uint32_t InputShifters = 0;
+#endif
+#if MF_DIGIN_MUX_SUPPORT == 1
+    uint32_t DigInMux = 0;
 #endif
 } lastUpdate_t;
 
@@ -73,6 +83,9 @@ void         initPollIntervals(void)
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     lastUpdate.InputShifters = millis() + 6;
+#endif
+#if MF_DIGIN_MUX_SUPPORT == 1
+    lastUpdate.DigInMux = millis() + 8;
 #endif
 }
 
@@ -172,6 +185,9 @@ void loop()
         timedUpdate(InputShifter::read, &lastUpdate.InputShifters, MF_INSHIFTER_POLL_MS);
 #endif
 
+#if MF_DIGIN_MUX_SUPPORT == 1
+        timedUpdate(DigInMux::read, &lastUpdate.DigInMux, MF_INMUX_POLL_MS);
+#endif
         // lcds, outputs, outputshifters, segments do not need update
     }
 }

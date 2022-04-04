@@ -10,6 +10,7 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
+
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
@@ -31,13 +32,22 @@
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
 #include "OutputShifter.h"
 #endif
+#if MF_MUX_SUPPORT == 1
+#include "MFMuxDriver.h"
+#endif
+#if MF_DIGIN_MUX_SUPPORT == 1
+#include "DigInMux.h"
+#endif
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg)  STRINGIZER(arg)
 #define VERSION         STR_VALUE(BUILD_VERSION)
+MFEEPROM MFeeprom;
 
-MFEEPROM      MFeeprom;
+#if MF_MUX_SUPPORT == 1
+extern MFMuxDriver MUX;
+#endif
 
 const uint8_t MEM_OFFSET_NAME   = 0;
 const uint8_t MEM_LEN_NAME      = 48;
@@ -45,23 +55,23 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-const char    type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
-char          serial[MEM_LEN_SERIAL]        = MOBIFLIGHT_SERIAL;
-char          name[MEM_LEN_NAME]            = MOBIFLIGHT_NAME;
-const int     MEM_LEN_CONFIG                = MEMLEN_CONFIG;
-char          nameBuffer[MEM_LEN_CONFIG]    = "";
-uint16_t      configLength                  = 0;
-boolean       configActivated               = false;
+const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
+char       serial[MEM_LEN_SERIAL]        = MOBIFLIGHT_SERIAL;
+char       name[MEM_LEN_NAME]            = MOBIFLIGHT_NAME;
+const int  MEM_LEN_CONFIG                = MEMLEN_CONFIG;
+char       nameBuffer[MEM_LEN_CONFIG]    = "";
+uint16_t   configLength                  = 0;
+boolean    configActivated               = false;
 
-void          resetConfig();
-void          readConfig();
-void          _activateConfig();
+void resetConfig();
+void readConfig();
+void _activateConfig();
 
 // ************************************************************
 // configBuffer handling
 // ************************************************************
-// reads the EEPRROM until NULL termination and returns the number of characters incl. NULL termination, starting from given address
-bool          readConfigLength()
+// reads the EEPROM until NUL terminator and returns the number of characters incl. terminator, starting from given address
+bool readConfigLength()
 {
     char     temp       = 0;
     uint16_t addreeprom = MEM_OFFSET_CONFIG;
@@ -136,9 +146,9 @@ void resetConfig()
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::Clear();
-#endif
     configLength    = 0;
     configActivated = false;
+#endif
 }
 
 void OnResetConfig()
@@ -336,6 +346,36 @@ void readConfig()
             InputShifter::Add(params[0], params[1], params[2], params[3], &nameBuffer[addrbuffer]);
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
                                                                                      //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+            break;
+#endif
+
+#if MF_MUX_SUPPORT == 1
+            // No longer a separate config command for the mux driver
+            // case kTypeMuxDriver:
+            //   params[0] = strtok_r(NULL, ".", &p); // Sel0 pin
+            //   params[1] = strtok_r(NULL, ".", &p); // Sel1 pin
+            //   params[2] = strtok_r(NULL, ".", &p); // Sel2 pin
+            //   params[3] = strtok_r(NULL, ":", &p); // Sel3 pin
+            //   AddMultiplexer(atoi(params[0]), atoi(params[1]), atoi(params[2]), atoi(params[3]));
+            //   break;
+#endif
+
+#if MF_DIGIN_MUX_SUPPORT == 1
+        case kTypeDigInMux:
+            params[0] = readUintFromEEPROM(&addreeprom); // data pin
+            // Mux driver section
+            // Repeated commands do not define more objects, but change the only existing one
+            // therefore beware that all DigInMux configuration commands are consistent!
+            params[1] = readUintFromEEPROM(&addreeprom); // Sel0 pin
+            params[2] = readUintFromEEPROM(&addreeprom); // Sel1 pin
+            params[3] = readUintFromEEPROM(&addreeprom); // Sel2 pin
+            params[4] = readUintFromEEPROM(&addreeprom); // Sel3 pin
+            MUX.attach(params[1], params[2], params[3], params[4]);
+            params[5] = readUintFromEEPROM(&addreeprom); // 8-bit registers (1-2)
+            DigInMux::Add(params[0], params[5], &nameBuffer[addrbuffer]);
+            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
+
+            // cmdMessenger.sendCmd(kDebug, F("Mux loaded"));
             break;
 #endif
 

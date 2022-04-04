@@ -42,6 +42,7 @@ enum {
     kSetShiftRegisterPins, // 27
     kAnalogChange,         // 28
     kInputShifterChange,   // 29
+    kDigInMuxChange,       // 30
     kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
 };
 
@@ -50,5 +51,3 @@ uint32_t            getLastCommandMillis();
 void                setLastCommandMillis();
 
 extern CmdMessenger cmdMessenger;
-
-// commandmessenger.h
