@@ -70,7 +70,7 @@ void _activateConfig();
 // ************************************************************
 // configBuffer handling
 // ************************************************************
-// reads the EEPRROM until NULL termination and returns the number of characters incl. NULL termination, starting from given address
+// reads the EEPROM until NUL terminator and returns the number of characters incl. terminator, starting from given address
 bool readConfigLength()
 {
     char     temp       = 0;

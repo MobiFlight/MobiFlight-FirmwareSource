@@ -29,13 +29,12 @@
 #define MF_INPUT_SHIFTER_SUPPORT 1
 #endif
 #ifndef MF_MUX_SUPPORT
-#define MF_MUX_SUPPORT       1
+#define MF_MUX_SUPPORT 1
 #endif
 #ifndef MF_DIGIN_MUX_SUPPORT
 #define MF_MUX_SUPPORT       1
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
-
 
 #define MAX_OUTPUTS         18
 #define MAX_BUTTONS         18
@@ -46,7 +45,6 @@
 #define MAX_MFLCD_I2C       2
 #define MAX_ANALOG_INPUTS   6
 #define MAX_OUTPUT_SHIFTERS 2
-#define MAX_INPUT_SHIFTERS  2
 #define MAX_INPUT_SHIFTERS  2
 #define MAX_DIGIN_MUX       2
 
