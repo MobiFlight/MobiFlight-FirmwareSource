@@ -146,9 +146,9 @@ void resetConfig()
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::Clear();
+#endif
     configLength    = 0;
     configActivated = false;
-#endif
 }
 
 void OnResetConfig()
