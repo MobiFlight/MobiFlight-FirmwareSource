@@ -147,6 +147,9 @@ void resetConfig()
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::Clear();
 #endif
+#if MF_DIGIN_MUX_SUPPORT == 1
+    DigInMux::Clear();
+#endif
     configLength    = 0;
     configActivated = false;
 }
