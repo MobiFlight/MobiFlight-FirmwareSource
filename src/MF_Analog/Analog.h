@@ -7,12 +7,13 @@
 #pragma once
 
 #include <stdint.h>
+
 namespace Analog
 {
-    void Add(uint8_t pin, char const *name = "AnalogInput", uint8_t sensitivity = 3);
-    void Clear();
-    void read();
-    void readAverage();
+    DECLARE_VT_STUBS;   // see IODevice.h
+ 
+    void Add(uint8_t pin, uint8_t sensitivity = 3, char const *name = "AnalogInput");
+    void UpdateAverage(void);
 }
 
 // Analog.h

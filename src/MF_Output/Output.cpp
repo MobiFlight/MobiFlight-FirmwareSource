@@ -4,57 +4,53 @@
 // (C) MobiFlight Project 2022
 //
 
+#include <Arduino.h>
 #include "mobiflight.h"
 #include "MFOutput.h"
-#include "Output.h"
 
 namespace Output
 {
-    MFOutput *outputs[MAX_OUTPUTS];
-    uint8_t outputsRegistered = 0;
+    DEFINE_VT_STUBS(MFOutput);   // see IODevice.h
 
     void Add(uint8_t pin)
     {
-        if (outputsRegistered == MAX_OUTPUTS)
-            return;
+        MFOutput *MFO;
 
-        if (!FitInMemory(sizeof(MFOutput))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
-            return;
-        }
-        outputs[outputsRegistered] = new (allocateMemory(sizeof(MFOutput))) MFOutput(pin);
-        outputsRegistered++;
-#ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added output"));
+        Stowage.AddItem(&MFO);
+
+        if(MFO) {
+            MFO->attach(pin);
+
+#ifdef DEBUG2MSG
+            cmdMessenger.sendCmd(kStatus, F("Added Output"));
+        } else {
+            cmdMessenger.sendCmd(kStatus, F("MFoutput: Memory full"));
 #endif
-    }
-
-    void Clear()
-    {
-        outputsRegistered = 0;
-#ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared outputs"));
-#endif
-    }
-
-    void OnSet()
-    {
-        // Read led state argument, interpret string as boolean
-        int pin = cmdMessenger.readInt16Arg();
-        int state = cmdMessenger.readInt16Arg();
-        // Set led
-        analogWrite(pin, state); // why does the UI sends the pin number and not the x.th output number like other devices?
-                                 //  output[pin]->set(state);      // once this is changed uncomment this
-        setLastCommandMillis();
-    }
-
-    void PowerSave(bool state)
-    {
-        for (uint8_t i = 0; i < outputsRegistered; ++i) {
-            outputs[i]->powerSavingMode(state);
         }
     }
-} // namespace
+
+    void OnSet(void)
+    {
+        // MFOutput *MFO;
+        uint8_t nOutput = cmdMessenger.readInt16Arg();
+        uint8_t state   = cmdMessenger.readInt16Arg();      // interpret string as boolean
+
+        // MFO = (MFOutput *)(Stowage.getNth((uint8_t)nOutput, kTypeOutput));
+    
+        // CURRENTLY INCORRECT:
+        // Here, "Pin" is the actual output pin, NOT the object index!!!
+        // Patch:
+        // Build a dummy object just for the purpose of setting the value
+        MFOutput MFOut;
+        MFOut.attach(nOutput);
+
+        // Once the situation is rectified, uncomment statements below:
+        // if(MFO) {
+            // MFO->setval(state);       //analogWrite(pin, state);
+            MFOut.setval(state);
+            setLastCommandMillis();
+        // }
+    }
+}   // namespace
 
 // Output.cpp

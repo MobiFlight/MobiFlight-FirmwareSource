@@ -4,60 +4,41 @@
 // (C) MobiFlight Project 2022
 //
 
+#include <Arduino.h>
 #include "mobiflight.h"
 #include "MFServo.h"
-#include "Servos.h"
 
 namespace Servos
 {
-    MFServo *servos[MAX_MFSERVOS];
-    uint8_t  servosRegistered = 0;
+    DEFINE_VT_STUBS(MFServo);   // see IODevice.h
 
-    void     Add(int pin)
+    void Add(uint8_t pin)
     {
-        if (servosRegistered == MAX_MFSERVOS)
-            return;
+        MFServo *MFS;
 
-        if (!FitInMemory(sizeof(MFServo))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Servo does not fit in Memory!"));
-            return;
-        }
-        servos[servosRegistered] = new (allocateMemory(sizeof(MFServo))) MFServo;
-        servos[servosRegistered]->attach(pin, true);
-        servosRegistered++;
-#ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added servos"));
+        Stowage.AddItem(&MFS);
+
+        if(MFS) {
+            MFS->attach(pin, true);
+#ifdef DEBUG2MSG
+            cmdMessenger.sendCmd(kStatus, F("Added Servo"));
+        } else {
+            cmdMessenger.sendCmd(kStatus, F("Servo: Memory full"));
 #endif
-    }
-
-    void Clear()
-    {
-        for (uint8_t i = 0; i < servosRegistered; i++) {
-            servos[i]->detach();
-        }
-        servosRegistered = 0;
-#ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared servos"));
-#endif
-    }
-
-    void OnSet()
-    {
-        int servo    = cmdMessenger.readInt16Arg();
-        int newValue = cmdMessenger.readInt16Arg();
-        if (servo >= servosRegistered)
-            return;
-        servos[servo]->moveTo(newValue);
-        setLastCommandMillis();
-    }
-
-    void update()
-    {
-        for (uint8_t i = 0; i < servosRegistered; i++) {
-            servos[i]->update();
         }
     }
-} // namespace
+
+    void OnSet(void)
+    {
+        MFServo *MFS;
+        int nServo = cmdMessenger.readInt16Arg();
+        int value  = cmdMessenger.readInt16Arg();
+        MFS = (MFServo *)(Stowage.getNth((uint8_t)nServo, kTypeServo));
+        if(MFS) {
+            MFS->setval(value);
+            setLastCommandMillis();
+        }
+    }
+}   // namespace
 
 // Servos.cpp

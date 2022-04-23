@@ -3,18 +3,14 @@
 // 
 // (C) MobiFlight Project 2022
 //
-
+#include <Arduino.h>
 #include "mobiflight.h"
 #include "MFAnalog.h"
-#include "Analog.h"
-
-#if MF_ANALOG_SUPPORT == 1
 namespace Analog
 {
-    MFAnalog *analog[MAX_ANALOG_INPUTS];
-    uint8_t   analogRegistered = 0;
+    DEFINE_VT_STUBS(MFAnalog);   // see IODevice.h
 
-    void      handlerOnAnalogChange(int value, uint8_t pin, const char *name)
+    void OnChange(int value, uint8_t pin, const char *name)
     {
         cmdMessenger.sendCmdStart(kAnalogChange);
         cmdMessenger.sendCmdArg(name);
@@ -22,46 +18,32 @@ namespace Analog
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t pin, char const *name, uint8_t sensitivity)
+    void Add(uint8_t pin, uint8_t sensitivity, char const *name)
     {
-        if (analogRegistered == MAX_ANALOG_INPUTS)
-            return;
+        MFAnalog *MFA;
 
-        if (!FitInMemory(sizeof(MFAnalog))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
-            return;
-        }
-        analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
-        MFAnalog::attachHandler(handlerOnAnalogChange);
-        analogRegistered++;
-    #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added analog device "));
-    #endif
-    }
-
-    void Clear(void)
-    {
-        analogRegistered = 0;
-    #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared analog devices"));
-    #endif
-    }
-
-    void read(void)
-    {
-        for (uint8_t i = 0; i < analogRegistered; i++) {
-            analog[i]->update();
-        }
-    }
-
-    void readAverage(void)
-    {
-        for (uint8_t i = 0; i < analogRegistered; i++) {
-            analog[i]->readBuffer();
-        }
-    }
-} // namespace Analog
+        Stowage.AddItem(&MFA);
+        
+        if(MFA) {
+            MFA->attach(pin, sensitivity, name);
+            MFAnalog::attachHandler(OnChange);
+#ifdef DEBUG2MSG
+            cmdMessenger.sendCmd(kStatus, F("Added Analog"));
+        } else {
+            cmdMessenger.sendCmd(kStatus, F("Analog: Memory full"));
 #endif
+        }
+    }
+
+    void UpdateAverage(void)
+    {
+        MFAnalog *ain;
+
+        Stowage.reset();
+        while((ain = (MFAnalog *)Stowage.getNext(kTypeAnalogInput)) != NULL) {
+            ain->updateAverage();
+        }
+    }
+} // namespace
 
 // Analog.cpp
