@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "IOdevice.h"
+#include "IODevice.h"
 #include "MFMuxDriver.h"
 #include <Arduino.h>
 
@@ -33,11 +33,11 @@ public:
 
     MFDigInMux(void);
 
-    void     attach(uint8_t dataPin, bool halfSize, char const *name);
-    void     detach(void);
-    void     reset(uint8_t action);
-    void     update(void);
-    void     powerSave(uint8_t){}; // dummy stub - see IODevice.h
+    void attach(uint8_t dataPin, bool halfSize, char const *name);
+    void detach(void);
+    void reset(uint8_t action);
+    void update(void);
+    void powerSave(uint8_t){}; // dummy stub - see IODevice.h
 
     void     setLazyMode(bool mode);
     uint16_t getValues(void) { return _lastState; }
@@ -52,13 +52,13 @@ private:
     static MFMuxDriver  *_MUX;
     static MuxDigInEvent _handler;
 
-    const char          *_name;
-    uint8_t              _dataPin; // Data pin - MUX common, input to AVR
-    uint8_t              _flags;
-    uint16_t             _lastState;
+    const char *_name;
+    uint8_t     _dataPin; // Data pin - MUX common, input to AVR
+    uint8_t     _flags;
+    uint16_t    _lastState;
 
-    void                 poll(bool detect, bool lazy);
-    void                 detectChanges(uint16_t lastState, uint16_t currentState);
-    void                 trigger(uint8_t channel, bool state);
+    void poll(bool detect, bool lazy);
+    void detectChanges(uint16_t lastState, uint16_t currentState);
+    void trigger(uint8_t channel, bool state);
 };
 // MFDigInMux.h
