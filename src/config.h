@@ -25,7 +25,6 @@ enum {
 };
 
 void loadConfig(void);
-void restoreName(void);
 bool getStatusConfig(void);
 void generateSerial(bool);
 void OnSetConfig(void);
