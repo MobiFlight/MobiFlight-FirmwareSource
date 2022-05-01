@@ -69,7 +69,7 @@ typedef struct {
 
 lastUpdate_t lastUpdate;
 
-void         initPollIntervals(void)
+void initPollIntervals(void)
 {
     // Init Time Gap between Inputs, do not read at the same loop
     lastUpdate.Buttons  = millis();
@@ -135,6 +135,7 @@ void ResetBoard()
 {
     generateSerial(false);
     setLastCommandMillis();
+    restoreName();
     loadConfig();
 }
 
