@@ -295,6 +295,7 @@ void resetBoard()
 {
     generateSerial(false);
     setLastCommandMillis();
+    restoreName();
     loadConfig();
 }
 

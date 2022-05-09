@@ -32,6 +32,7 @@ namespace LCDDisplay
         MFLCDDisplay *MFL;
         int     nLCD = cmdMessenger.readInt16Arg();
         char *output = cmdMessenger.readStringArg();
+        cmdMessenger.unescape(output);
         //MFS = static_cast<MFSegments *>(Stowage.getNth(module, kTypeLedSegment));
         MFL = (MFLCDDisplay *)(Stowage.getNth((uint8_t)nLCD, kTypeLcdDisplayI2C));
         if(MFL) {
