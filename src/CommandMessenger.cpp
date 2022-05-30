@@ -9,36 +9,36 @@
 #include "Button.h"
 #include "Encoder.h"
 #if MF_ANALOG_SUPPORT == 1
-    #include "Analog.h"
+#include "Analog.h"
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
-    #include "InputShifter.h"
+#include "InputShifter.h"
 #endif
 #include "Output.h"
 #if MF_SEGMENT_SUPPORT == 1
-    #include "LedSegment.h"
+#include "LedSegment.h"
 #endif
 #if MF_STEPPER_SUPPORT == 1
-    #include "Stepper.h"
+#include "Stepper.h"
 #endif
 #if MF_SERVO_SUPPORT == 1
-    #include "Servos.h"
+#include "Servos.h"
 #endif
 #if MF_LCD_SUPPORT == 1
-    #include "LCDDisplay.h"
+#include "LCDDisplay.h"
 #endif
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
-    #include "OutputShifter.h"
+#include "OutputShifter.h"
 #endif
 
 CmdMessenger  cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
 
-void          OnTrigger();
-void          OnUnknownCommand();
+void OnTrigger();
+void OnUnknownCommand();
 
 // Callbacks define on which received commands we take action
-void          attachCommandCallbacks()
+void attachCommandCallbacks()
 {
     // Attach callback methods
     cmdMessenger.attach(OnUnknownCommand);
