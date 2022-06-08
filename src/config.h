@@ -1,8 +1,8 @@
-//
+// 
 // config.h
 //
 // (C) MobiFlight Project 2022
-//
+// 
 
 #pragma once
 
@@ -17,9 +17,9 @@ enum {
     kTypeLcdDisplayI2C,       // 7
     kTypeEncoder,             // 8
     kTypeStepper,             // 9 (new stepper type with auto zero support if btnPin is > 0)
-    kTypeOutputShifter,       // 10 Shift register support (example: 74HC595, TLC592X)
+    kTypeOutShiftReg,         // 10 Shift register support (example: 74HC595, TLC592X)
     kTypeAnalogInput,         // 11 Analog Device with 1 pin
-    kTypeInputShifter,        // 12 Input shift register support (example: 74HC165)
+    kTypeInShiftReg,          // 12 Input shift register support (example: 74HC165)
     kTypeMuxDriver,           // 13 Multiplexer selector support (generates select outputs)
     kTypeDigInMux,            // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
 };

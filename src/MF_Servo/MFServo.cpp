@@ -1,27 +1,36 @@
 //
-// MFServo.h
+// MFServo.cpp
 //
 // (C) MobiFlight Project 2022
 //
 
 #include "MFServo.h"
+#include "mobiflight.h"
 
-void MFServo::moveTo(int absolute)
+MFServo::MFServo() : _servo() 
+{}
+
+void MFServo::attach(uint8_t pin, bool enable)
 {
-    int newValue = map(absolute, _mapRange[0], _mapRange[1], _mapRange[2], _mapRange[3]);
-    if (_targetPos != newValue) {
-        _targetPos = newValue;
-        if (!_initialized) {
-            _servo.attach(_pin);
-            _initialized = true;
-        }
+    _initialized = false;
+    _targetPos = 0;
+    _currentPos = 0;
+    setExternalRange(0, 180);
+    setInternalRange(0, 180);
+    _pin = pin;
+}
+
+void MFServo::detach()
+{
+    if (_initialized) {
+        _servo.detach();
+        _initialized = false;
     }
 }
 
 void MFServo::update()
 {
-    // after reaching final position
-    // detach the servo to prevent continuous noise
+    // after reaching final position, detach the servo to prevent continuous noise
     if (_currentPos == _targetPos) {
         // detach();
         return;
@@ -35,31 +44,16 @@ void MFServo::update()
     _servo.write(_currentPos);
 }
 
-void MFServo::detach()
+void MFServo::setval(int absolute)
 {
-    if (_initialized) {
-        _servo.detach();
-        _initialized = false;
+    int newValue = map(absolute, _mapRange[0], _mapRange[1], _mapRange[2], _mapRange[3]);
+    if (_targetPos != newValue) {
+        _targetPos = newValue;
+        if (!_initialized) {
+            _servo.attach(_pin);
+            _initialized = true;
+        }
     }
-}
-
-void MFServo::attach(uint8_t pin, bool enable)
-{
-    _initialized = false;
-    _targetPos   = 0;
-    _currentPos  = 0;
-    setExternalRange(0, 180);
-    setInternalRange(0, 180);
-    _pin = pin;
-}
-
-MFServo::MFServo()
-    : _servo() {}
-
-MFServo::MFServo(uint8_t pin, bool enable)
-    : _servo()
-{
-    attach(pin, enable);
 }
 
 void MFServo::setExternalRange(int min, int max)
@@ -74,4 +68,16 @@ void MFServo::setInternalRange(int min, int max)
     _mapRange[3] = max;
 }
 
-// MFServo.h
+void MFServo::reset(uint8_t action)
+{
+    if (action == ONRESET_DEFAULT) {
+        // TODO:?
+    }
+}
+
+void MFServo::powerSave(uint8_t state)
+{
+    // TODO: ?
+}
+
+// MFServo.cpp

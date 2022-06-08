@@ -4,30 +4,21 @@
 // (C) MobiFlight Project 2022
 //
 
-#include "mobiflight.h"
 #include "MFDigInMux.h"
 #include "MFMuxDriver.h"
+#include "mobiflight.h"
 
-MFMuxDriver  *MFDigInMux::_MUX;
+MFMuxDriver * MFDigInMux::_MUX;
 
-MuxDigInEvent MFDigInMux::_inputHandler = NULL;
+MuxDigInEvent MFDigInMux::_handler = NULL;
+
 
 MFDigInMux::MFDigInMux(void)
 {
-    _MUX   = NULL;
-    _name  = "MUXDigIn";
+    _MUX = NULL;
+    _name = "MUXDigIn";
     _flags = 0x00;
-    setLazyMode(MUX_MODE_FAST);
-    clear();
-}
-
-MFDigInMux::MFDigInMux(MFMuxDriver *MUX, const char *name)
-    : _name(name)
-{
-    if (MUX) _MUX = MUX;
-    _flags = 0x00;
-    setLazyMode(MUX_MODE_FAST);
-    clear();
+    setLazyMode(MuxModeFast);
 }
 
 void MFDigInMux::setMux(MFMuxDriver *MUX)
@@ -38,18 +29,18 @@ void MFDigInMux::setMux(MFMuxDriver *MUX)
 // Registers a new MUX input block and configures the driver pins
 void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
 {
-    // if(!_MUX) return;     // no need to check, the object can be set up in advance before the MUX is configured
-    _dataPin = dataPin;
-    _name    = name;
-    _flags   = 0x00;
-    if (halfSize) bitSet(_flags, MUX_HALFSIZE);
+    //if(!_MUX) return;     // no need to check, the object can be set up in advance before the MUX is configured
+    _dataPin    = dataPin;
+    _name       = name;
+    _flags      = 0x00; 
+    if(halfSize) bitSet(_flags, MUX_HALFSIZE);
     pinMode(_dataPin, INPUT_PULLUP);
     bitSet(_flags, MUX_INITED);
 }
 
 void MFDigInMux::detach()
 {
-    if (bitRead(_flags, MUX_INITED)) {
+    if(bitRead(_flags, MUX_INITED)) {
         pinMode(_dataPin, INPUT_PULLUP);
         bitClear(_flags, MUX_INITED);
     }
@@ -66,18 +57,18 @@ void MFDigInMux::update()
 // Helper function for update() and retrigger()
 void MFDigInMux::poll(bool detect, bool isLazy)
 {
-    if (!_MUX) return;
+    if(!_MUX) return;
 
     // Meaning of "Lazy mode" flag
     // ===========================
     //
     // Lazy mode ON:
     // MUX selector is set externally, normally at main loop level
-    // (incremented sequentially at each pass)
+    // (incremented sequentially at each pass) 
     // Individual modules work in one of two ways:
     // 1. they must have an associate channel number (which may also be "any"),
     //    and only execute if that matches the current channel;
-    // 2. account for current channel number in their internal working
+    // 2. account for current channel number in their internal working 
     //    (e.g. for digital inputs, "place input bit in position #n").
     //
     // Lazy mode OFF (default):
@@ -86,20 +77,20 @@ void MFDigInMux::poll(bool detect, bool isLazy)
     //
     // Each block can use its preferred mode, and blocks of both types can co-exist.
 
-    uint8_t selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
+    uint8_t  selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
 
-    if (!isLazy) {
+    if(!isLazy) {
 
         // "Fast" read:
         // scan all inputs right away
 
-        uint16_t         currentState = 0x0000;
+        uint16_t    currentState = 0x0000;
         volatile uint8_t pinVal;
 
         _MUX->saveChannel();
         for (uint8_t sel = selMax; sel > 0; sel--) {
-            _MUX->setChannel(sel - 1);
-
+            _MUX->setChannel(sel-1);
+            
             // Allow the output to settle from voltage transients:
             // transients towards 0 (GND) are negligible, but transients towards 1 (Vcc)
             // require a pullup to charge parasitic capacities.
@@ -120,25 +111,25 @@ void MFDigInMux::poll(bool detect, bool isLazy)
         _MUX->restoreChannel(); // tidy up
 
         if (_lastState != currentState) {
-            if (detect) detectChanges(_lastState, currentState);
+            if(detect) detectChanges(_lastState, currentState);
             _lastState = currentState;
         }
 
     } else {
 
         // "Lazy" read:
-        // read one more channel every time the method is invoked
+        // read one more channel every time the method is invoked 
         // (the corresponding event, if any, is generated immediately).
-        // Relies on the MuxDriver to be set externally by the caller
+        // Relies on the MuxDriver to be set externally by the caller 
         // (typically incremented at every main loop iteration).
 
         bool     chVal = (digitalRead(_dataPin) ? true : false);
         uint8_t  ch    = _MUX->getChannel() % selMax;
-        uint16_t msk   = (0x0001 << ch);
+        uint16_t msk   = (0x0001<<ch);
+        
+        if(((_lastState & msk)!=0) != chVal) trigger(ch, chVal);
 
-        if (((_lastState & msk) != 0) != chVal) trigger(ch, chVal);
-
-        if (chVal) {
+        if(chVal) {
             _lastState |= msk;
         } else {
             _lastState &= ~msk;
@@ -149,59 +140,56 @@ void MFDigInMux::poll(bool detect, bool isLazy)
 // Detects changes between the current state and the previously saved state
 void MFDigInMux::detectChanges(uint16_t lastState, uint16_t currentState)
 {
-    if (!_MUX) return;
-    uint8_t  selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
-    uint16_t diff   = lastState ^ currentState;
+    if(!_MUX) return;
+    uint8_t     selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
+    uint16_t    diff   = lastState ^ currentState;
     for (uint8_t i = 0; i < selMax; i++) {
         if (diff & 0x0001) {
-            trigger(i, ((currentState & 0x0001) != 0));
+            trigger(i, ((currentState & 0x0001)!=0));
         }
         diff >>= 1;
         currentState >>= 1;
     }
 }
 
-// Reads the current state for all connected modules then fires
-// 'release' events for every 'off' input, followed by
-// 'press' events for every 'on' input.
-// (Remember that 'off' inputs actually have physical status '1')
-void MFDigInMux::retrigger()
+// Clears the internal state
+void MFDigInMux::reset(uint8_t action)
 {
-    // The current state for all attached modules is stored,
-    // so future update() calls will work off whatever was read by the
-    // retrigger flow.
-    poll(false, false); // just read, do not retrigger
+    // Handle retrigger logic according to:
+    // https://github.com/MobiFlight/MobiFlight-Connector/issues/497
+    // and  https://github.com/MobiFlight/MobiFlight-Connector/pull/502.
+    
+    if (_handler == NULL)   return;
 
-    // Pass 1/2: Trigger all the 'off' inputs (released buttons) first
-    detectChanges(0x0000, _lastState);
-
-    // Pass 2/2: Trigger all the 'on' inputs (pressed buttons)
-    detectChanges(0xFFFF, _lastState);
+    if(action == ONRESET_RELEASE) {
+        // The current state for all attached modules is stored,
+        // so future update() calls will work off whatever was read by the
+        // retrigger flow.
+        poll(false, false);    // just read, do not retrigger
+    }
+    // (Remember that 'off' inputs actually have physical status '1')
+    if(action == ONRESET_RELEASE) {
+        // Pass 1/2: Trigger all the 'off' inputs (released buttons) first
+        detectChanges(0x0000, _lastState);  
+    } else 
+    if(action == ONRESET_PRESS) {
+        // Pass 2/2: Trigger all the 'on' inputs (pressed buttons)
+        detectChanges(0xFFFF, _lastState);  
+    }
 }
 
 // Triggers the event handler for the associated input channel
 void MFDigInMux::trigger(uint8_t channel, bool state)
 {
-    if (!_MUX) return;
-    if (!_inputHandler) return;
-    (*_inputHandler)((state ? MuxDigInOnRelease : MuxDigInOnPress), channel, _name);
+    if(_handler) {
+        (*_handler)((state ? MuxDigInOnRelease : MuxDigInOnPress), channel, _name);
+    }
 }
 
-// Attaches a new event handler for the specified event.
-void MFDigInMux::attachHandler(MuxDigInEvent newHandler)
-{
-    _inputHandler = newHandler;
-}
-
-// Clears the internal state
-void MFDigInMux::clear()
-{
-    _lastState = 0;
-}
 
 void MFDigInMux::setLazyMode(bool mode)
 {
-    if (mode) {
+    if(mode) {
         bitSet(_flags, MUX_LAZY);
     } else {
         bitClear(_flags, MUX_LAZY);
