@@ -20,16 +20,17 @@ uint16_t MFEEPROM::get_length(void) {
 }
 
 bool MFEEPROM::read_block(uint16_t adr, char data[], uint16_t len) {
+    uint16_t i;
     // If length is exceeded, return only the legitimate part
-    for (uint16_t i = 0; i < len && adr < EEPROM.length(); i++, adr++) {
+    for (i = 0; i < len && adr < EEPROM.length(); i++, adr++) {
         data[i] = read_char(adr);
     }
-    return (adr < EEPROM.length()); 
+    return (adr < EEPROM.length())||(i == len); 
 }
 
 bool MFEEPROM::write_block (uint16_t adr, char data[], uint16_t len) {
     // If length is exceeded, do not write anything
-    if (adr + len >= EEPROM.length()) return false;
+    if (adr + len > EEPROM.length()) return false;
     for (uint16_t i = 0; i < len; i++, adr++) {
         EEPROM.put(adr, data[i]);
     }
