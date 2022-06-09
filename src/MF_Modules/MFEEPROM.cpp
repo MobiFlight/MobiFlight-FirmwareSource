@@ -31,8 +31,8 @@ bool MFEEPROM::read_block(uint16_t adr, char data[], uint16_t len)
 
 bool MFEEPROM::write_block(uint16_t adr, char data[], uint16_t len)
 {
+    if (adr + len > _eepromLength) return false;
     for (uint16_t i = 0; i < len; i++) {
-        if (adr + i >= _eepromLength) return false;
         EEPROM.put(adr + i, data[i]);
     }
     return true;
