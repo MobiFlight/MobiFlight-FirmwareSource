@@ -8,6 +8,7 @@
 #include "mobiflight.h"
 #include "Button.h"
 #include "Encoder.h"
+#include "MFEEPROM.h"
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
@@ -68,6 +69,8 @@ typedef struct {
 } lastUpdate_t;
 
 lastUpdate_t lastUpdate;
+
+extern MFEEPROM MFeeprom;
 
 void initPollIntervals(void)
 {
@@ -145,6 +148,7 @@ void ResetBoard()
 void setup()
 {
     Serial.begin(115200);
+    MFeeprom.init();
     attachCommandCallbacks();
     cmdMessenger.printLfCr();
     ResetBoard();
