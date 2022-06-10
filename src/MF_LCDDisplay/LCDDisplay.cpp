@@ -27,7 +27,7 @@ namespace LCDDisplay
         lcd_I2C[lcd_12cRegistered]->attach(address, cols, lines);
         lcd_12cRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added lcdDisplay"));
+        cmdMessenger.sendCmd(kDebug, F("Added lcdDisplay"));
 #endif
     }
 
@@ -38,7 +38,7 @@ namespace LCDDisplay
         }
         lcd_12cRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared lcdDisplays"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared lcdDisplays"));
 #endif
     }
 

@@ -35,7 +35,7 @@ namespace Button
         MFButton::attachHandler(handlerOnButton);
         buttonsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added button ") /* + name */);
+        cmdMessenger.sendCmd(kDebug, F("Added button ") /* + name */);
 #endif
     }
 
@@ -43,7 +43,7 @@ namespace Button
     {
         buttonsRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared buttons"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared buttons"));
 #endif
     }
 

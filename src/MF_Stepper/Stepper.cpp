@@ -13,7 +13,7 @@ namespace Stepper
     MFStepper *steppers[MAX_STEPPERS];
     uint8_t    steppersRegistered = 0;
 
-    void  Add(int pin1, int pin2, int pin3, int pin4, int btnPin1)
+    void Add(int pin1, int pin2, int pin3, int pin4, int btnPin1)
     {
         if (steppersRegistered == MAX_STEPPERS)
             return;
@@ -37,7 +37,7 @@ namespace Stepper
         steppersRegistered++;
 
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added stepper"));
+        cmdMessenger.sendCmd(kDebug, F("Added stepper"));
 #endif
     }
 
@@ -48,7 +48,7 @@ namespace Stepper
         }
         steppersRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared steppers"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared steppers"));
 #endif
     }
 

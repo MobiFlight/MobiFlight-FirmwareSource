@@ -39,7 +39,7 @@ namespace DigInMux
         digInMuxRegistered++;
 
 #ifdef DEBUG2MSG
-        cmdMessenger.sendCmd(kStatus, F("Added digital input MUX"));
+        cmdMessenger.sendCmd(kDebug, F("Added digital input MUX"));
 #endif
     }
 
@@ -50,7 +50,7 @@ namespace DigInMux
         }
         digInMuxRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared dig. input Muxes"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared dig. input Muxes"));
 #endif
     }
 

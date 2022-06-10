@@ -18,7 +18,7 @@ char    *allocateMemory(uint8_t size)
         return nullptr;
     }
 #ifdef DEBUG2CMDMESSENGER
-    cmdMessenger.sendCmdStart(kStatus);
+    cmdMessenger.sendCmdStart(kDebug);
     cmdMessenger.sendCmdArg(F("BufferUsage"));
     cmdMessenger.sendCmdArg(nextPointer);
     cmdMessenger.sendCmdEnd();

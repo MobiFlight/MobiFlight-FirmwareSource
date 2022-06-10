@@ -80,7 +80,7 @@ void attachCommandCallbacks()
 #endif
 
 #ifdef DEBUG2CMDMESSENGER
-    cmdMessenger.sendCmd(kStatus, F("Attached callbacks"));
+    cmdMessenger.sendCmd(kDebug, F("Attached callbacks"));
 #endif
 }
 
