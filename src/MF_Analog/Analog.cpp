@@ -36,7 +36,7 @@ namespace Analog
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;
     #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added analog device "));
+        cmdMessenger.sendCmd(kDebug, F("Added analog device "));
     #endif
     }
 
@@ -44,7 +44,7 @@ namespace Analog
     {
         analogRegistered = 0;
     #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared analog devices"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared analog devices"));
     #endif
     }
 

@@ -27,7 +27,7 @@ namespace Servos
         servos[servosRegistered]->attach(pin, true);
         servosRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added servos"));
+        cmdMessenger.sendCmd(kDebug, F("Added servos"));
 #endif
     }
 
@@ -38,7 +38,7 @@ namespace Servos
         }
         servosRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared servos"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared servos"));
 #endif
     }
 

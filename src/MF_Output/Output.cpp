@@ -26,7 +26,7 @@ namespace Output
         outputs[outputsRegistered] = new (allocateMemory(sizeof(MFOutput))) MFOutput(pin);
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added output"));
+        cmdMessenger.sendCmd(kDebug, F("Added output"));
 #endif
     }
 
@@ -34,7 +34,7 @@ namespace Output
     {
         outputsRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared outputs"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared outputs"));
 #endif
     }
 
