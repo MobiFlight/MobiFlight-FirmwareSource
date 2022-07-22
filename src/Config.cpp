@@ -63,9 +63,9 @@ char       nameBuffer[MEM_LEN_CONFIG]    = "";
 uint16_t   configLength                  = 0;
 boolean    configActivated               = false;
 
-void resetConfig();
-void readConfig();
-void _activateConfig();
+void resetDeviceConfig();
+void resetStoredConfig();
+void readStoredConfig();
 
 // ************************************************************
 // configBuffer handling
@@ -96,13 +96,13 @@ void loadConfig()
     cmdMessenger.sendCmd(kStatus, F("Load config"));
 #endif
     if (readConfigLength()) {
-        readConfig();
-        _activateConfig();
+        readStoredConfig();
     }
 }
 
 void OnSetConfig()
 {
+    // Append a chunk of configuration text to EEPROM storage
 #ifdef DEBUG2CMDMESSENGER
     cmdMessenger.sendCmd(kStatus, F("Setting config start"));
 #endif
@@ -121,8 +121,12 @@ void OnSetConfig()
 #endif
 }
 
-void resetConfig()
+void resetDeviceConfig()
 {
+    // Clear device variables
+
+    configActivated = false;
+
     Button::Clear();
     Encoder::Clear();
     Output::Clear();
@@ -150,42 +154,39 @@ void resetConfig()
 #if MF_DIGIN_MUX_SUPPORT == 1
     DigInMux::Clear();
 #endif
-    configLength    = 0;
-    configActivated = false;
     ClearMemory();
+}
+
+void resetStoredConfig()
+{
+    // "Clear" config storage in EEPROM
+    configLength = 0;
 }
 
 void OnResetConfig()
 {
-    resetConfig();
+    resetStoredConfig();
     cmdMessenger.sendCmd(kStatus, F("OK"));
 }
 
 void OnSaveConfig()
 {
     cmdMessenger.sendCmd(kConfigSaved, F("OK"));
-//  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
-//    1: Type "13" to reset the config
-//    2: Type "14" to get the config length
-//    3: Type "16" to load the config
-/*
-    if (readConfigLength())
-    {
-        readConfig();
-        _activateConfig();
-    }
-*/
+    //  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
+    //    1: Type "13" to reset the config
+    //    2: Type "14" to get the config length
+    //    3: Type "16" to load the config
+    /*
+        if (readConfigLength())
+        {
+            readStoredConfig();
+        }
+    */
 }
 
 void OnActivateConfig()
 {
-    readConfig();
-    _activateConfig();
-}
-
-void _activateConfig()
-{
-    configActivated = true;
+    readStoredConfig();
     cmdMessenger.sendCmd(kConfigActivated, F("OK"));
 }
 
@@ -230,7 +231,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
     return true;
 }
 
-void readConfig()
+void readStoredConfig()
 {
     if (configLength == 0) // do nothing if no config is available
         return;
@@ -244,7 +245,10 @@ void readConfig()
     if (command == 0) // just to be sure, configLength should also be 0
         return;
 
-    do // go through the EEPROM until it is NULL terminated
+    // Ensure that config is clean before starting to write it
+    resetDeviceConfig();
+
+    do // go through the EEPROM until it is NUL terminated
     {
         switch (command) {
         case kTypeButton:
@@ -399,10 +403,15 @@ void readConfig()
         }
         command = readUintFromEEPROM(&addreeprom);
     } while (command && copy_success);
-    if (!copy_success) {                            // too much/long names for input devices
+
+    if (!copy_success) {
+        // too many/too long names for input devices
         nameBuffer[MEMLEN_NAMES_BUFFER - 1] = 0x00; // terminate the last copied (part of) string with 0x00
         cmdMessenger.sendCmd(kStatus, F("Failure on reading config"));
     }
+
+    // Activate configuration even if not completely read
+    configActivated = true;
 }
 
 void OnGetConfig()
