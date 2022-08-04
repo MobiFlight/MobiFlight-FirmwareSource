@@ -43,7 +43,7 @@ enum {
     kAnalogChange,         // 28
     kInputShifterChange,   // 29
     kDigInMuxChange,       // 30
-    kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
+    kDebug = 0xFF          // 255
 };
 
 void                attachCommandCallbacks();

@@ -36,7 +36,7 @@ namespace Encoder
         MFEncoder::attachHandler(handlerOnEncoder);
         encodersRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added encoder"));
+        cmdMessenger.sendCmd(kDebug, F("Added encoder"));
 #endif
     }
 
@@ -44,7 +44,7 @@ namespace Encoder
     {
         encodersRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared encoders"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared encoders"));
 #endif
     }
 

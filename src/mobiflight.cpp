@@ -111,9 +111,9 @@ void SetPowerSavingMode(bool state)
 
 #ifdef DEBUG2CMDMESSENGER
     if (state)
-        cmdMessenger.sendCmd(kStatus, F("On"));
+        cmdMessenger.sendCmd(kDebug, F("On"));
     else
-        cmdMessenger.sendCmd(kStatus, F("Off"));
+        cmdMessenger.sendCmd(kDebug, F("Off"));
 #endif
 }
 
