@@ -18,15 +18,25 @@ MFAnalog::MFAnalog(uint8_t pin, const char *name, uint8_t sensitivity)
     analogRead(_pin);            // turn on pullup resistors
 }
 
-void MFAnalog::update()
+void MFAnalog::readChannel(uint8_t compare)
 {
     int16_t newValue = ADC_Average_Total >> ADC_MAX_AVERAGE_LOG2;
-    if (abs(newValue - _lastValue) >= _sensitivity) {
+    if (!compare || abs(newValue - _lastValue) >= _sensitivity) {
         _lastValue = newValue;
         if (_handler != NULL) {
             (*_handler)(_lastValue, _pin, _name);
         }
     }
+}
+
+void MFAnalog::update()
+{
+    readChannel(true);
+}
+
+void MFAnalog::retrigger()
+{
+    readChannel(false);
 }
 
 void MFAnalog::readBuffer()

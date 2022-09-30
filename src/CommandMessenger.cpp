@@ -107,6 +107,9 @@ void OnTrigger()
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::OnTrigger();
 #endif
+#if MF_ANALOG_SUPPORT == 1
+    Analog::OnTrigger();
+#endif
 }
 
 // commandmessenger.cpp
