@@ -10,7 +10,7 @@
 
 namespace Encoder
 {
-    DEFINE_VT_STUBS(MFEncoder);   // see IODevice.h
+    DEFINE_VT_STUBS(MFEncoder); // see IODevice.h
 
     void OnChange(uint8_t eventId, uint8_t pin, const char *name)
     {
@@ -26,16 +26,16 @@ namespace Encoder
 
         Stowage.AddItem(&MFE);
 
-        if(MFE) {
+        if (MFE) {
             MFE->attach(pin1, pin2, encoder_type, name);
             MFEncoder::attachHandler(OnChange);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added Encoder"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added Encoder"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("Encoder: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("Encoder: Memory full"));
 #endif
         }
     }
-}   // namespace
+} // namespace
 
 // Encoder.cpp

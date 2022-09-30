@@ -11,7 +11,7 @@
 namespace InputShifter
 {
 
-    DEFINE_VT_STUBS(MFInputShifter);   // see IODevice.h
+    DEFINE_VT_STUBS(MFInputShifter); // see IODevice.h
 
     void OnChange(uint8_t eventId, uint8_t pin, const char *name)
     {
@@ -28,16 +28,16 @@ namespace InputShifter
 
         Stowage.AddItem(&MFI);
 
-        if(MFI) {
+        if (MFI) {
             MFI->attach(latchPin, clockPin, dataPin, nModules, name);
             MFInputShifter::attachHandler(OnChange);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added InShiftReg"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added InShiftReg"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("InShiftReg: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("InShiftReg: Memory full"));
 #endif
         }
     }
-}  // namespace
+} // namespace
 
 // InputShifter.cpp

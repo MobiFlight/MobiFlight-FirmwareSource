@@ -70,7 +70,7 @@ bool readConfigLength(void)
         config.length++;
         if (addreeprom > length) // abort if EEPROM size will be exceeded
         {
-            cmdMessenger.sendCmd(kStatus, F("Loading config failed")); // text or "-1" like config upload?
+            cmdMessenger.sendCmd(kDebug, F("Loading config failed")); // text or "-1" like config upload?
             return false;
         }
     } while (temp != 0x00); // reads until NULL
@@ -80,8 +80,8 @@ bool readConfigLength(void)
 
 void loadConfig(void)
 {
-#ifdef DEBUG2MSG
-    cmdMessenger.sendCmd(kStatus, F("Load config"));
+#ifdef DEBUG2CMDMESSENGER
+    cmdMessenger.sendCmd(kDebug, F("Load config"));
 #endif
     if (readConfigLength()) {
         readConfig();
@@ -92,8 +92,8 @@ void loadConfig(void)
 
 void OnSetConfig(void)
 {
-#ifdef DEBUG2MSG
-    cmdMessenger.sendCmd(kStatus, F("Setting config start"));
+#ifdef DEBUG2CMDMESSENGER
+    cmdMessenger.sendCmd(kDebug, F("Setting config start"));
 #endif
     setLastCommandMillis();
     char   *cfg    = cmdMessenger.readStringArg();
@@ -102,18 +102,18 @@ void OnSetConfig(void)
     if (config.length + cfgLen + 1 < EEP_LEN_CONFIG) {
         MFeeprom.write_block(EEP_OFFSET_CONFIG + config.length, cfg, cfgLen + 1);
         config.length += cfgLen;
-        cmdMessenger.sendCmd(kStatus, config.length);
+        cmdMessenger.sendCmd(kDebug, config.length);
     } else
-        cmdMessenger.sendCmd(kStatus, -1); // last successfull saving block is already NULL terminated, nothing more todo
-#ifdef DEBUG2MSG
-    cmdMessenger.sendCmd(kStatus, F("Setting config end"));
+        cmdMessenger.sendCmd(kDebug, -1); // last successfull saving block is already NULL terminated, nothing more todo
+#ifdef DEBUG2CMDMESSENGER
+    cmdMessenger.sendCmd(kDebug, F("Setting config end"));
 #endif
 }
 
 void OnResetConfig(void)
 {
     resetConfig();
-    cmdMessenger.sendCmd(kStatus, F("OK"));
+    cmdMessenger.sendCmd(kDebug, F("OK"));
 }
 
 void OnSaveConfig(void)
@@ -189,8 +189,8 @@ bool readRecordTailFromEEPROM(char **dest = NULL, char *cap = (char *)0xFFFF)
 void SetMultiplexer(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
     MUX.attach(Sel0Pin, Sel1Pin, Sel2Pin, Sel3Pin);
-#ifdef DEBUG2MSG
-    cmdMessenger.sendCmd(kStatus, F("Added multiplexer"));
+#ifdef DEBUG2CMDMESSENGER
+    cmdMessenger.sendCmd(kDebug, F("Added multiplexer"));
 #endif
 }
 #endif
@@ -452,7 +452,7 @@ void OnSetName()
     char *cfg = cmdMessenger.readStringArg();
     memcpy(config.name, cfg, MEM_LEN_NAME);
     _storeName();
-    cmdMessenger.sendCmd(kStatus, config.name);
+    cmdMessenger.sendCmd(kDebug, config.name);
 }
 
 // config.cpp

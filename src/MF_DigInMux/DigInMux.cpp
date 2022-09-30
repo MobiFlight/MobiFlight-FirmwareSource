@@ -11,7 +11,7 @@
 
 namespace DigInMux
 {
-    DEFINE_VT_STUBS(MFDigInMux);   // see IODevice.h
+    DEFINE_VT_STUBS(MFDigInMux); // see IODevice.h
 
     void OnChange(uint8_t eventId, uint8_t pin, const char *name)
     {
@@ -28,15 +28,15 @@ namespace DigInMux
 
         Stowage.AddItem(&MFI);
 
-        if(MFI) {
-            MFI->attach(dataPin, (nRegs==1), name);
-            MFI->setLazyMode(mode==MFDigInMux::MuxModeLazy);
+        if (MFI) {
+            MFI->attach(dataPin, (nRegs == 1), name);
+            MFI->setLazyMode(mode == MFDigInMux::MuxModeLazy);
             MFDigInMux::setMux(&MUX);
             MFDigInMux::attachHandler(OnChange);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added DigInMux"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added DigInMux"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("DigInMux: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("DigInMux: Memory full"));
 #endif
         }
     }

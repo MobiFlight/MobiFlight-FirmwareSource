@@ -19,7 +19,7 @@ enum {
     kSetPin,               // 2
     kSetStepper,           // 3
     kSetServo,             // 4
-    kStatus,               // 5, Command to report status
+    kDebug,                // 5, Command to report status
     kEncoderChange,        // 6
     kButtonChange,         // 7
     kStepperChange,        // 8
@@ -45,14 +45,14 @@ enum {
     kAnalogChange,         // 28
     kInputShifterChange,   // 29
     kDigInMuxChange,       // 30
-    kDebug = 0xFF          // 255 -> for Debug print later, changes in UI are required
+    kDebug = 0xFF          // 255
 };
 
-void        attachCommandCallbacks(void);
-uint32_t    getLastCommandMillis(void);
-void        setLastCommandMillis(void);
+void     attachCommandCallbacks(void);
+uint32_t getLastCommandMillis(void);
+void     setLastCommandMillis(void);
 
-extern CmdMessenger     cmdMessenger;
+extern CmdMessenger cmdMessenger;
 //? extern unsigned long    lastCommand;
 
 // commandMessenger.h

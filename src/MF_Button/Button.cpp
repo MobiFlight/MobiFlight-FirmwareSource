@@ -13,7 +13,7 @@ extern StowManager  Stowage;
 
 namespace Button
 {
-    DEFINE_VT_STUBS(MFButton);   // see IODevice.h
+    DEFINE_VT_STUBS(MFButton); // see IODevice.h
 
     void OnChange(uint8_t eventId, uint8_t pin, const char *name)
     {
@@ -31,16 +31,16 @@ namespace Button
         // MFB = (MFButton *)Stowage.add(sizeof(MFButton));
         // if(MFB) new ((void *)MFB) MFButton;
 
-        if(MFB) {
+        if (MFB) {
             MFB->attach(pin, name);
             MFButton::attachHandler(OnChange);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added Button"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added Button"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("Button: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("Button: Memory full"));
 #endif
         }
     }
-}  // namespace
+} // namespace
 
 // Button.cpp

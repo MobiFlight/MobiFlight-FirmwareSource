@@ -9,8 +9,7 @@
 #include "config.h"
 #include "mobiflight.h"
 
-
-CmdMessenger cmdMessenger = CmdMessenger(Serial);
+CmdMessenger  cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
 
 // Prototypes for forward declarations
@@ -41,26 +40,26 @@ void attachCommandCallbacks()
     cmdMessenger.attach(kSetServo, Servos::OnSet);
 #endif
 
-  cmdMessenger.attach(kGetInfo, OnGetInfo);
-  cmdMessenger.attach(kGetConfig, OnGetConfig);
-  cmdMessenger.attach(kSetConfig, OnSetConfig);
-  cmdMessenger.attach(kResetConfig, OnResetConfig);
-  cmdMessenger.attach(kSaveConfig, OnSaveConfig);
-  cmdMessenger.attach(kActivateConfig, OnActivateConfig);
-  cmdMessenger.attach(kSetName, OnSetName);
-  cmdMessenger.attach(kGenNewSerial, OnGenNewSerial);
-  cmdMessenger.attach(kTrigger, OnTrigger);
+    cmdMessenger.attach(kGetInfo, OnGetInfo);
+    cmdMessenger.attach(kGetConfig, OnGetConfig);
+    cmdMessenger.attach(kSetConfig, OnSetConfig);
+    cmdMessenger.attach(kResetConfig, OnResetConfig);
+    cmdMessenger.attach(kSaveConfig, OnSaveConfig);
+    cmdMessenger.attach(kActivateConfig, OnActivateConfig);
+    cmdMessenger.attach(kSetName, OnSetName);
+    cmdMessenger.attach(kGenNewSerial, OnGenNewSerial);
+    cmdMessenger.attach(kTrigger, OnTrigger);
 
 #if MF_LCD_SUPPORT == 1
-  cmdMessenger.attach(kSetLcdDisplayI2C, LCDDisplay::OnSet);
+    cmdMessenger.attach(kSetLcdDisplayI2C, LCDDisplay::OnSet);
 #endif
 
 #if MF_OUTPUT_SHIFTER_SUPPORT
-  cmdMessenger.attach(kSetShiftRegisterPins, OutputShifter::OnSet);
+    cmdMessenger.attach(kSetShiftRegisterPins, OutputShifter::OnSet);
 #endif
 
-#ifdef DEBUG2MSG
-    cmdMessenger.sendCmd(kStatus, F("Attached callbacks"));
+#ifdef DEBUG2CMDMESSENGER
+    cmdMessenger.sendCmd(kDebug, F("Attached callbacks"));
 #endif
 }
 
@@ -68,20 +67,20 @@ void attachCommandCallbacks()
 void OnUnknownCommand()
 {
     lastCommand = millis();
-    cmdMessenger.sendCmd(kStatus, F("n/a"));
+    cmdMessenger.sendCmd(kDebug, F("n/a"));
 }
 
-uint32_t getLastCommandMillis() 
+uint32_t getLastCommandMillis()
 {
-  return lastCommand;
+    return lastCommand;
 }
 
-void setLastCommandMillis() 
+void setLastCommandMillis()
 {
     lastCommand = millis();
 }
 
-void setLastCommandMillis(uint32_t time) 
+void setLastCommandMillis(uint32_t time)
 {
     lastCommand = time;
 }

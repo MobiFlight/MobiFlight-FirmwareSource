@@ -1,6 +1,6 @@
 //
 // Analog.cpp
-// 
+//
 // (C) MobiFlight Project 2022
 //
 #include <Arduino.h>
@@ -8,7 +8,7 @@
 #include "MFAnalog.h"
 namespace Analog
 {
-    DEFINE_VT_STUBS(MFAnalog);   // see IODevice.h
+    DEFINE_VT_STUBS(MFAnalog); // see IODevice.h
 
     void OnChange(int value, uint8_t pin, const char *name)
     {
@@ -23,14 +23,14 @@ namespace Analog
         MFAnalog *MFA;
 
         Stowage.AddItem(&MFA);
-        
-        if(MFA) {
+
+        if (MFA) {
             MFA->attach(pin, sensitivity, name);
             MFAnalog::attachHandler(OnChange);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added Analog"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added Analog"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("Analog: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("Analog: Memory full"));
 #endif
         }
     }
@@ -40,7 +40,7 @@ namespace Analog
         MFAnalog *ain;
 
         Stowage.reset();
-        while((ain = (MFAnalog *)Stowage.getNext(kTypeAnalogInput)) != NULL) {
+        while ((ain = (MFAnalog *)Stowage.getNext(kTypeAnalogInput)) != NULL) {
             ain->updateAverage();
         }
     }

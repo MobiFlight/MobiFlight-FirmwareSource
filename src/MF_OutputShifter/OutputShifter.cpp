@@ -10,7 +10,7 @@
 
 namespace OutputShifter
 {
-    DEFINE_VT_STUBS(MFOutputShifter);   // see IODevice.h
+    DEFINE_VT_STUBS(MFOutputShifter); // see IODevice.h
 
     void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
     {
@@ -18,12 +18,12 @@ namespace OutputShifter
 
         Stowage.AddItem(&MFS);
 
-        if(MFS) {
+        if (MFS) {
             MFS->attach(latchPin, clockPin, dataPin, modules);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added OutputShifter"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added OutputShifter"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("OutputShifter: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("OutputShifter: Memory full"));
 #endif
         }
     }
@@ -31,9 +31,9 @@ namespace OutputShifter
     void OnInit(void)
     {
         MFOutputShifter *MFS;
-        uint8_t module = cmdMessenger.readInt16Arg();
-        MFS = (MFOutputShifter *)(Stowage.getNth((uint8_t)module, kTypeOutShiftReg));
-        if(MFS) {
+        uint8_t          module = cmdMessenger.readInt16Arg();
+        MFS                     = (MFOutputShifter *)(Stowage.getNth((uint8_t)module, kTypeOutShiftReg));
+        if (MFS) {
             MFS->clear();
             setLastCommandMillis();
         }
@@ -42,15 +42,15 @@ namespace OutputShifter
     void OnSet(void)
     {
         MFOutputShifter *MFS;
-        int module  = cmdMessenger.readInt16Arg();
-        char *pins  = cmdMessenger.readStringArg();
-        int  value  = cmdMessenger.readInt16Arg();
-        MFS = (MFOutputShifter *)(Stowage.getNth((uint8_t)module, kTypeOutShiftReg));
-        if(MFS) {
+        int              module = cmdMessenger.readInt16Arg();
+        char            *pins   = cmdMessenger.readStringArg();
+        int              value  = cmdMessenger.readInt16Arg();
+        MFS                     = (MFOutputShifter *)(Stowage.getNth((uint8_t)module, kTypeOutShiftReg));
+        if (MFS) {
             MFS->setPins(pins, value);
             setLastCommandMillis();
         }
     }
-}   // namespace
+} // namespace
 
 // OutputShifter.cpp

@@ -10,19 +10,19 @@
 
 namespace LCDDisplay
 {
-    DEFINE_VT_STUBS(MFLCDDisplay);   // see IODevice.h
+    DEFINE_VT_STUBS(MFLCDDisplay); // see IODevice.h
 
     void Add(uint8_t I2Caddress, uint8_t cols, uint8_t lines)
     {
         MFLCDDisplay *MFL;
         Stowage.AddItem(&MFL);
 
-        if(MFL) {
+        if (MFL) {
             MFL->attach(I2Caddress, cols, lines);
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added LCD display"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added LCD display"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("LCD display: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("LCD display: Memory full"));
 #endif
         }
     }
@@ -30,16 +30,16 @@ namespace LCDDisplay
     void OnSet(void)
     {
         MFLCDDisplay *MFL;
-        int     nLCD = cmdMessenger.readInt16Arg();
-        char *output = cmdMessenger.readStringArg();
+        int           nLCD   = cmdMessenger.readInt16Arg();
+        char         *output = cmdMessenger.readStringArg();
         cmdMessenger.unescape(output);
-        //MFS = static_cast<MFSegments *>(Stowage.getNth(module, kTypeLedSegment));
+        // MFS = static_cast<MFSegments *>(Stowage.getNth(module, kTypeLedSegment));
         MFL = (MFLCDDisplay *)(Stowage.getNth((uint8_t)nLCD, kTypeLcdDisplayI2C));
-        if(MFL) {
+        if (MFL) {
             MFL->setval(output);
             setLastCommandMillis();
         }
     }
-}   // namespace
+} // namespace
 
 // LCDDisplay.cpp

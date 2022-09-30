@@ -10,7 +10,7 @@
 
 namespace Output
 {
-    DEFINE_VT_STUBS(MFOutput);   // see IODevice.h
+    DEFINE_VT_STUBS(MFOutput); // see IODevice.h
 
     void Add(uint8_t pin)
     {
@@ -18,13 +18,13 @@ namespace Output
 
         Stowage.AddItem(&MFO);
 
-        if(MFO) {
+        if (MFO) {
             MFO->attach(pin);
 
-#ifdef DEBUG2MSG
-            cmdMessenger.sendCmd(kStatus, F("Added Output"));
+#ifdef DEBUG2CMDMESSENGER
+            cmdMessenger.sendCmd(kDebug, F("Added Output"));
         } else {
-            cmdMessenger.sendCmd(kStatus, F("MFoutput: Memory full"));
+            cmdMessenger.sendCmd(kDebug, F("MFoutput: Memory full"));
 #endif
         }
     }
@@ -33,10 +33,10 @@ namespace Output
     {
         // MFOutput *MFO;
         uint8_t nOutput = cmdMessenger.readInt16Arg();
-        uint8_t state   = cmdMessenger.readInt16Arg();      // interpret string as boolean
+        uint8_t state   = cmdMessenger.readInt16Arg(); // interpret string as boolean
 
         // MFO = (MFOutput *)(Stowage.getNth((uint8_t)nOutput, kTypeOutput));
-    
+
         // CURRENTLY INCORRECT:
         // Here, "Pin" is the actual output pin, NOT the object index!!!
         // Patch:
@@ -46,11 +46,11 @@ namespace Output
 
         // Once the situation is rectified, uncomment statements below:
         // if(MFO) {
-            // MFO->setval(state);       //analogWrite(pin, state);
-            MFOut.setval(state);
-            setLastCommandMillis();
+        // MFO->setval(state);       //analogWrite(pin, state);
+        MFOut.setval(state);
+        setLastCommandMillis();
         // }
     }
-}   // namespace
+} // namespace
 
 // Output.cpp

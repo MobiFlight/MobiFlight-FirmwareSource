@@ -2,10 +2,9 @@
 // mobiflight.gcc
 //
 // (C) MobiFlight Project 2022
-// 
+//
 
-
-//#define DEBUG2MSG 1
+//#define DEBUG2CMDMESSENGER 1
 
 //#define TESTING
 
@@ -16,32 +15,32 @@
 #include "config.h"
 #include "mobiflight.h"
 
-#define MF_BUTTON_DEBOUNCE_MS 10     // time between updating the buttons
-#define MF_ENCODER_DEBOUNCE_MS 1     // time between encoder updates
-#define MF_INSHIFTER_POLL_MS 10      // time between input shift reg updates
-#define MF_INMUX_POLL_MS 10          // time between dig input mux updates
-#define MF_SERVO_DELAY_MS 5          // time between servo updates
+#define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
+#define MF_ENCODER_DEBOUNCE_MS    1  // time between encoder updates
+#define MF_INSHIFTER_POLL_MS      10 // time between input shift reg updates
+#define MF_INMUX_POLL_MS          10 // time between dig input mux updates
+#define MF_SERVO_DELAY_MS         5  // time between servo updates
 #define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
-#define MF_ANALOGREAD_DELAY_MS 50    // time between sending analog values
+#define MF_ANALOGREAD_DELAY_MS    50 // time between sending analog values
 
-bool powerSavingMode = false;
+bool                powerSavingMode   = false;
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
 
-uint32_t lastButtonUpdate = 0;
+uint32_t lastButtonUpdate  = 0;
 uint32_t lastEncoderUpdate = 0;
 // ==================================================
 //   Polling interval counters
 // ==================================================
 
 typedef struct {
-    uint32_t Buttons = 0;
+    uint32_t Buttons  = 0;
     uint32_t Encoders = 0;
 #if MF_SERVO_SUPPORT == 1
     uint32_t Servos = 0;
 #endif
 #if MF_ANALOG_SUPPORT == 1
     uint32_t AnalogAverage = 0;
-    uint32_t Analog = 0;
+    uint32_t Analog        = 0;
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     uint32_t InputShifters = 0;
@@ -53,17 +52,19 @@ typedef struct {
 
 lastUpdate_t lastUpdate;
 
+extern MFEEPROM MFeeprom;
+
 void initPollIntervals(void)
 {
     // Init Time Gap between Inputs, do not read at the same loop
-    lastUpdate.Buttons = millis();
+    lastUpdate.Buttons  = millis();
     lastUpdate.Encoders = millis();
 #if MF_SERVO_SUPPORT == 1
     lastUpdate.Servos = millis() + 2;
 #endif
 #if MF_ANALOG_SUPPORT == 1
     lastUpdate.AnalogAverage = millis() + 4;
-    lastUpdate.Analog = millis() + 4;
+    lastUpdate.Analog        = millis() + 4;
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
     lastUpdate.InputShifters = millis() + 6;
@@ -71,40 +72,36 @@ void initPollIntervals(void)
 #if MF_DIGIN_MUX_SUPPORT == 1
     lastUpdate.DigInMux = millis() + 8;
 #endif
-
 }
 
 static void updateDevices(uint8_t);
 
 void timedUpdate(uint8_t typ, uint32_t *tim, uint32_t intv)
 {
-    if (millis() - (*tim) >= (intv)) { 
-        *tim = millis();              
-        updateDevices(typ);           
-    }                                 
+    if (millis() - (*tim) >= (intv)) {
+        *tim = millis();
+        updateDevices(typ);
+    }
 }
-
 
 // ************************************************************
 //  General I/O handling functions
 // ************************************************************
 
-
 void resetDevices(void)
 {
     uint8_t  typ;
-    uint8_t* dev;
+    uint8_t *dev;
 
     // Trigger all release events first for inputs, does nothing for outputs
     Stowage.reset();
-    while((dev = Stowage.getNext())) {        
+    while ((dev = Stowage.getNext())) {
         DeviceReset(typ, dev, ONRESET_RELEASE);
     };
 
-
     // ...then trigger all the press events for inputs, and clear outputs
     Stowage.reset();
-    while((dev = Stowage.getNext())) {        
+    while ((dev = Stowage.getNext())) {
         DeviceReset(typ, dev, ONRESET_PRESS);
     };
     setLastCommandMillis();
@@ -112,21 +109,20 @@ void resetDevices(void)
 
 void updateDevices(uint8_t typ = StowManager::TypeALL)
 {
-    uint8_t* dev;
+    uint8_t *dev;
 
     Stowage.reset();
-    while((dev = Stowage.getNext())) {        
+    while ((dev = Stowage.getNext())) {
         DeviceUpdate(typ, dev);
-
     };
     setLastCommandMillis();
 }
 
 void setPowerSave(uint8_t mode, uint8_t typ = StowManager::TypeALL)
 {
-    uint8_t* dev;
+    uint8_t *dev;
     Stowage.reset();
-    while((dev = Stowage.getNext())) {        
+    while ((dev = Stowage.getNext())) {
         DevicePowerSave(typ, dev, mode);
     };
     setLastCommandMillis();
@@ -135,11 +131,11 @@ void setPowerSave(uint8_t mode, uint8_t typ = StowManager::TypeALL)
 void wipeDevices(void)
 {
     // Reset device storage (this will do all devices)
-    uint8_t* dev;
+    uint8_t *dev;
     uint8_t  typ;
-    
+
     Stowage.reset();
-    while((dev = Stowage.getNext())) {        
+    while ((dev = Stowage.getNext())) {
         DeviceDetach(typ, dev);
     };
     Stowage.wipe();
@@ -155,13 +151,13 @@ void setPowerSavingMode(bool state)
 
     setPowerSave(state);
 
-    #ifdef DEBUG2MSG
+#ifdef DEBUG2CMDMESSENGER
     if (state) {
-        cmdMessenger.sendCmd(kStatus, F("On"));
+        cmdMessenger.sendCmd(kDebug, F("On"));
     } else {
-        cmdMessenger.sendCmd(kStatus, F("Off"));
+        cmdMessenger.sendCmd(kDebug, F("Off"));
     }
-    #endif
+#endif
 }
 
 void updatePowerSaving()
@@ -181,14 +177,14 @@ void printItemSize(void)
 {
 #ifdef TESTING
 
-#define TST_WRITE(s, d)                     \
-    {                                       \
-        sprintf(buf, fmt, s, d);            \
-        cmdMessenger.sendCmd(kStatus, buf); \
-        delay(100);                         \
+#define TST_WRITE(s, d)                    \
+    {                                      \
+        sprintf(buf, fmt, s, d);           \
+        cmdMessenger.sendCmd(kDebug, buf); \
+        delay(100);                        \
     }
 
-    char buf[40];
+    char        buf[40];
     const char *fmt = "Actual size of each <%s>: %d bytes";
     // The actual size in the buffer of each device is as follows:
     // <n> bytes for the "bare" class attributes
@@ -214,11 +210,11 @@ void printReport(uint8_t nItems, const char *itemName)
 #ifdef TESTING
     char buf[40];
     sprintf(buf, "Added %d %s", nItems, itemName);
-    cmdMessenger.sendCmd(kStatus, buf);
+    cmdMessenger.sendCmd(kDebug, buf);
     sprintf(buf, " used %d bytes, remaining %d",
             Stowage.getUsedSize(),
             Stowage.getFreeSize());
-    cmdMessenger.sendCmd(kStatus, buf);
+    cmdMessenger.sendCmd(kDebug, buf);
     delay(1000);
 #endif
 }
@@ -287,7 +283,6 @@ void setupData(void)
 #endif
 }
 
-
 // ************************************************************
 // Reset Board
 // ************************************************************
@@ -299,7 +294,6 @@ void resetBoard()
     loadConfig();
 }
 
-
 // ************************************************************
 // Setup
 // ************************************************************
@@ -310,7 +304,7 @@ void setup()
     MFDigInMux::setMux(&MUX);
 #endif
     attachCommandCallbacks();
-    //attachEventCallbacks();
+    // attachEventCallbacks();
 
     cmdMessenger.printLfCr();
     resetBoard();
