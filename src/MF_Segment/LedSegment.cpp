@@ -27,7 +27,7 @@ namespace LedSegment
         ledSegments[ledSegmentsRegistered]->attach(dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
         ledSegmentsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added Led Segment"));
+        cmdMessenger.sendCmd(kDebug, F("Added Led Segment"));
 #endif
     }
 
@@ -38,7 +38,7 @@ namespace LedSegment
         }
         ledSegmentsRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared segments"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared segments"));
 #endif
     }
 

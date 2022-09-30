@@ -8,6 +8,7 @@
 #include "mobiflight.h"
 #include "Button.h"
 #include "Encoder.h"
+#include "MFEEPROM.h"
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
@@ -69,6 +70,8 @@ typedef struct {
 
 lastUpdate_t lastUpdate;
 
+extern MFEEPROM MFeeprom;
+
 void initPollIntervals(void)
 {
     // Init Time Gap between Inputs, do not read at the same loop
@@ -111,9 +114,9 @@ void SetPowerSavingMode(bool state)
 
 #ifdef DEBUG2CMDMESSENGER
     if (state)
-        cmdMessenger.sendCmd(kStatus, F("On"));
+        cmdMessenger.sendCmd(kDebug, F("On"));
     else
-        cmdMessenger.sendCmd(kStatus, F("Off"));
+        cmdMessenger.sendCmd(kDebug, F("Off"));
 #endif
 }
 
@@ -145,6 +148,7 @@ void ResetBoard()
 void setup()
 {
     Serial.begin(115200);
+    MFeeprom.init();
     attachCommandCallbacks();
     cmdMessenger.printLfCr();
     ResetBoard();

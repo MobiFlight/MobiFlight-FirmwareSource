@@ -8,41 +8,47 @@
 #include "MFEEPROM.h"
 #include <EEPROM.h>
 
-MFEEPROM::MFEEPROM()
+MFEEPROM::MFEEPROM() {}
+
+void MFEEPROM::init(void)
 {
-    eepromLength = EEPROM.length();
+    _eepromLength = EEPROM.length();
 }
 
 uint16_t MFEEPROM::get_length(void)
 {
-    return eepromLength;
+    return _eepromLength;
 }
 
-void MFEEPROM::read_block(uint16_t adr, char data[], uint16_t len)
+bool MFEEPROM::read_block(uint16_t adr, char data[], uint16_t len)
 {
+    if (adr + len > _eepromLength) return false;
     for (uint16_t i = 0; i < len; i++) {
         data[i] = read_char(adr + i);
     }
+    return true;
 }
 
-void MFEEPROM::write_block(uint16_t adr, char data[], uint16_t len)
+bool MFEEPROM::write_block(uint16_t adr, char data[], uint16_t len)
 {
-    if (adr + len >= eepromLength) return;
+    if (adr + len > _eepromLength) return false;
     for (uint16_t i = 0; i < len; i++) {
         EEPROM.put(adr + i, data[i]);
     }
+    return true;
 }
 
 char MFEEPROM::read_char(uint16_t adr)
 {
-    if (adr >= eepromLength) return 0;
+    if (adr >= _eepromLength) return 0;
     return EEPROM.read(adr);
 }
 
-void MFEEPROM::write_byte(uint16_t adr, char data)
+bool MFEEPROM::write_byte(uint16_t adr, char data)
 {
-    if (adr >= eepromLength) return;
+    if (adr >= _eepromLength) return false;
     EEPROM.put(adr, data);
+    return true;
 }
 
 // MFEEPROM.cpp
