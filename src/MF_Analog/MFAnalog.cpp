@@ -15,7 +15,9 @@ MFAnalog::MFAnalog(uint8_t pin, const char *name, uint8_t sensitivity)
     _name        = name;
     _lastValue   = 0;
     pinMode(_pin, INPUT_PULLUP); // set pin to input. Could use OUTPUT for analog, but shows the intention :-)
-    analogRead(_pin);            // turn on pullup resistors
+    for (uint8_t i = 0; i < ADC_MAX_AVERAGE; i++) {
+        readBuffer();
+    }
 }
 
 void MFAnalog::readChannel(uint8_t compare)

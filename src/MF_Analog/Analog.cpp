@@ -62,13 +62,6 @@ namespace Analog
         }
     }
 
-    void initAverage(void)
-    {
-        for (uint8_t i = 0; i < ADC_MAX_AVERAGE; i++) {
-            readAverage();
-        }
-    }
-
     void OnTrigger()
     {
         // Scan and transit current values

@@ -153,9 +153,6 @@ void setup()
     cmdMessenger.printLfCr();
     ResetBoard();
     initPollIntervals();
-#if MF_ANALOG_SUPPORT == 1
-    Analog::initAverage();
-#endif
 }
 
 // ************************************************************
