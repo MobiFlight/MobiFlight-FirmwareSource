@@ -20,10 +20,15 @@ MFAnalog::MFAnalog(uint8_t pin, const char *name, uint8_t sensitivity)
     }
 }
 
-void MFAnalog::readChannel(uint8_t compare)
+bool MFAnalog::valueHasChanged(int16_t newValue)
+{
+    return (abs(newValue - _lastValue) >= _sensitivity);
+}
+
+void MFAnalog::readChannel(uint8_t alwaysTrigger)
 {
     int16_t newValue = ADC_Average_Total >> ADC_MAX_AVERAGE_LOG2;
-    if (!compare || abs(newValue - _lastValue) >= _sensitivity) {
+    if (alwaysTrigger || valueHasChanged(newValue)) {
         _lastValue = newValue;
         if (_handler != NULL) {
             (*_handler)(_lastValue, _pin, _name);
@@ -33,12 +38,12 @@ void MFAnalog::readChannel(uint8_t compare)
 
 void MFAnalog::update()
 {
-    readChannel(true);
+    readChannel(false);
 }
 
 void MFAnalog::retrigger()
 {
-    readChannel(false);
+    readChannel(true);
 }
 
 void MFAnalog::readBuffer()
