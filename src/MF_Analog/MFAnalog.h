@@ -40,6 +40,7 @@ private:
     uint32_t         _lastReadBuffer;
 
     void readChannel(uint8_t compare);
+    bool valueHasChanged(int16_t newValue);
 };
 
 // MFAnalog.h
