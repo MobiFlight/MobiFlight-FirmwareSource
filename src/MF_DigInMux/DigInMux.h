@@ -13,7 +13,7 @@ namespace DigInMux
     void Add(uint8_t dataPin, uint8_t nRegs, char const *name = "DigInMux", bool mode = MFDigInMux::MUX_MODE_FAST);
     void Clear();
     void read();
-    // void OnTrigger();
+    void OnTrigger();
 }
 
 // DigInMux.h
