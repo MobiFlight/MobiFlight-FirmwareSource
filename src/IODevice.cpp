@@ -14,7 +14,7 @@
         &devType::Update, &devType::Detach, &devType::Reset, &devType::powerSave, \
     }
 
-// Following #defines are used to "neuter" the VTable entries for non-implemented device types.
+// Following #defines are used to "neutralize" the VTable entries for non-implemented device types.
 //
 // Note: #ifdef's could be used directly for corresponding entries in the table definition, e.g.
 // #if MF_SEGMENT_SUPPORT !=1

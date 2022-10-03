@@ -9,7 +9,7 @@
 // In order to achieve uniform treatment of all device objects in the main processing code,
 // a terse and straightforward solution would have been subclassing the individual MFxxx device classes
 // from a base "MFIODevice" class with virtual methods.
-// This however would have entailed two overhead sources:
+// This however would have introduced two sources of overhead:
 // - additional 2 bytes of RAM for EACH object for the VTable pointer: thhis would have been tolerable
 //   (minimum 1 byte is required for the identification of type anyway, see also below)
 // - a non-negligible amount of RAM for the VTables themselves (order of 100+ bytes).
@@ -23,7 +23,7 @@
 // For MCUs with different architectures (STM32, ESP32...) this problem may not exist; however,
 // the same code, albeit not strictly necessary, can be used.
 // The only part of the code that needs to be changed is the macros that access the VTable memory
-// (DeviceUpdate, DeviceDetach etc); and the VTable ceclaration as PROGMEM; these are reverted to
+// (DeviceUpdate, DeviceDetach etc); and the VTable declaration as PROGMEM; these are reverted to
 // regular memory access / allocation in case the compilation platform is not AVR.
 
 //
