@@ -113,6 +113,9 @@ void OnTrigger()
 #if MF_DIGIN_MUX_SUPPORT == 1
     DigInMux::OnTrigger();
 #endif
+#if MF_ANALOG_SUPPORT == 1
+    Analog::OnTrigger();
+#endif
 }
 
 // commandmessenger.cpp

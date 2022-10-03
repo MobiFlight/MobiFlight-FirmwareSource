@@ -15,18 +15,35 @@ MFAnalog::MFAnalog(uint8_t pin, const char *name, uint8_t sensitivity)
     _name        = name;
     _lastValue   = 0;
     pinMode(_pin, INPUT_PULLUP); // set pin to input. Could use OUTPUT for analog, but shows the intention :-)
-    analogRead(_pin);            // turn on pullup resistors
+    for (uint8_t i = 0; i < ADC_MAX_AVERAGE; i++) {
+        readBuffer();
+    }
 }
 
-void MFAnalog::update()
+bool MFAnalog::valueHasChanged(int16_t newValue)
+{
+    return (abs(newValue - _lastValue) >= _sensitivity);
+}
+
+void MFAnalog::readChannel(uint8_t alwaysTrigger)
 {
     int16_t newValue = ADC_Average_Total >> ADC_MAX_AVERAGE_LOG2;
-    if (abs(newValue - _lastValue) >= _sensitivity) {
+    if (alwaysTrigger || valueHasChanged(newValue)) {
         _lastValue = newValue;
         if (_handler != NULL) {
             (*_handler)(_lastValue, _pin, _name);
         }
     }
+}
+
+void MFAnalog::update()
+{
+    readChannel(false);
+}
+
+void MFAnalog::retrigger()
+{
+    readChannel(true);
 }
 
 void MFAnalog::readBuffer()

@@ -1,6 +1,6 @@
 //
 // Analog.cpp
-// 
+//
 // (C) MobiFlight Project 2022
 //
 
@@ -14,7 +14,7 @@ namespace Analog
     MFAnalog *analog[MAX_ANALOG_INPUTS];
     uint8_t   analogRegistered = 0;
 
-    void      handlerOnAnalogChange(int value, uint8_t pin, const char *name)
+    void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
     {
         cmdMessenger.sendCmdStart(kAnalogChange);
         cmdMessenger.sendCmdArg(name);
@@ -35,17 +35,17 @@ namespace Analog
         analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;
-    #ifdef DEBUG2CMDMESSENGER
+#ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added analog device "));
-    #endif
+#endif
     }
 
     void Clear(void)
     {
         analogRegistered = 0;
-    #ifdef DEBUG2CMDMESSENGER
+#ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Cleared analog devices"));
-    #endif
+#endif
     }
 
     void read(void)
@@ -61,6 +61,15 @@ namespace Analog
             analog[i]->readBuffer();
         }
     }
+
+    void OnTrigger()
+    {
+        // Scan and transit current values
+        for (uint8_t i = 0; i < analogRegistered; i++) {
+            analog[i]->retrigger();
+        }
+    }
+
 } // namespace Analog
 #endif
 
