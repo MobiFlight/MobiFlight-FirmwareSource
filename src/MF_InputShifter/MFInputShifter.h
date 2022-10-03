@@ -40,11 +40,10 @@ private:
     uint8_t                  _dataPin;     // SDO (data) pin
     uint8_t                  _moduleCount; // Number of 8 bit modules in series.
     bool                     _initialized = false;
-    uint8_t                  _lastState[MAX_CHAINED_INPUT_SHIFTERS];
+    uint8_t                  _lastState[MAX_CHAINED_INPUT_SHIFTERS] = {0};
 
     void                     detectChanges(uint8_t lastState, uint8_t currentState, uint8_t module);
     void                     trigger(uint8_t pin, bool state);
-    void                     clearLastState();
     static inputShifterEvent _inputHandler;
 };
 

@@ -12,8 +12,8 @@ MFButton::MFButton(uint8_t pin, const char *name)
 {
     _pin   = pin;
     _name  = name;
-    _state = 1;
-    pinMode(_pin, INPUT_PULLUP); // set pin to input
+    pinMode(_pin, INPUT_PULLUP);    // set pin to input
+    _state = digitalRead(_pin);     // initialize on actual status
 }
 
 void MFButton::update()

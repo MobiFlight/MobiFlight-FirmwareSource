@@ -11,7 +11,6 @@ inputShifterEvent MFInputShifter::_inputHandler = NULL;
 MFInputShifter::MFInputShifter(const char *name)
 {
   _initialized = false;
-  clearLastState();
   _name = name;
 }
 
@@ -29,6 +28,14 @@ void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
   pinMode(_clockPin, OUTPUT);
   pinMode(_dataPin, INPUT);
   _initialized = true;
+
+// And now initialize all buttons with the actual status
+  digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
+  digitalWrite(_latchPin, HIGH); // Disable input latching and enable shifting
+  for (int module = 0; module < _moduleCount; module++) {
+    _lastState[module] = shiftIn(_dataPin, _clockPin, MSBFIRST);
+  }
+  digitalWrite(_latchPin, LOW); // disable shifting and enable input latching
 }
 
 // Reads the values from the attached modules, compares them to the previously
@@ -41,14 +48,14 @@ void MFInputShifter::update()
 
   // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
   // called it will pull in the data from each chained module.
-    for (uint8_t i = 0; i < _moduleCount; i++) {
+  for (uint8_t i = 0; i < _moduleCount; i++) {
     uint8_t currentState;
 
     currentState = shiftIn(_dataPin, _clockPin, MSBFIRST);
 
     // If an input changed on the current module from the last time it was read
     // then hand it off to figure out which bits specifically changed.
-        if (currentState != _lastState[i]) {
+    if (currentState != _lastState[i]) {
       detectChanges(_lastState[i], currentState, i);
       _lastState[i] = currentState;
     }
@@ -89,21 +96,20 @@ void MFInputShifter::retrigger()
   // The current state for all attached modules is stored in the _lastState
   // array so future update() calls will work off whatever was read by the
   // retrigger flow.
-    for (int module = 0; module < _moduleCount; module++) {
+  for (int module = 0; module < _moduleCount; module++) {
     _lastState[module] = shiftIn(_dataPin, _clockPin, MSBFIRST);
   }
 
   digitalWrite(_latchPin, LOW); // disable shifting and enable input latching
 
-    // Trigger all the released buttons
-    for (int module = 0; module < _moduleCount; module++) {
+  // Trigger all the released buttons
+  for (int module = 0; module < _moduleCount; module++) {
     state = _lastState[module];
         for (uint8_t i = 0; i < 8; i++) {
             // Only trigger if the button is in the off position
             if (state & 1) {
         trigger(i + (module * 8), HIGH);
       }
-
       state = state >> 1;
     }
   }
@@ -144,21 +150,6 @@ void MFInputShifter::detach()
   if (!_initialized)
     return;
   _initialized = false;
-}
-
-// Clears the internal state of the shifter, including all received bits
-// and the timestamp for the last time the data was read.
-void MFInputShifter::clear()
-{
-  clearLastState();
-}
-
-// Sets the last recorded state of every bit on every shifter to 0.
-void MFInputShifter::clearLastState()
-{
-    for (uint8_t i = 0; i < MAX_CHAINED_INPUT_SHIFTERS; i++) {
-    _lastState[i] = 0;
-  }
 }
 
 // MFInputShifter.cpp

@@ -13,6 +13,7 @@ namespace Analog
     void Clear();
     void read();
     void readAverage();
+    void OnTrigger();
 }
 
 // Analog.h
