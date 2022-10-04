@@ -44,6 +44,9 @@ private:
            MUX_LAZY     = 2,
     };
 
+    enum { DONT_TRIGGER = 0,
+           DO_TRIGGER   = 1 };
+
     static MFMuxDriver  *_MUX;
     static MuxDigInEvent _inputHandler;
 

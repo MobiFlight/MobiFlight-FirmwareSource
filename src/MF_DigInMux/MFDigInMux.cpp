@@ -45,6 +45,10 @@ void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
     if (halfSize) bitSet(_flags, MUX_HALFSIZE);
     pinMode(_dataPin, INPUT_PULLUP);
     bitSet(_flags, MUX_INITED);
+
+    // Initialize all inputs with current status
+    poll(DONT_TRIGGER, bitRead(_flags, MUX_LAZY));
+
 }
 
 void MFDigInMux::detach()
@@ -60,11 +64,11 @@ void MFDigInMux::detach()
 // changed from the previously read state.
 void MFDigInMux::update()
 {
-    poll(true, bitRead(_flags, MUX_LAZY));
+    poll(DO_TRIGGER, bitRead(_flags, MUX_LAZY));
 }
 
 // Helper function for update() and retrigger()
-void MFDigInMux::poll(bool detect, bool isLazy)
+void MFDigInMux::poll(bool doTrigger, bool isLazy)
 {
     if (!_MUX) return;
 
@@ -120,7 +124,7 @@ void MFDigInMux::poll(bool detect, bool isLazy)
         _MUX->restoreChannel(); // tidy up
 
         if (_lastState != currentState) {
-            if (detect) detectChanges(_lastState, currentState);
+            if (doTrigger) detectChanges(_lastState, currentState);
             _lastState = currentState;
         }
 
@@ -170,7 +174,7 @@ void MFDigInMux::retrigger()
     // The current state for all attached modules is stored,
     // so future update() calls will work off whatever was read by the
     // retrigger flow.
-    poll(false, false); // just read, do not retrigger
+    poll(DONT_TRIGGER, false); // just read, do not retrigger
 
     // Pass 1/2: Trigger all the 'off' inputs (released buttons) first
     detectChanges(0x0000, _lastState);
