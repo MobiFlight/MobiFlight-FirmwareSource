@@ -122,11 +122,8 @@ void MFInputShifter::retrigger()
 // if a handler is registered.
 void MFInputShifter::trigger(uint8_t pin, bool state)
 {
-    if (state == LOW && _inputHandler != NULL) {
-        (*_inputHandler)(inputShifterOnPress, pin, _name);
-    } else if (_inputHandler != NULL) {
-        (*_inputHandler)(inputShifterOnRelease, pin, _name);
-    }
+    if (!_inputHandler) return;
+    (*_inputHandler)((state == LOW ? inputShifterOnPress : inputShifterOnRelease), pin, _name);
 }
 
 // Attaches a new event handler for the specified event.
@@ -137,8 +134,6 @@ void MFInputShifter::attachHandler(inputShifterEvent newHandler)
 
 void MFInputShifter::detach()
 {
-    if (!_initialized)
-        return;
     _initialized = false;
 }
 
