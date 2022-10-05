@@ -48,7 +48,7 @@
 #define MAX_ANALOG_INPUTS   5
 #define MAX_OUTPUT_SHIFTERS 2
 #define MAX_INPUT_SHIFTERS  2
-#define MAX_DIGIN_MUX       1
+#define MAX_DIGIN_MUX       3
 
 #define STEPS         64
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
