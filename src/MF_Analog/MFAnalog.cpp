@@ -13,11 +13,13 @@ MFAnalog::MFAnalog(uint8_t pin, const char *name, uint8_t sensitivity)
     _sensitivity = sensitivity;
     _pin         = pin;
     _name        = name;
-    _lastValue   = 0;
     pinMode(_pin, INPUT_PULLUP); // set pin to input. Could use OUTPUT for analog, but shows the intention :-)
+    // Fill averaging buffers with initial reading
     for (uint8_t i = 0; i < ADC_MAX_AVERAGE; i++) {
         readBuffer();
     }
+    // and set initial value from buffers
+    _lastValue = ADC_Average_Total >> ADC_MAX_AVERAGE_LOG2;
 }
 
 bool MFAnalog::valueHasChanged(int16_t newValue)
