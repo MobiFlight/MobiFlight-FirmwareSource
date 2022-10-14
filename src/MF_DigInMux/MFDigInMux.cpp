@@ -8,7 +8,7 @@
 #include "MFDigInMux.h"
 #include "MFMuxDriver.h"
 
-MFMuxDriver  *MFDigInMux::_MUX;
+MFMuxDriver *MFDigInMux::_MUX;
 
 MuxDigInEvent MFDigInMux::_inputHandler = NULL;
 
@@ -17,7 +17,6 @@ MFDigInMux::MFDigInMux(void)
     _MUX   = NULL;
     _name  = "MUXDigIn";
     _flags = 0x00;
-    setLazyMode(MUX_MODE_FAST);
     clear();
 }
 
@@ -26,7 +25,6 @@ MFDigInMux::MFDigInMux(MFMuxDriver *MUX, const char *name)
 {
     if (MUX) _MUX = MUX;
     _flags = 0x00;
-    setLazyMode(MUX_MODE_FAST);
     clear();
 }
 
@@ -47,8 +45,7 @@ void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
     bitSet(_flags, MUX_INITED);
 
     // Initialize all inputs with current status
-    poll(DONT_TRIGGER, bitRead(_flags, MUX_LAZY));
-
+    poll(DONT_TRIGGER);
 }
 
 void MFDigInMux::detach()
@@ -64,89 +61,44 @@ void MFDigInMux::detach()
 // changed from the previously read state.
 void MFDigInMux::update()
 {
-    poll(DO_TRIGGER, bitRead(_flags, MUX_LAZY));
+    poll(DO_TRIGGER);
 }
 
 // Helper function for update() and retrigger()
-void MFDigInMux::poll(bool doTrigger, bool isLazy)
+void MFDigInMux::poll(bool doTrigger)
 {
     if (!_MUX) return;
 
-    // Meaning of "Lazy mode" flag
-    // ===========================
-    //
-    // Lazy mode ON:
-    // MUX selector is set externally, normally at main loop level
-    // (incremented sequentially at each pass)
-    // Individual modules work in one of two ways:
-    // 1. they must have an associate channel number (which may also be "any"),
-    //    and only execute if that matches the current channel;
-    // 2. account for current channel number in their internal working
-    //    (e.g. for digital inputs, "place input bit in position #n").
-    //
-    // Lazy mode OFF (default):
-    // Every block using the multiplexer sets its own selector value (or span of values).
-    // MUX selector can have any value upon entry; it is saved and restored before exit.
-    //
-    // Each block can use its preferred mode, and blocks of both types can co-exist.
+    uint8_t          selMax       = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
+    uint16_t         currentState = 0x0000;
+    volatile uint8_t pinVal;
 
-    uint8_t selMax = (bitRead(_flags, MUX_HALFSIZE) ? 8 : 16);
+    _MUX->saveChannel();
+    for (uint8_t sel = selMax; sel > 0; sel--) {
+        _MUX->setChannel(sel - 1);
 
-    if (!isLazy) {
+        // Allow the output to settle from voltage transients:
+        // transients towards 0 (GND) are negligible, but transients towards 1 (Vcc)
+        // require a pullup to charge parasitic capacities.
+        // These are examples of delay times measured for 0->1 transitions with different pull-ups:
+        // integrated PU -> 1.4us
+        // external, 10k -> 400ns
+        // external, 4k7 -> 250ns
+        // A digitalRead() takes about 5us, therefore even the integrated pullup should be sufficient;
+        // for added safety, we perform one more (useless) digitalRead().
+        // NB An external pullup (10k or 4k7) is recommended anyway for better interference immunity.
 
-        // "Fast" read:
-        // scan all inputs right away
+        pinVal = digitalRead(_dataPin);
+        pinVal = digitalRead(_dataPin);
+        // delayMicroseconds(5);  // This is overkill
+        currentState <<= 1;
+        currentState |= (pinVal ? 1 : 0);
+    }
+    _MUX->restoreChannel(); // tidy up
 
-        uint16_t         currentState = 0x0000;
-        volatile uint8_t pinVal;
-
-        _MUX->saveChannel();
-        for (uint8_t sel = selMax; sel > 0; sel--) {
-            _MUX->setChannel(sel - 1);
-
-            // Allow the output to settle from voltage transients:
-            // transients towards 0 (GND) are negligible, but transients towards 1 (Vcc)
-            // require a pullup to charge parasitic capacities.
-            // These are examples of delay times measured for 0->1 transitions with different pull-ups:
-            // integrated PU -> 1.4us
-            // external, 10k -> 400ns
-            // external, 4k7 -> 250ns
-            // A digitalRead() takes about 5us, therefore even the integrated pullup should be sufficient;
-            // for added safety, we perform one more (useless) digitalRead().
-            // NB An external pullup (10k or 4k7) is recommended anyway for better interference immunity.
-
-            pinVal = digitalRead(_dataPin);
-            pinVal = digitalRead(_dataPin);
-            // delayMicroseconds(5);  // This is overkill
-            currentState <<= 1;
-            currentState |= (pinVal ? 1 : 0);
-        }
-        _MUX->restoreChannel(); // tidy up
-
-        if (_lastState != currentState) {
-            if (doTrigger) detectChanges(_lastState, currentState);
-            _lastState = currentState;
-        }
-
-    } else {
-
-        // "Lazy" read:
-        // read one more channel every time the method is invoked
-        // (the corresponding event, if any, is generated immediately).
-        // Relies on the MuxDriver to be set externally by the caller
-        // (typically incremented at every main loop iteration).
-
-        bool     chVal = (digitalRead(_dataPin) ? true : false);
-        uint8_t  ch    = _MUX->getChannel() % selMax;
-        uint16_t msk   = (0x0001 << ch);
-
-        if (((_lastState & msk) != 0) != chVal) trigger(ch, chVal);
-
-        if (chVal) {
-            _lastState |= msk;
-        } else {
-            _lastState &= ~msk;
-        }
+    if (_lastState != currentState) {
+        if (doTrigger) detectChanges(_lastState, currentState);
+        _lastState = currentState;
     }
 }
 
@@ -174,7 +126,7 @@ void MFDigInMux::retrigger()
     // The current state for all attached modules is stored,
     // so future update() calls will work off whatever was read by the
     // retrigger flow.
-    poll(DONT_TRIGGER, false); // just read, do not retrigger
+    poll(DONT_TRIGGER); // just read, do not retrigger
 
     // Pass 1/2: Trigger all the 'off' inputs (released buttons) first
     detectChanges(0x0000, _lastState);
@@ -201,15 +153,6 @@ void MFDigInMux::attachHandler(MuxDigInEvent newHandler)
 void MFDigInMux::clear()
 {
     _lastState = 0;
-}
-
-void MFDigInMux::setLazyMode(bool mode)
-{
-    if (mode) {
-        bitSet(_flags, MUX_LAZY);
-    } else {
-        bitClear(_flags, MUX_LAZY);
-    }
 }
 
 // MFDigInMux.cpp
