@@ -22,6 +22,7 @@ enum {
     kTypeInputShifter,        // 12 Input shift register support (example: 74HC165)
     kTypeMuxDriver,           // 13 Multiplexer selector support (generates select outputs)
     kTypeDigInMux,            // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
+    kTypeCustomDevice         // 15 Custom Device
 };
 
 void loadConfig(void);

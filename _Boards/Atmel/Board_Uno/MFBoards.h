@@ -35,6 +35,9 @@
 #define MF_MUX_SUPPORT       1
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
+#ifndef MF_CUSTOMDEVICE_SUPPORT
+#define MF_CUSTOMDEVICE_SUPPORT 1
+#endif
 
 #define MAX_OUTPUTS         18
 #define MAX_BUTTONS         18
@@ -47,6 +50,7 @@
 #define MAX_OUTPUT_SHIFTERS 2
 #define MAX_INPUT_SHIFTERS  2
 #define MAX_DIGIN_MUX       3
+#define MAX_CUSTOM_DEVICES  2
 
 #define STEPS         64
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?

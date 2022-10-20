@@ -38,6 +38,9 @@
 #if MF_DIGIN_MUX_SUPPORT == 1
 #include "DigInMux.h"
 #endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+#include "CustomDevice.h"
+#endif
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
@@ -150,6 +153,10 @@ void resetConfig()
 #if MF_DIGIN_MUX_SUPPORT == 1
     DigInMux::Clear();
 #endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+    CustomDevice::Clear();
+#endif
+
     configLength    = 0;
     configActivated = false;
     ClearMemory();
@@ -164,17 +171,17 @@ void OnResetConfig()
 void OnSaveConfig()
 {
     cmdMessenger.sendCmd(kConfigSaved, F("OK"));
-//  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
-//    1: Type "13" to reset the config
-//    2: Type "14" to get the config length
-//    3: Type "16" to load the config
-/*
-    if (readConfigLength())
-    {
-        readConfig();
-        _activateConfig();
-    }
-*/
+    //  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
+    //    1: Type "13" to reset the config
+    //    2: Type "14" to get the config length
+    //    3: Type "16" to load the config
+    /*
+        if (readConfigLength())
+        {
+            readConfig();
+            _activateConfig();
+        }
+    */
 }
 
 void OnActivateConfig()
@@ -214,6 +221,26 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
         }
     } while (temp != ':');            // reads until limiter ':' and locates the next free buffer position
     buffer[(*addrbuffer) - 1] = 0x00; // replace ':' by NULL, terminates the string
+    return true;
+}
+
+// reads a string from EEPROM at given address which is ',' terminated and saves it in the buffer
+// it is still required even if the above function is not required anymore
+// it reads in an init string for the custom device. If it is decided not to use an init string
+// this function is not required
+#define MEMLEN_STRING_BUFFER 96 // this is a huge memory consumption for Uno/ProMicro which is required, is there another way?
+bool readStringFromEEPROM(uint16_t *addreeprom, char *buffer)
+{
+    char    temp    = 0;
+    uint8_t counter = 0;
+    do {
+        temp              = MFeeprom.read_char((*addreeprom)++); // read the first character
+        buffer[counter++] = temp;                                // save character and locate next buffer position
+        if (counter >= MEMLEN_STRING_BUFFER) {                   // nameBuffer will be exceeded
+            return false;                                        // abort copying to buffer
+        }
+    } while (temp != ',');      // reads until limiter ':' and locates the next free buffer position
+    buffer[counter - 1] = 0x00; // replace ':' by NULL, terminates the string
     return true;
 }
 
@@ -391,6 +418,25 @@ void readConfig()
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
 
             // cmdMessenger.sendCmd(kDebug, F("Mux loaded"));
+            break;
+#endif
+
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+        case kTypeCustomDevice:
+            params[0] = readUintFromEEPROM(&addreeprom);
+            params[1] = readUintFromEEPROM(&addreeprom);
+            params[2] = readUintFromEEPROM(&addreeprom);
+            params[3] = readUintFromEEPROM(&addreeprom);
+            params[4] = readUintFromEEPROM(&addreeprom);
+            params[5] = readUintFromEEPROM(&addreeprom);
+
+            char initBuffer[MEMLEN_STRING_BUFFER];
+            copy_success = readStringFromEEPROM(&addreeprom, initBuffer);
+            if (!copy_success) {
+                CustomDevice::Add(params[0], params[1], params[2], params[3], params[4], params[5], initBuffer);
+                copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
+            }
+            // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
             break;
 #endif
 
