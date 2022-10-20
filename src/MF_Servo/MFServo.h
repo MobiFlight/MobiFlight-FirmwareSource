@@ -14,12 +14,13 @@ class MFServo
 public:
     MFServo();
     MFServo(uint8_t pin, bool enable = true);
-    void attach(uint8_t pin = 1, bool enable = true);
-    void detach();
-    void setExternalRange(int min, int max);
-    void setInternalRange(int min, int max);
-    void moveTo(int absolute);
-    void update();
+    void    attach(uint8_t pin = 1, bool enable = true);
+    void    detach();
+    void    setExternalRange(int min, int max);
+    void    setInternalRange(int min, int max);
+    void    moveTo(int absolute);
+    int16_t getActualValue();
+    void    update();
 
 private:
     uint8_t _pin;

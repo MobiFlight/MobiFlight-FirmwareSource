@@ -55,6 +55,11 @@ namespace Analog
         }
     }
 
+    int16_t getActualValue(uint8_t channel)
+    {
+        return analog[channel]->getActualValue(); // range is 0 ... 1024
+    }
+
     void readAverage(void)
     {
         for (uint8_t i = 0; i < analogRegistered; i++) {

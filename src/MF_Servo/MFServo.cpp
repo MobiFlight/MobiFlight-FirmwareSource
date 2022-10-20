@@ -18,6 +18,11 @@ void MFServo::moveTo(int absolute)
     }
 }
 
+int16_t MFServo::getActualValue()
+{
+    return (int16_t)_currentPos;
+}
+
 void MFServo::update()
 {
     // after reaching final position

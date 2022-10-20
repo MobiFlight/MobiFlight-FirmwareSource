@@ -49,6 +49,12 @@ void MFStepper::moveTo(long absolute)
     }
 }
 
+void MFStepper::move(long relative)
+{
+    _resetting = false;
+    _stepper->move(relative);
+}
+
 uint8_t MFStepper::getZeroPin()
 {
     return _zeroPin;

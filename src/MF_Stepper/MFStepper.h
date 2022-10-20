@@ -18,6 +18,7 @@ public:
     void    update();
     void    reset();
     void    moveTo(long absolute);
+    void    move(long relative);
     void    setMaxSpeed(float speed);
     void    setAcceleration(float acceleration);
     void    setZero();
@@ -31,8 +32,8 @@ private:
     uint8_t       _zeroPinState;
     long          _targetPos;
 
-    void          checkZeroPin(void);
-    void          setZeroInReset(void);
+    void checkZeroPin(void);
+    void setZeroInReset(void);
 };
 
 // MFStepper.h

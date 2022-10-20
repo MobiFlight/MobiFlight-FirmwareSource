@@ -13,7 +13,7 @@ namespace Servos
     MFServo *servos[MAX_MFSERVOS];
     uint8_t  servosRegistered = 0;
 
-    void     Add(int pin)
+    void Add(int pin)
     {
         if (servosRegistered == MAX_MFSERVOS)
             return;
@@ -50,6 +50,11 @@ namespace Servos
             return;
         servos[servo]->moveTo(newValue);
         setLastCommandMillis();
+    }
+
+    int16_t getActualValue(uint8_t channel)
+    {
+        return servos[channel]->getActualValue(); // range is 0 ... 1024
     }
 
     void update()

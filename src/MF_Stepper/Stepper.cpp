@@ -63,6 +63,38 @@ namespace Stepper
         setLastCommandMillis();
     }
 
+    void OnSetRelative()
+    {
+        int  stepper = cmdMessenger.readInt16Arg();
+        long newPos  = cmdMessenger.readInt32Arg();
+
+        SetRelative(stepper, newPos);
+    }
+
+    void SetRelative(uint8_t _stepper, int16_t _pos)
+    {
+        if (_stepper >= steppersRegistered)
+            return;
+        steppers[_stepper]->move(_pos);
+        setLastCommandMillis();
+    }
+
+    void setMaxSpeed(uint8_t _stepper, uint16_t _maxspeed)
+    {
+        if (_stepper >= steppersRegistered)
+            return;
+        steppers[_stepper]->setMaxSpeed(_maxspeed);
+        setLastCommandMillis();
+    }
+
+    void setAcceleration(uint8_t _stepper, uint16_t _acceleration)
+    {
+        if (_stepper >= steppersRegistered)
+            return;
+        steppers[_stepper]->setAcceleration(_acceleration);
+        setLastCommandMillis();
+    }
+
     void OnReset()
     {
         int stepper = cmdMessenger.readInt16Arg();
