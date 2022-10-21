@@ -161,18 +161,6 @@
         "isAnalog": false,
         "isI2C": false,
         "isPWM": true,
-        "Pin": 18
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
-        "Pin": 19
-      },
-      {
-        "isAnalog": false,
-        "isI2C": false,
-        "isPWM": true,
         "Pin": 20
       },
       {
