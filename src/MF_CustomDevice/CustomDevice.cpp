@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "CustomDevice.h"
 #include "MFCustomDevice.h"
-#include "CommandMessenger.h"
+#include "commandmessenger.h"
 #include "MFBoards.h"
 #include "allocateMem.h"
 
