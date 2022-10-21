@@ -13,15 +13,15 @@ namespace Servos
     MFServo *servos[MAX_MFSERVOS];
     uint8_t  servosRegistered = 0;
 
-    void Add(int pin)
+    uint8_t Add(int pin)
     {
         if (servosRegistered == MAX_MFSERVOS)
-            return;
+            return 0xFF;
 
         if (!FitInMemory(sizeof(MFServo))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Servo does not fit in Memory!"));
-            return;
+            return 0xFF;
         }
         servos[servosRegistered] = new (allocateMemory(sizeof(MFServo))) MFServo;
         servos[servosRegistered]->attach(pin, true);
@@ -29,6 +29,7 @@ namespace Servos
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added servos"));
 #endif
+        return servosRegistered - 1;
     }
 
     void Clear()

@@ -13,7 +13,7 @@ namespace Encoder
     MFEncoder *encoders[MAX_ENCODERS];
     uint8_t    encodersRegistered = 0;
 
-    void       handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
+    void handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
     {
         cmdMessenger.sendCmdStart(kEncoderChange);
         cmdMessenger.sendCmdArg(name);
@@ -21,15 +21,15 @@ namespace Encoder
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t pin1, uint8_t pin2, uint8_t encoder_type, char const *name)
+    uint8_t Add(uint8_t pin1, uint8_t pin2, uint8_t encoder_type, char const *name)
     {
         if (encodersRegistered == MAX_ENCODERS)
-            return;
+            return 0xFF;
 
         if (!FitInMemory(sizeof(MFEncoder))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Encoders does not fit in Memory"));
-            return;
+            return 0xFF;
         }
         encoders[encodersRegistered] = new (allocateMemory(sizeof(MFEncoder))) MFEncoder;
         encoders[encodersRegistered]->attach(pin1, pin2, encoder_type, name);
@@ -38,6 +38,7 @@ namespace Encoder
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added encoder"));
 #endif
+        return encodersRegistered - 1;
     }
 
     void Clear()

@@ -8,12 +8,12 @@
 
 namespace LedSegment
 {
-    void Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness);
-    void Clear();
-    void PowerSave(bool state);
-    void OnInitModule();
-    void OnSetModule();
-    void OnSetModuleBrightness();
+    uint8_t Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness);
+    void    Clear();
+    void    PowerSave(bool state);
+    void    OnInitModule();
+    void    OnSetModule();
+    void    OnSetModuleBrightness();
 }
 
 // LedSegment.h

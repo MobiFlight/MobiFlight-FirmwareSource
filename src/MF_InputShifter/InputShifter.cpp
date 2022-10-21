@@ -13,7 +13,7 @@ namespace InputShifter
     MFInputShifter *inputShifters[MAX_INPUT_SHIFTERS];
     uint8_t         inputShiftersRegistered = 0;
 
-    void            handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
+    void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
     {
         cmdMessenger.sendCmdStart(kInputShifterChange);
         cmdMessenger.sendCmdArg(name);
@@ -22,14 +22,14 @@ namespace InputShifter
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name)
+    uint8_t Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name)
     {
         if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
-            return;
+            return 0xFF;
         if (!FitInMemory(sizeof(MFInputShifter))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("InputShifter does not fit in Memory"));
-            return;
+            return 0xFF;
         }
         inputShifters[inputShiftersRegistered] = new (allocateMemory(sizeof(MFInputShifter))) MFInputShifter;
         inputShifters[inputShiftersRegistered]->attach(latchPin, clockPin, dataPin, modules, name);
@@ -38,6 +38,7 @@ namespace InputShifter
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added input shifter"));
 #endif
+        return inputShiftersRegistered - 1;
     }
 
     void Clear()

@@ -9,7 +9,7 @@
 #include <stdint.h>
 namespace Analog
 {
-    void    Add(uint8_t pin, char const *name = "AnalogInput", uint8_t sensitivity = 3);
+    uint8_t Add(uint8_t pin, char const *name = "AnalogInput", uint8_t sensitivity = 3);
     void    Clear();
     void    read();
     int16_t getActualValue(uint8_t channel);

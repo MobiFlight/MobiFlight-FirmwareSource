@@ -13,15 +13,15 @@ namespace LedSegment
     MFSegments *ledSegments[MAX_LEDSEGMENTS];
     uint8_t     ledSegmentsRegistered = 0;
 
-    void        Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
+    uint8_t Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
     {
         if (ledSegmentsRegistered == MAX_LEDSEGMENTS)
-            return;
+            return 0xFF;
 
         if (!FitInMemory(sizeof(MFSegments))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("7Segment does not fit in Memory!"));
-            return;
+            return 0xFF;
         }
         ledSegments[ledSegmentsRegistered] = new (allocateMemory(sizeof(MFSegments))) MFSegments;
         ledSegments[ledSegmentsRegistered]->attach(dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
@@ -29,6 +29,7 @@ namespace LedSegment
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added Led Segment"));
 #endif
+        return ledSegmentsRegistered - 1;
     }
 
     void Clear()

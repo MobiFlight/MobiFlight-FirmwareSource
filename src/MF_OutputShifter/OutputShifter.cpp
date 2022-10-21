@@ -13,23 +13,23 @@ namespace OutputShifter
     MFOutputShifter *outputShifters[MAX_OUTPUT_SHIFTERS];
     uint8_t          outputShifterRegistered = 0;
 
-    void             Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
+    uint8_t Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
     {
         if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
-            return;
+            return 0xFF;
         if (!FitInMemory(sizeof(MFOutputShifter))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
-            return;
+            return 0xFF;
         }
         outputShifters[outputShifterRegistered] = new (allocateMemory(sizeof(MFOutputShifter))) MFOutputShifter;
         outputShifters[outputShifterRegistered]->attach(latchPin, clockPin, dataPin, modules);
         outputShifters[outputShifterRegistered]->clear();
         outputShifterRegistered++;
-
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added Output Shifter"));
 #endif
+        return outputShifterRegistered - 1;
     }
 
     void Clear()

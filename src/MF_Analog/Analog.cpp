@@ -22,15 +22,15 @@ namespace Analog
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t pin, char const *name, uint8_t sensitivity)
+    uint8_t Add(uint8_t pin, char const *name, uint8_t sensitivity)
     {
         if (analogRegistered == MAX_ANALOG_INPUTS)
-            return;
+            return 0xFF;
 
         if (!FitInMemory(sizeof(MFAnalog))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
-            return;
+            return 0xFF;
         }
         analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
@@ -38,6 +38,7 @@ namespace Analog
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added analog device "));
 #endif
+        return analogRegistered - 1;
     }
 
     void Clear(void)

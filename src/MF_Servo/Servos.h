@@ -8,7 +8,7 @@
 
 namespace Servos
 {
-    void    Add(int pin);
+    uint8_t Add(int pin);
     void    Clear();
     void    OnSet();
     int16_t getActualValue(uint8_t channel);
