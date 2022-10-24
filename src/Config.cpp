@@ -55,13 +55,12 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-const char type[sizeof(MOBIFLIGHT_TYPE)] = MOBIFLIGHT_TYPE;
-char       serial[MEM_LEN_SERIAL]        = MOBIFLIGHT_SERIAL;
-char       name[MEM_LEN_NAME]            = MOBIFLIGHT_NAME;
-const int  MEM_LEN_CONFIG                = MEMLEN_CONFIG;
-char       nameBuffer[MEM_LEN_CONFIG]    = "";
-uint16_t   configLength                  = 0;
-boolean    configActivated               = false;
+char      serial[MEM_LEN_SERIAL]     = MOBIFLIGHT_SERIAL;
+char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
+char      nameBuffer[MEM_LEN_CONFIG] = "";
+uint16_t  configLength               = 0;
+boolean   configActivated            = false;
 
 void resetConfig();
 void readConfig();
@@ -164,17 +163,17 @@ void OnResetConfig()
 void OnSaveConfig()
 {
     cmdMessenger.sendCmd(kConfigSaved, F("OK"));
-//  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
-//    1: Type "13" to reset the config
-//    2: Type "14" to get the config length
-//    3: Type "16" to load the config
-/*
-    if (readConfigLength())
-    {
-        readConfig();
-        _activateConfig();
-    }
-*/
+    //  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
+    //    1: Type "13" to reset the config
+    //    2: Type "14" to get the config length
+    //    3: Type "16" to load the config
+    /*
+        if (readConfigLength())
+        {
+            readConfig();
+            _activateConfig();
+        }
+    */
 }
 
 void OnActivateConfig()
@@ -422,7 +421,7 @@ void OnGetInfo()
 {
     setLastCommandMillis();
     cmdMessenger.sendCmdStart(kInfo);
-    cmdMessenger.sendCmdArg(type);
+    cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
     cmdMessenger.sendCmdArg(name);
     cmdMessenger.sendCmdArg(serial);
     cmdMessenger.sendCmdArg(VERSION);
@@ -469,9 +468,7 @@ void storeName()
 
 void restoreName()
 {
-    char testHasName[1] = "";
-    MFeeprom.read_block(MEM_OFFSET_NAME, testHasName, 1);
-    if (testHasName[0] != '#')
+    if (MFeeprom.read_char(MEM_OFFSET_NAME) != '#')
         return;
 
     MFeeprom.read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
