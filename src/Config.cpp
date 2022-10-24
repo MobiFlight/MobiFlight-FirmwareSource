@@ -461,8 +461,7 @@ void OnGenNewSerial()
 // ************************************************************
 void storeName()
 {
-    char prefix[] = "#";
-    MFeeprom.write_block(MEM_OFFSET_NAME, prefix, 1);
+    MFeeprom.write_byte(MEM_OFFSET_NAME, '#');
     MFeeprom.write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
