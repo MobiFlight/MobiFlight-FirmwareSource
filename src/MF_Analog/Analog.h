@@ -9,7 +9,7 @@
 #include <stdint.h>
 namespace Analog
 {
-    void Add(uint8_t pin, char const *name = "AnalogInput", uint8_t sensitivity = 3);
+    void Add(uint8_t pin, uint8_t sensitivity);
     void Clear();
     void read();
     void readAverage();

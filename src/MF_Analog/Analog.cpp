@@ -14,15 +14,15 @@ namespace Analog
     MFAnalog *analog[MAX_ANALOG_INPUTS];
     uint8_t   analogRegistered = 0;
 
-    void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
+    void handlerOnAnalogChange(int16_t value, uint8_t deviceID)
     {
         cmdMessenger.sendCmdStart(kAnalogChange);
-        cmdMessenger.sendCmdArg(name);
+        cmdMessenger.sendCmdArg(deviceID);
         cmdMessenger.sendCmdArg(value);
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t pin, char const *name, uint8_t sensitivity)
+    void Add(uint8_t pin, uint8_t sensitivity)
     {
         if (analogRegistered == MAX_ANALOG_INPUTS)
             return;
@@ -32,7 +32,7 @@ namespace Analog
             cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
             return;
         }
-        analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
+        analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, analogRegistered, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;
 #ifdef DEBUG2CMDMESSENGER

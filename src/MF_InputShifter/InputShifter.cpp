@@ -13,16 +13,16 @@ namespace InputShifter
     MFInputShifter *inputShifters[MAX_INPUT_SHIFTERS];
     uint8_t         inputShiftersRegistered = 0;
 
-    void            handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
+    void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, uint8_t deviceID)
     {
         cmdMessenger.sendCmdStart(kInputShifterChange);
-        cmdMessenger.sendCmdArg(name);
+        cmdMessenger.sendCmdArg(deviceID);
         cmdMessenger.sendCmdArg(pin);
         cmdMessenger.sendCmdArg(eventId);
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name)
+    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
     {
         if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
             return;
@@ -32,7 +32,7 @@ namespace InputShifter
             return;
         }
         inputShifters[inputShiftersRegistered] = new (allocateMemory(sizeof(MFInputShifter))) MFInputShifter;
-        inputShifters[inputShiftersRegistered]->attach(latchPin, clockPin, dataPin, modules, name);
+        inputShifters[inputShiftersRegistered]->attach(latchPin, clockPin, dataPin, modules, inputShiftersRegistered);
         MFInputShifter::attachHandler(handlerInputShifterOnChange);
         inputShiftersRegistered++;
 #ifdef DEBUG2CMDMESSENGER

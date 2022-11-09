@@ -13,7 +13,7 @@
 
 extern "C" {
 // callback functions
-typedef void (*analogEvent)(int, uint8_t, const char *);
+typedef void (*analogEvent)(int, uint8_t);
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@ typedef void (*analogEvent)(int, uint8_t, const char *);
 class MFAnalog
 {
 public:
-    MFAnalog(uint8_t pin = 1, const char *name = "Analog Input", uint8_t sensitivity = 2);
+    MFAnalog(uint8_t pin, uint8_t deviceID, uint8_t sensitivity);
     static void attachHandler(analogEvent handler);
     void        update();
     void        retrigger();
@@ -31,8 +31,9 @@ public:
 
 private:
     static analogEvent _handler;
-    int                _lastValue;
+    int16_t            _lastValue;
     uint8_t            _sensitivity;
+    uint8_t            _deviceID;
 
     uint16_t         ADC_Buffer[ADC_MAX_AVERAGE] = {0}; // Buffer for all values from each channel
     uint16_t         ADC_Average_Total           = 0;   // sum of sampled values, must be divided by ADC_MAX_AVERAGE to get actual value

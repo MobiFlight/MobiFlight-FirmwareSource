@@ -60,10 +60,10 @@ MFEncoder::MFEncoder()
     _initialized = false;
 }
 
-void MFEncoder::attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, const char *name)
+void MFEncoder::attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, uint8_t deviceID)
 {
     _pos         = 0;
-    _name        = name;
+    _deviceID    = deviceID;
     _pin1        = pin1;
     _pin2        = pin2;
     _encoderType = encoderTypes[TypeEncoder];
@@ -103,16 +103,16 @@ void MFEncoder::update()
         if (abs(delta) < (MF_ENC_FAST_LIMIT)) {
             // slow turn detected
             if (dir) {
-                (*_handler)(encLeft, _pin1, _name);
+                (*_handler)(encLeft, _deviceID);
             } else {
-                (*_handler)(encRight, _pin2, _name);
+                (*_handler)(encRight, _deviceID);
             }
         } else {
             // fast turn detected
             if (dir) {
-                (*_handler)(encLeftFast, _pin1, _name);
+                (*_handler)(encLeftFast, _deviceID);
             } else {
-                (*_handler)(encRightFast, _pin2, _name);
+                (*_handler)(encRightFast, _deviceID);
             }
         }
     }
@@ -132,7 +132,7 @@ void MFEncoder::tick(void)
     int      _speed    = 0;
     uint32_t currentMs = millis();
 
-    int8_t   thisState = sig1 | (sig2 << 1);
+    int8_t thisState = sig1 | (sig2 << 1);
 
     if (currentMs - _lastFastDec > 100 && _detentCounter > 1) {
         _lastFastDec = currentMs;

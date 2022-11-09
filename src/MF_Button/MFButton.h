@@ -10,7 +10,7 @@
 
 extern "C" {
 // callback functions always follow the signature: void cmd(void);
-typedef void (*buttonEvent)(byte, uint8_t, const char *);
+typedef void (*buttonEvent)(uint8_t, uint8_t);
 };
 
 enum {
@@ -23,13 +23,13 @@ enum {
 class MFButton
 {
 public:
-    MFButton(uint8_t pin = 1, const char *name = "Button");
+    MFButton(uint8_t pin, uint8_t deviceID);
     static void attachHandler(buttonEvent newHandler);
     void        update();
     void        trigger(uint8_t state);
     void        triggerOnPress();
     void        triggerOnRelease();
-    const char *_name;
+    uint8_t     _deviceID;
     uint8_t     _pin;
 
 private:

@@ -13,15 +13,15 @@ namespace Button
     MFButton *buttons[MAX_BUTTONS];
     uint8_t   buttonsRegistered = 0;
 
-    void      handlerOnButton(uint8_t eventId, uint8_t pin, const char *name)
+    void handlerOnButton(uint8_t eventId, uint8_t deviceID)
     {
         cmdMessenger.sendCmdStart(kButtonChange);
-        cmdMessenger.sendCmdArg(name);
+        cmdMessenger.sendCmdArg(deviceID);
         cmdMessenger.sendCmdArg(eventId);
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t pin, char const *name)
+    void Add(uint8_t pin)
     {
         if (buttonsRegistered == MAX_BUTTONS)
             return;
@@ -31,7 +31,7 @@ namespace Button
             cmdMessenger.sendCmd(kStatus, F("Button does not fit in Memory"));
             return;
         }
-        buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
+        buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, buttonsRegistered);
         MFButton::attachHandler(handlerOnButton);
         buttonsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
