@@ -15,23 +15,23 @@ namespace DigInMux
     MFDigInMux *digInMux[MAX_DIGIN_MUX];
     uint8_t     digInMuxRegistered = 0;
 
-    void handlerOnDigInMux(uint8_t eventId, uint8_t channel, const char *name)
+    void handlerOnDigInMux(uint8_t eventId, uint8_t channel, uint8_t deviceID)
     {
         cmdMessenger.sendCmdStart(kDigInMuxChange);
-        cmdMessenger.sendCmdArg(name);
+        cmdMessenger.sendCmdArg(deviceID);
         cmdMessenger.sendCmdArg(channel);
         cmdMessenger.sendCmdArg(eventId);
         cmdMessenger.sendCmdEnd();
     };
 
-    void Add(uint8_t dataPin, uint8_t nRegs, char const *name)
+    void Add(uint8_t dataPin, uint8_t nRegs)
     {
         if (digInMuxRegistered == MAX_DIGIN_MUX)
             return;
         MFDigInMux *dip;
-        dip                          = new (allocateMemory(sizeof(MFDigInMux))) MFDigInMux(&MUX, name);
+        dip                          = new (allocateMemory(sizeof(MFDigInMux))) MFDigInMux(&MUX);
         digInMux[digInMuxRegistered] = dip;
-        dip->attach(dataPin, (nRegs == 1), name);
+        dip->attach(dataPin, (nRegs == 1), digInMuxRegistered);
         dip->clear();
         // MFDigInMux::setMux(&MUX);
         MFDigInMux::attachHandler(handlerOnDigInMux);
