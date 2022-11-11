@@ -8,10 +8,6 @@
 
 #include <Arduino.h>
 
-extern "C" {
-typedef void (*MuxDigInEvent)(byte, uint8_t, uint8_t);
-};
-
 class MFMuxDriver
 {
 public:
