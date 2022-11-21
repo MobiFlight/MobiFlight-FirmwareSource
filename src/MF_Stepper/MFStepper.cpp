@@ -12,7 +12,7 @@ MFStepper::MFStepper()
     _initialized = false;
 }
 
-void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5)
+void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t backlash)
 {
     if (!FitInMemory(sizeof(AccelStepper))) {
         // Error Message to Connector
@@ -31,6 +31,8 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
     if (_zeroPin) {
         pinMode(_zeroPin, INPUT_PULLUP); // set pin to input
     }
+
+    _backlash = backlash;
     _initialized = true;
     _resetting   = false;
 }
@@ -44,7 +46,14 @@ void MFStepper::moveTo(long absolute)
 {
     _resetting = false;
     if (_targetPos != absolute) {
+        if (absolute > _targetPos)
+        {
+            absolute += _backlash;
+        } else {
+            absolute -= _backlash;
+        }
         _targetPos = absolute;
+        _stepper->enableOutputs();
         _stepper->moveTo(absolute);
     }
 }
@@ -80,6 +89,10 @@ void MFStepper::update()
 {
     _stepper->run();
     checkZeroPin();
+    if (_stepper->currentPosition() == _targetPos)
+    {
+        _stepper->disableOutputs();
+    }
 }
 
 void MFStepper::reset()

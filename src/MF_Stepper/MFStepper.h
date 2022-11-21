@@ -13,7 +13,7 @@ class MFStepper
 {
 public:
     MFStepper();
-    void    attach(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t pin3 = 3, uint8_t pin4 = 4, uint8_t btnPin1 = 0);
+    void    attach(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t pin3 = 3, uint8_t pin4 = 4, uint8_t btnPin1 = 0, uint8_t backlash = 0);
     void    detach();
     void    update();
     void    reset();
@@ -30,9 +30,10 @@ private:
     uint8_t       _zeroPin;
     uint8_t       _zeroPinState;
     long          _targetPos;
+    uint8_t       _backlash;
 
-    void          checkZeroPin(void);
-    void          setZeroInReset(void);
+    void checkZeroPin(void);
+    void setZeroInReset(void);
 };
 
 // MFStepper.h
