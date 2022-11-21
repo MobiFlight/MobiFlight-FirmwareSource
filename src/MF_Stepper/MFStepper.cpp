@@ -12,18 +12,19 @@ MFStepper::MFStepper()
     _initialized = false;
 }
 
-void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t backlash)
+void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t type, int8_t backlash, bool deactivateOutput)
 {
     if (!FitInMemory(sizeof(AccelStepper))) {
         // Error Message to Connector
         cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
         return;
     }
-    if (pin2 == pin4 && pin1 == pin3) // if pin1/2 are identical to pin3/4
-    {                                 // init new stepper with external driver (step and direction)
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2);
-    } else { // otherwise init new stepper in full 4 wire mode
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
+    if (type == 0) {
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3); // init new stepper in full 4 wire mode
+    } else if (type == 1) {
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3); // init new stepper in half 4 wire mode
+    } else if (type == 2) {
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2); // init new stepper with external driver (step and direction)
     }
     _zeroPin      = btnPin5;
     _zeroPinState = HIGH;
@@ -32,9 +33,10 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         pinMode(_zeroPin, INPUT_PULLUP); // set pin to input
     }
 
-    _backlash = backlash;
-    _initialized = true;
-    _resetting   = false;
+    _backlash         = backlash;
+    _deactivateOutput = deactivateOutput;
+    _initialized      = true;
+    _resetting        = false;
 }
 
 void MFStepper::detach()
@@ -46,14 +48,14 @@ void MFStepper::moveTo(long absolute)
 {
     _resetting = false;
     if (_targetPos != absolute) {
-        if (absolute > _targetPos)
-        {
+        if (absolute > _targetPos) {
             absolute += _backlash;
         } else {
             absolute -= _backlash;
         }
         _targetPos = absolute;
-        _stepper->enableOutputs();
+        if (_deactivateOutput)
+            _stepper->enableOutputs();
         _stepper->moveTo(absolute);
     }
 }
@@ -89,8 +91,7 @@ void MFStepper::update()
 {
     _stepper->run();
     checkZeroPin();
-    if (_stepper->currentPosition() == _targetPos)
-    {
+    if (_stepper->currentPosition() == _targetPos && _deactivateOutput) {
         _stepper->disableOutputs();
     }
 }
