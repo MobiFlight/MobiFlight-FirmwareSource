@@ -77,16 +77,15 @@ bool readConfigLength()
     uint16_t addreeprom = MEM_OFFSET_CONFIG;
     uint16_t length     = MFeeprom.get_length();
     configLength        = 0;
-    do {
-        temp = MFeeprom.read_char(addreeprom++);
+
+    while (MFeeprom.read_byte(addreeprom++) != 0x00) {
         configLength++;
         if (addreeprom > length) // abort if EEPROM size will be exceeded
         {
             cmdMessenger.sendCmd(kStatus, F("Loading config failed")); // text or "-1" like config upload?
             return false;
         }
-    } while (temp != 0x00); // reads until NULL
-    configLength--;
+    }
     return true;
 }
 
@@ -164,17 +163,17 @@ void OnResetConfig()
 void OnSaveConfig()
 {
     cmdMessenger.sendCmd(kConfigSaved, F("OK"));
-//  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
-//    1: Type "13" to reset the config
-//    2: Type "14" to get the config length
-//    3: Type "16" to load the config
-/*
-    if (readConfigLength())
-    {
-        readConfig();
-        _activateConfig();
-    }
-*/
+    //  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
+    //    1: Type "13" to reset the config
+    //    2: Type "14" to get the config length
+    //    3: Type "16" to load the config
+    /*
+        if (readConfigLength())
+        {
+            readConfig();
+            _activateConfig();
+        }
+    */
 }
 
 void OnActivateConfig()
@@ -195,7 +194,7 @@ uint8_t readUintFromEEPROM(volatile uint16_t *addreeprom)
     char    params[4] = {0}; // max 3 (255) digits NULL terminated
     uint8_t counter   = 0;
     do {
-        params[counter++] = MFeeprom.read_char((*addreeprom)++);      // read character from eeprom and locate next buffer and eeprom location
+        params[counter++] = MFeeprom.read_byte((*addreeprom)++);      // read character from eeprom and locate next buffer and eeprom location
     } while (params[counter - 1] != '.' && counter < sizeof(params)); // reads until limiter '.' and for safety reason not more then size of params[]
     params[counter - 1] = 0x00;                                       // replace '.' by NULL to terminate the string
     return atoi(params);
@@ -207,7 +206,7 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
 {
     char temp = 0;
     do {
-        temp                    = MFeeprom.read_char((*addreeprom)++); // read the first character
+        temp                    = MFeeprom.read_byte((*addreeprom)++); // read the first character
         buffer[(*addrbuffer)++] = temp;                                // save character and locate next buffer position
         if (*addrbuffer >= MEMLEN_NAMES_BUFFER) {                      // nameBuffer will be exceeded
             return false;                                              // abort copying from EEPROM to nameBuffer
@@ -223,7 +222,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
     char     temp   = 0;
     uint16_t length = MFeeprom.get_length();
     do {
-        temp = MFeeprom.read_char((*addreeprom)++);
+        temp = MFeeprom.read_byte((*addreeprom)++);
         if (*addreeprom > length) // abort if EEPROM size will be exceeded
             return false;
     } while (temp != ':'); // reads until limiter ':'
@@ -410,9 +409,9 @@ void OnGetConfig()
     setLastCommandMillis();
     cmdMessenger.sendCmdStart(kInfo);
     if (configLength > 0) {
-        cmdMessenger.sendCmdArg(MFeeprom.read_char(MEM_OFFSET_CONFIG));
+        cmdMessenger.sendCmdArg((char)MFeeprom.read_byte(MEM_OFFSET_CONFIG));
         for (uint16_t i = 1; i < configLength; i++) {
-            cmdMessenger.sendArg(MFeeprom.read_char(MEM_OFFSET_CONFIG + i));
+            cmdMessenger.sendArg((char)MFeeprom.read_byte(MEM_OFFSET_CONFIG + i));
         }
     }
     cmdMessenger.sendCmdEnd();
@@ -462,16 +461,14 @@ void OnGenNewSerial()
 // ************************************************************
 void storeName()
 {
-    char prefix[] = "#";
-    MFeeprom.write_block(MEM_OFFSET_NAME, prefix, 1);
+    uint8_t prefix = '#';
+    MFeeprom.write_byte(MEM_OFFSET_NAME, prefix);
     MFeeprom.write_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
 }
 
 void restoreName()
 {
-    char testHasName[1] = "";
-    MFeeprom.read_block(MEM_OFFSET_NAME, testHasName, 1);
-    if (testHasName[0] != '#')
+    if (MFeeprom.read_byte(MEM_OFFSET_NAME) != '#')
         return;
 
     MFeeprom.read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
