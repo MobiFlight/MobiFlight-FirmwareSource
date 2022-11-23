@@ -48,9 +48,6 @@
 #define MAX_INPUT_SHIFTERS  4
 #define MAX_DIGIN_MUX       4
 
-#define STEPPER_SPEED 400
-#define STEPPER_ACCEL 800
-
 #define MOBIFLIGHT_TYPE     "MobiFlight Mega"
 #define MOBIFLIGHT_SERIAL   "1234567890"
 #define MOBIFLIGHT_NAME     "MobiFlight Mega"
