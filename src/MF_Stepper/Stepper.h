@@ -6,6 +6,14 @@
 
 #pragma once
 
+#define STEPPER_SPEED_B28BYJ 400
+#define STEPPER_ACCEL_B28BYJ 800
+
+#define STEPPER_SPEED_X27    1600
+#define STEPPER_ACCEL_X27    4000
+
+#define STEPPER_SPEED_DRIVER 400
+#define STEPPER_ACCEL_DRIVER 800
 namespace Stepper
 {
     enum {          // enumeration for typeID

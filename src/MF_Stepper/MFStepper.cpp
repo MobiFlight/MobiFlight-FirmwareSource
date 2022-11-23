@@ -20,28 +20,44 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
         return;
     }
+    uint8_t  type     = 0;
+    uint16_t maxSpeed = 0;
+    uint16_t Accel    = 0;
+
     switch (typeID) {
     case Stepper::B28BYJ_OLD:
         // init new stepper in full 4 wire mode as before
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
+        type = AccelStepper::FULL4WIRE;
+        maxSpeed = STEPPER_SPEED_B28BYJ;
+        Accel = STEPPER_ACCEL_B28BYJ;
         break;
     case Stepper::B28BYJ_NEW:
         // init new stepper in full 4 wire mode
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3);
+        type = AccelStepper::FULL4WIRE;
+        maxSpeed = STEPPER_SPEED_B28BYJ;
+        Accel = STEPPER_ACCEL_B28BYJ;
         break;
     case Stepper::X27:
         // init new stepper in full 4 wire mode
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3);
+        type = AccelStepper::FULL4WIRE;
+        maxSpeed = STEPPER_SPEED_X27;
+        Accel = STEPPER_ACCEL_X27;
         break;
     case Stepper::DRIVER:
         // init new stepper in driver mode
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin2, pin1, pin3);
+        type = AccelStepper::FULL4WIRE;
+        maxSpeed = STEPPER_SPEED_DRIVER;
+        Accel = STEPPER_ACCEL_X27;
         break;
     default:
         _initialized = false;
         return;
         break;
     }
+    _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(type, pin4, pin2, pin1, pin3);
+    _stepper->setMaxSpeed(maxSpeed);
+    _stepper->setAcceleration(Accel);
+    
     _zeroPin      = btnPin5;
     _zeroPinState = HIGH;
 
