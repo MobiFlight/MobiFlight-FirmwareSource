@@ -23,7 +23,7 @@ namespace Stepper
         DRIVER      // init Stepper in DRIVER
     };
 
-    void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t type = 0, int8_t backlash = 0, bool deactivateOutput = false);
+    void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t type = 0, int8_t backlash = 0, bool deactivateOutput = true);
     void Clear();
     void OnSet();
     void OnReset();
