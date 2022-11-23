@@ -18,8 +18,8 @@ public:
     void    update();
     void    reset();
     void    moveTo(long absolute);
-    void    setMaxSpeed(float speed);
-    void    setAcceleration(float acceleration);
+    void    setMaxSpeed(uint16_t speed);
+    void    setAcceleration(uint16_t acceleration);
     void    setZero();
     uint8_t getZeroPin();
 

@@ -6,25 +6,41 @@
 
 #include "mobiflight.h"
 #include "MFStepper.h"
+#include "Stepper.h"
 
 MFStepper::MFStepper()
 {
     _initialized = false;
 }
 
-void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t type, int8_t backlash, bool deactivateOutput)
+void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t typeID, int8_t backlash, bool deactivateOutput)
 {
     if (!FitInMemory(sizeof(AccelStepper))) {
         // Error Message to Connector
         cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
         return;
     }
-    if (type == 0) {
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3); // init new stepper in full 4 wire mode
-    } else if (type == 1) {
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3); // init new stepper in half 4 wire mode
-    } else if (type == 2) {
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2); // init new stepper with external driver (step and direction)
+    switch (typeID) {
+    case Stepper::B28BYJ_OLD:
+        // init new stepper in full 4 wire mode as before
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
+        break;
+    case Stepper::B28BYJ_NEW:
+        // init new stepper in full 4 wire mode
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3);
+        break;
+    case Stepper::X27:
+        // init new stepper in full 4 wire mode
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3);
+        break;
+    case Stepper::DRIVER:
+        // init new stepper in driver mode
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin2, pin1, pin3);
+        break;
+    default:
+        _initialized = false;
+        return;
+        break;
     }
     _zeroPin      = btnPin5;
     _zeroPinState = HIGH;
@@ -44,19 +60,18 @@ void MFStepper::detach()
     _initialized = false;
 }
 
-void MFStepper::moveTo(long absolute)
+void MFStepper::moveTo(long newPosition)
 {
     _resetting = false;
-    if (_targetPos != absolute) {
-        if (absolute > _targetPos) {
-            absolute += _backlash;
-        } else {
-            absolute -= _backlash;
-        }
-        _targetPos = absolute;
+    if (_targetPos != newPosition) {
+        if (_stepper->currentPosition() < _targetPos && _stepper->currentPosition() > newPosition) // moving in CW direction AND a change of direction
+            newPosition -= _backlash;
+        if (_stepper->currentPosition() > _targetPos && _stepper->currentPosition() < newPosition) // moving in CCW direction AND a change of direction
+            newPosition += _backlash;
+        _targetPos = newPosition;
         if (_deactivateOutput)
             _stepper->enableOutputs();
-        _stepper->moveTo(absolute);
+        _stepper->moveTo(newPosition);
     }
 }
 
@@ -113,12 +128,12 @@ void MFStepper::reset()
     _stepper->moveTo(-100000);
 }
 
-void MFStepper::setMaxSpeed(float speed)
+void MFStepper::setMaxSpeed(uint16_t speed)
 {
     _stepper->setMaxSpeed(speed);
 }
 
-void MFStepper::setAcceleration(float acceleration)
+void MFStepper::setAcceleration(uint16_t acceleration)
 {
     _stepper->setAcceleration(acceleration);
 }
