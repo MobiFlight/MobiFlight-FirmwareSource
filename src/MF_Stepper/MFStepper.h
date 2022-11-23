@@ -32,6 +32,7 @@ private:
     long          _targetPos;
     uint8_t       _backlash;
     bool          _deactivateOutput;
+    int8_t        _inMove;
 
     void checkZeroPin(void);
     void setZeroInReset(void);

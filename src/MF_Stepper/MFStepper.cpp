@@ -8,6 +8,12 @@
 #include "MFStepper.h"
 #include "Stepper.h"
 
+enum {
+    MOVE_CCW = -1,
+    STOP,
+    MOVE_CW
+};
+
 MFStepper::MFStepper()
 {
     _initialized = false;
@@ -80,14 +86,18 @@ void MFStepper::moveTo(long newPosition)
 {
     _resetting = false;
     if (_targetPos != newPosition) {
-        if (_targetPos > _stepper->currentPosition() && _stepper->currentPosition() > newPosition) // moving in CW direction AND a change of direction
+        if (_inMove == MOVE_CW && newPosition < _stepper->currentPosition()) // moving in CW direction AND a change of direction
             newPosition -= _backlash;
-        if (_targetPos < _stepper->currentPosition() && _stepper->currentPosition() < newPosition) // moving in CCW direction AND a change of direction
+        if (_inMove == MOVE_CCW && newPosition > _stepper->currentPosition()) // moving in CCW direction AND a change of direction
             newPosition += _backlash;
-        _targetPos = newPosition;
-        if (_deactivateOutput)
+        if (newPosition > _targetPos)
+            _inMove = MOVE_CW;
+        else
+            _inMove = MOVE_CCW;
+        if (_deactivateOutput && _inMove == STOP)
             _stepper->enableOutputs();
         _stepper->moveTo(newPosition);
+        _targetPos = newPosition;
     }
 }
 
@@ -124,6 +134,7 @@ void MFStepper::update()
     checkZeroPin();
     if (_stepper->currentPosition() == _targetPos && _deactivateOutput) {
         _stepper->disableOutputs();
+        _inMove = STOP;
     }
 }
 
