@@ -164,17 +164,17 @@ void OnResetConfig()
 void OnSaveConfig()
 {
     cmdMessenger.sendCmd(kConfigSaved, F("OK"));
-//  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
-//    1: Type "13" to reset the config
-//    2: Type "14" to get the config length
-//    3: Type "16" to load the config
-/*
-    if (readConfigLength())
-    {
-        readConfig();
-        _activateConfig();
-    }
-*/
+    //  Uncomment the if{} part to reset and load the config via serial terminal for testing w/o the GUI
+    //    1: Type "13" to reset the config
+    //    2: Type "14" to get the config length
+    //    3: Type "16" to load the config
+    /*
+        if (readConfigLength())
+        {
+            readConfig();
+            _activateConfig();
+        }
+    */
 }
 
 void OnActivateConfig()
@@ -236,7 +236,7 @@ void readConfig()
         return;
     uint16_t addreeprom   = MEM_OFFSET_CONFIG; // define first memory location where config is saved in EEPROM
     uint16_t addrbuffer   = 0;                 // and start with first memory location from nameBuffer
-    char     params[6]    = "";
+    char     params[8]    = "";
     char     command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
@@ -272,7 +272,7 @@ void readConfig()
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
-        case kTypeStepperDeprecated:
+        case kTypeStepperDeprecated1:
             // this is for backwards compatibility
             params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
             params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
@@ -282,16 +282,27 @@ void readConfig()
             Stepper::Add(params[0], params[1], params[2], params[3], 0);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
-#endif
 
-#if MF_STEPPER_SUPPORT == 1
-        case kTypeStepper:
+        case kTypeStepperDeprecated2:
             params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
             params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
             params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
             params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
             params[4] = readUintFromEEPROM(&addreeprom); // Button number
             Stepper::Add(params[0], params[1], params[2], params[3], params[4]);
+            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            break;
+
+        case kTypeStepper:
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
+            params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
+            params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
+            params[4] = readUintFromEEPROM(&addreeprom); // Button number
+            params[5] = readUintFromEEPROM(&addreeprom); // TypeID
+            params[6] = readUintFromEEPROM(&addreeprom); // backlash
+            params[7] = readUintFromEEPROM(&addreeprom); // deactivate output
+            Stepper::Add(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
 #endif
