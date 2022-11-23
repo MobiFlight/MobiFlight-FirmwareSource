@@ -56,8 +56,8 @@ namespace Stepper
 
     void OnSet()
     {
-        uint8_t  stepper = (uint8_t)cmdMessenger.readInt16Arg();
-        long newPos  = cmdMessenger.readInt32Arg();
+        uint8_t stepper = (uint8_t)cmdMessenger.readInt16Arg();
+        long    newPos  = cmdMessenger.readInt32Arg();
 
         if (stepper >= steppersRegistered)
             return;

@@ -27,27 +27,27 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
     switch (typeID) {
     case Stepper::B28BYJ_OLD:
         // init new stepper in full 4 wire mode as before
-        type = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ;
-        Accel = STEPPER_ACCEL_B28BYJ;
+        Accel    = STEPPER_ACCEL_B28BYJ;
         break;
     case Stepper::B28BYJ_NEW:
         // init new stepper in full 4 wire mode
-        type = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ;
-        Accel = STEPPER_ACCEL_B28BYJ;
+        Accel    = STEPPER_ACCEL_B28BYJ;
         break;
     case Stepper::X27:
         // init new stepper in full 4 wire mode
-        type = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_X27;
-        Accel = STEPPER_ACCEL_X27;
+        Accel    = STEPPER_ACCEL_X27;
         break;
     case Stepper::DRIVER:
         // init new stepper in driver mode
-        type = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_DRIVER;
-        Accel = STEPPER_ACCEL_X27;
+        Accel    = STEPPER_ACCEL_X27;
         break;
     default:
         _initialized = false;
@@ -57,12 +57,12 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
     _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(type, pin4, pin2, pin1, pin3);
     _stepper->setMaxSpeed(maxSpeed);
     _stepper->setAcceleration(Accel);
-    
+
     _zeroPin      = btnPin5;
     _zeroPinState = HIGH;
 
     if (_zeroPin) {
-        pinMode(_zeroPin, INPUT_PULLUP); // set pin to input
+        pinMode(_zeroPin, INPUT_PULLUP);
     }
 
     _backlash         = backlash;
@@ -80,9 +80,9 @@ void MFStepper::moveTo(long newPosition)
 {
     _resetting = false;
     if (_targetPos != newPosition) {
-        if (_stepper->currentPosition() < _targetPos && _stepper->currentPosition() > newPosition) // moving in CW direction AND a change of direction
+        if (_targetPos > _stepper->currentPosition() && _stepper->currentPosition() > newPosition) // moving in CW direction AND a change of direction
             newPosition -= _backlash;
-        if (_stepper->currentPosition() > _targetPos && _stepper->currentPosition() < newPosition) // moving in CCW direction AND a change of direction
+        if (_targetPos < _stepper->currentPosition() && _stepper->currentPosition() < newPosition) // moving in CCW direction AND a change of direction
             newPosition += _backlash;
         _targetPos = newPosition;
         if (_deactivateOutput)
