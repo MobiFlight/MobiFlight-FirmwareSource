@@ -6,7 +6,13 @@
 
 #include "mobiflight.h"
 #include "MFStepper.h"
-#include "Stepper.h"
+
+enum {          // enumeration for typeID
+    B28BYJ_OLD, // init Stepper in FULL4WIRE for backwards compatibility
+    B28BYJ_NEW, // init Stepper in HALF4WIRE
+    X27,        // init Stepper in HALF4WIRE
+    DRIVER      // init Stepper in DRIVER
+};
 
 enum {
     MOVE_CCW = -1,
@@ -31,25 +37,27 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
     uint16_t Accel    = 0;
 
     switch (typeID) {
-    case Stepper::B28BYJ_OLD:
+    case B28BYJ_OLD:
         // init new stepper in full 4 wire mode as before
         type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ;
         Accel    = STEPPER_ACCEL_B28BYJ;
+        if (pin1 == pin3 && pin2 == pin4)   // for backwards compatibility
+            typeID = AccelStepper::DRIVER;
         break;
-    case Stepper::B28BYJ_NEW:
+    case B28BYJ_NEW:
         // init new stepper in full 4 wire mode
         type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ;
         Accel    = STEPPER_ACCEL_B28BYJ;
         break;
-    case Stepper::X27:
+    case X27:
         // init new stepper in full 4 wire mode
         type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_X27;
         Accel    = STEPPER_ACCEL_X27;
         break;
-    case Stepper::DRIVER:
+    case DRIVER:
         // init new stepper in driver mode
         type     = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_DRIVER;

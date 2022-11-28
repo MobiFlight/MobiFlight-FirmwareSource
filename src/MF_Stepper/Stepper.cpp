@@ -23,8 +23,6 @@ namespace Stepper
             cmdMessenger.sendCmd(kStatus, F("Stepper does not fit in Memory!"));
             return;
         }
-        if (pin1 == pin3 && pin2 == pin4) // for backwards compatibility
-            typeID = DRIVER;
 
         steppers[steppersRegistered] = new (allocateMemory(sizeof(MFStepper))) MFStepper;
         steppers[steppersRegistered]->attach(pin1, pin2, pin3, pin4, btnPin1, typeID, backlash, deactivateOutput);

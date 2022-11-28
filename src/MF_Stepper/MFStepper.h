@@ -11,6 +11,15 @@
 
 class MFStepper
 {
+#define STEPPER_SPEED_B28BYJ 400
+#define STEPPER_ACCEL_B28BYJ 800
+
+#define STEPPER_SPEED_X27 1600
+#define STEPPER_ACCEL_X27 4000
+
+#define STEPPER_SPEED_DRIVER 400
+#define STEPPER_ACCEL_DRIVER 800
+
 public:
     MFStepper();
     void    attach(uint8_t pin1 = 1, uint8_t pin2 = 2, uint8_t pin3 = 3, uint8_t pin4 = 4, uint8_t btnPin1 = 0, uint8_t type = 0, int8_t backlash = 0, bool deactivateOutput = false);
