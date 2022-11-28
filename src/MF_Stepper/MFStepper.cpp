@@ -40,8 +40,8 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
     case B28BYJ_OLD:
         // init new stepper in full 4 wire mode as before
         type     = AccelStepper::FULL4WIRE;
-        maxSpeed = STEPPER_SPEED_B28BYJ;
-        Accel    = STEPPER_ACCEL_B28BYJ;
+        maxSpeed = STEPPER_SPEED_B28BYJ_OLD;
+        Accel    = STEPPER_ACCEL_B28BYJ_OLD;
         if (pin1 == pin3 && pin2 == pin4)   // for backwards compatibility
             typeID = AccelStepper::DRIVER;
         break;
