@@ -47,19 +47,20 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         break;
     case B28BYJ_NEW:
         // init new stepper in full 4 wire mode
-        type     = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::HALF4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ;
         Accel    = STEPPER_ACCEL_B28BYJ;
         break;
     case X27:
         // init new stepper in full 4 wire mode
-        type     = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::HALF4WIRE;
         maxSpeed = STEPPER_SPEED_X27;
         Accel    = STEPPER_ACCEL_X27;
+    Serial.println("Init X27 MFStepper!");
         break;
     case DRIVER:
         // init new stepper in driver mode
-        type     = AccelStepper::FULL4WIRE;
+        type     = AccelStepper::DRIVER;
         maxSpeed = STEPPER_SPEED_DRIVER;
         Accel    = STEPPER_ACCEL_X27;
         break;
