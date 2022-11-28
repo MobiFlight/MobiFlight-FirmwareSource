@@ -11,17 +11,25 @@
 
 class MFStepper
 {
-#define STEPPER_SPEED_B28BYJ_OLD 400
-#define STEPPER_ACCEL_B28BYJ_OLD 800
+#define STEPPER_SPEED_B28BYJ_OLD       400
+#define STEPPER_ACCEL_B28BYJ_OLD       800
+#define STEPPER_DELTA_SPEED_B28BYJ_OLD 10
+#define STEPPER_DELTA_ACCEL_B28BYJ_OLD 10
 
-#define STEPPER_SPEED_B28BYJ 1600
-#define STEPPER_ACCEL_B28BYJ 4000
+#define STEPPER_SPEED_B28BYJ       1600
+#define STEPPER_ACCEL_B28BYJ       4000
+#define STEPPER_DELTA_SPEED_B28BYJ 2
+#define STEPPER_DELTA_ACCEL_B28BYJ 4
 
-#define STEPPER_SPEED_X27 1200  // 1300 is too fast
-#define STEPPER_ACCEL_X27 4000
+#define STEPPER_SPEED_X27       1300 // 1300 is too fast
+#define STEPPER_ACCEL_X27       4000
+#define STEPPER_DELTA_SPEED_X27 2
+#define STEPPER_DELTA_ACCEL_X27 4
 
-#define STEPPER_SPEED_DRIVER 400
-#define STEPPER_ACCEL_DRIVER 800
+#define STEPPER_SPEED_DRIVER       400
+#define STEPPER_ACCEL_DRIVER       800
+#define STEPPER_DELTA_SPEED_DRIVER 2
+#define STEPPER_DELTA_ACCEL_DRIVER 4
 
 public:
     MFStepper();
@@ -45,6 +53,7 @@ private:
     uint8_t       _backlash;
     bool          _deactivateOutput;
     int8_t        _inMove;
+    uint8_t       _type;
 
     void checkZeroPin(void);
     void setZeroInReset(void);
