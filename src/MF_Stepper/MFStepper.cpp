@@ -107,6 +107,7 @@ void MFStepper::moveTo(long newPosition)
             _inMove = MOVE_CCW;
         if (_deactivateOutput && _inMove == STOP)
             _stepper->enableOutputs();
+/*
         switch (_type) {
         case B28BYJ_OLD:
             deltaSpeed = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_SPEED_B28BYJ_OLD, STEPPER_SPEED_B28BYJ_OLD);
@@ -129,10 +130,9 @@ void MFStepper::moveTo(long newPosition)
             return;
             break;
         }
-        //        Serial.print("deltaSpeed: "); Serial.println(deltaSpeed);
-        //        Serial.print("deltaAccel: "); Serial.println(deltaAccel);
         _stepper->setMaxSpeed(deltaSpeed);
         _stepper->setAcceleration(deltaAccel);
+*/
         _stepper->moveTo(newPosition);
         _targetPos = newPosition;
     }
