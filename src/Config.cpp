@@ -236,7 +236,7 @@ void readConfig()
     uint16_t addreeprom   = MEM_OFFSET_CONFIG; // define first memory location where config is saved in EEPROM
     uint16_t addrbuffer   = 0;                 // and start with first memory location from nameBuffer
     char     params[6]    = "";
-    char     command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
+    uint8_t  command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
 
