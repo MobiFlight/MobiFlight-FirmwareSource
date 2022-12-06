@@ -375,7 +375,8 @@ void readConfig()
         }
         command = readUintFromEEPROM(&addreeprom);
     } while (command && copy_success);
-    if (!copy_success) { // too much/long names for input devices
+    if (!copy_success) { // EEPROM size exceeded while reading the config, might happen if EEPROM is corrupted
+        configActivated = false;
         cmdMessenger.sendCmd(kStatus, F("Failure on reading config"));
     }
 }
