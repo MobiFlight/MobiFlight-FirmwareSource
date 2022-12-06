@@ -38,7 +38,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
 
     switch (_type) {
     case B28BYJ_OLD:
-        // init new stepper in full 4 wire mode as before
+        // init B28BYJ stepper in full 4 wire mode as before
         _type    = AccelStepper::FULL4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ_OLD;
         Accel    = STEPPER_ACCEL_B28BYJ_OLD;
@@ -46,19 +46,19 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
             _type = AccelStepper::DRIVER;
         break;
     case B28BYJ_NEW:
-        // init new stepper in full 4 wire mode
+        // init B28BYJ stepper in half 4 wire mode as new standard
         _type    = AccelStepper::HALF4WIRE;
         maxSpeed = STEPPER_SPEED_B28BYJ;
         Accel    = STEPPER_ACCEL_B28BYJ;
         break;
     case X27:
-        // init new stepper in full 4 wire mode
+        // init new X27 stepper in half 4 wire mode
         _type    = AccelStepper::HALF4WIRE;
         maxSpeed = STEPPER_SPEED_X27;
         Accel    = STEPPER_ACCEL_X27;
         break;
     case DRIVER:
-        // init new stepper in driver mode
+        // init stepper in driver mode
         _type    = AccelStepper::DRIVER;
         maxSpeed = STEPPER_SPEED_DRIVER;
         Accel    = STEPPER_ACCEL_X27;
@@ -107,32 +107,6 @@ void MFStepper::moveTo(long newPosition)
             _inMove = MOVE_CCW;
         if (_deactivateOutput && _inMove == STOP)
             _stepper->enableOutputs();
-/*
-        switch (_type) {
-        case B28BYJ_OLD:
-            deltaSpeed = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_SPEED_B28BYJ_OLD, STEPPER_SPEED_B28BYJ_OLD);
-            deltaAccel = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_ACCEL_B28BYJ_OLD, STEPPER_ACCEL_B28BYJ_OLD);
-            break;
-        case B28BYJ_NEW:
-            deltaSpeed = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_SPEED_B28BYJ, STEPPER_SPEED_B28BYJ);
-            deltaAccel = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_ACCEL_B28BYJ, STEPPER_ACCEL_B28BYJ);
-            break;
-        case X27:
-            deltaSpeed = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_SPEED_X27, STEPPER_SPEED_X27);
-            deltaAccel = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_ACCEL_X27, STEPPER_ACCEL_X27);
-            break;
-        case DRIVER:
-            deltaSpeed = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_SPEED_DRIVER, STEPPER_SPEED_DRIVER);
-            deltaAccel = min(abs(newPosition - _stepper->currentPosition()) * STEPPER_DELTA_ACCEL_DRIVER, STEPPER_ACCEL_DRIVER);
-            break;
-        default:
-            _initialized = false;
-            return;
-            break;
-        }
-        _stepper->setMaxSpeed(deltaSpeed);
-        _stepper->setAcceleration(deltaAccel);
-*/
         _stepper->moveTo(newPosition);
         _targetPos = newPosition;
     }
