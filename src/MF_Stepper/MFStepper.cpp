@@ -68,7 +68,11 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         return;
         break;
     }
-    _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(_type, pin4, pin2, pin1, pin3);
+    if (_type == AccelStepper::DRIVER) {
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(_type, pin1, pin2);
+    } else {
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(_type, pin4, pin2, pin1, pin3);
+    }
     _stepper->setMaxSpeed(maxSpeed);
     _stepper->setAcceleration(Accel);
 
