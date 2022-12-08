@@ -96,8 +96,6 @@ void MFStepper::detach()
 
 void MFStepper::moveTo(long newPosition)
 {
-    uint16_t deltaSpeed;
-    uint16_t deltaAccel;
     _resetting = false;
 
     if (_targetPos != newPosition) {
