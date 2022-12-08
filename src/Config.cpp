@@ -466,7 +466,7 @@ void storeName()
 
 void restoreName()
 {
-    if (MFeeprom.read_char(MEM_OFFSET_NAME) != '#')
+    if (MFeeprom.read_byte(MEM_OFFSET_NAME) != '#')
         return;
 
     MFeeprom.read_block(MEM_OFFSET_NAME + 1, name, MEM_LEN_NAME - 1);
