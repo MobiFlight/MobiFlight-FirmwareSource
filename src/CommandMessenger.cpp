@@ -78,7 +78,7 @@ void attachCommandCallbacks()
     cmdMessenger.attach(kSetLcdDisplayI2C, LCDDisplay::OnSet);
 #endif
 
-#if MF_OUTPUT_SHIFTER_SUPPORT
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
     cmdMessenger.attach(kSetShiftRegisterPins, OutputShifter::OnSet);
 #endif
 
