@@ -83,10 +83,12 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         pinMode(_zeroPin, INPUT_PULLUP);
     }
 
-    _backlash         = backlash;
+    _backlash         = 40;
     _deactivateOutput = deactivateOutput;
     _initialized      = true;
     _resetting        = false;
+    _inMove           = MOVE_CCW;
+    _isStopped        = true;
 }
 
 void MFStepper::detach()
@@ -96,24 +98,75 @@ void MFStepper::detach()
 
 void MFStepper::moveTo(long newPosition)
 {
+    _resetting               = false;
+    uint8_t  newMoveDir      = MOVE_CW;
+    int8_t   backlash        = 0;
+    uint32_t currentPosition = _stepper->currentPosition();
+
+    if ( // we continue moving into the same CW direction
+        (_inMove == MOVE_CW && (newPosition + _backlash > _targetPos)) ||
+        // or we have a direction change CCW -> CW
+        (_inMove == MOVE_CCW && (newPosition > currentPosition))) {
+        backlash = _backlash;
+    }
+
+    newPosition += backlash;
+
+    if (_targetPos != newPosition) {
+        if (newPosition < _stepper->currentPosition()) {
+            newMoveDir = MOVE_CCW;
+        }
+        if (_deactivateOutput && _isStopped) {
+            _stepper->enableOutputs();
+        }
+
+        Serial.print("Alte Position: ");
+        Serial.println(_targetPos);
+        Serial.print("Neue Position: ");
+        Serial.println(newPosition);
+        Serial.println("----------------------------");
+
+        _stepper->moveTo(newPosition);
+        _isStopped = false;
+        _inMove    = newMoveDir;
+        _targetPos = newPosition;
+    }
+}
+/*
+void MFStepper::moveTo(long newPosition)
+{
     _resetting = false;
 
     if (_targetPos != newPosition) {
         if (_inMove == MOVE_CW && newPosition < _stepper->currentPosition()) // moving in CW direction AND a change of direction
+        {
             newPosition -= _backlash;
+            Serial.println("Move CW and change of direction");
+        }
         if (_inMove == MOVE_CCW && newPosition > _stepper->currentPosition()) // moving in CCW direction AND a change of direction
+        {
             newPosition += _backlash;
-        if (newPosition > _targetPos)
+            Serial.println("Move CW and change of direction");
+        }
+        if (newPosition > _targetPos) {
             _inMove = MOVE_CW;
-        else
+            Serial.println("Move CW");
+        } else {
             _inMove = MOVE_CCW;
-        if (_deactivateOutput && _inMove == STOP)
-            _stepper->enableOutputs();
+            Serial.println("Move CCW");
+        }
+        //    if (_deactivateOutput && _inMove == STOP)
+        _stepper->enableOutputs();
+        Serial.print("Alte Position: ");
+        Serial.println(_targetPos);
+        Serial.print("Neue Position: ");
+        Serial.println(newPosition);
+        Serial.println("----------------------------");
         _stepper->moveTo(newPosition);
         _targetPos = newPosition;
     }
 }
-
+*/
 uint8_t MFStepper::getZeroPin()
 {
     return _zeroPin;
@@ -147,7 +200,7 @@ void MFStepper::update()
     checkZeroPin();
     if (_stepper->currentPosition() == _targetPos && _deactivateOutput) {
         _stepper->disableOutputs();
-        _inMove = STOP;
+        _isStopped = true;
     }
 }
 
