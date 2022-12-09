@@ -7,16 +7,15 @@
 #include "mobiflight.h"
 #include "MFStepper.h"
 
-enum {          // enumeration for stepper mode
+enum { // enumeration for stepper mode
     FULL4WIRE,
     HALF4WIRE,
     DRIVER
 };
 
 enum {
-    MOVE_CCW = -1,
-    STOP,
-    MOVE_CW
+    MOVE_CCW = false,
+    MOVE_CW = true
 };
 
 MFStepper::MFStepper()
@@ -31,13 +30,11 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
         return;
     }
-    _mode             = mode;
     uint16_t maxSpeed = 0;
     uint16_t Accel    = 0;
 
-    switch (_mode) {
+    switch (mode) {
     case FULL4WIRE:
-        // init B28BYJ stepper in full 4 wire mode as before
         maxSpeed = STEPPER_SPEED;
         Accel    = STEPPER_ACCEL;
         if (pin1 == pin3 && pin2 == pin4) // for backwards compatibility
@@ -46,13 +43,11 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
             _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
         break;
     case HALF4WIRE:
-        // init stepper in half 4 wire mode as new standard
         _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3);
         maxSpeed = STEPPER_SPEED;
         Accel    = STEPPER_ACCEL;
         break;
     case DRIVER:
-        // init stepper in driver mode
         _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2);
         maxSpeed = STEPPER_SPEED;
         Accel    = STEPPER_ACCEL;
@@ -65,7 +60,6 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
 
     _stepper->setMaxSpeed(maxSpeed);
     _stepper->setAcceleration(Accel);
-
     _zeroPin      = btnPin5;
     _zeroPinState = HIGH;
 
@@ -73,12 +67,12 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         pinMode(_zeroPin, INPUT_PULLUP);
     }
 
-    _backlash         = 40;
+    _backlash         = 0;
     _deactivateOutput = deactivateOutput;
     _initialized      = true;
     _resetting        = false;
-    _inMove           = MOVE_CCW;
     _isStopped        = true;
+    _inMove           = MOVE_CW;
 }
 
 void MFStepper::detach()
@@ -89,76 +83,37 @@ void MFStepper::detach()
 void MFStepper::moveTo(long newPosition)
 {
     _resetting               = false;
-    uint8_t  newMoveDir      = MOVE_CW;
-    int8_t   backlash        = 0;
-    uint32_t currentPosition = _stepper->currentPosition();
-
-    if ( // we continue moving into the same CW direction
-        (_inMove == MOVE_CW && (newPosition + _backlash > _targetPos)) ||
-        // or we have a direction change CCW -> CW
-        (_inMove == MOVE_CCW && (newPosition > currentPosition))) {
-        backlash = _backlash;
-    }
-
-    newPosition += backlash;
+    long currentPosition = _stepper->currentPosition();
 
     if (_targetPos != newPosition) {
-        if (newPosition < _stepper->currentPosition()) {
-            newMoveDir = MOVE_CCW;
-        }
         if (_deactivateOutput && _isStopped) {
             _stepper->enableOutputs();
+            _isStopped = false;
         }
-
-        Serial.print("Alte Position: ");
-        Serial.println(_targetPos);
-        Serial.print("Neue Position: ");
-        Serial.println(newPosition);
-        Serial.println("----------------------------");
-
-        _stepper->moveTo(newPosition);
-        _isStopped = false;
-        _inMove    = newMoveDir;
-        _targetPos = newPosition;
-    }
-}
-/*
-void MFStepper::moveTo(long newPosition)
-{
-    _resetting = false;
-
-    if (_targetPos != newPosition) {
-    /*
-        if (_inMove == MOVE_CW && newPosition < _stepper->currentPosition()) // moving in CW direction AND a change of direction
-        {
-            newPosition -= _backlash;
-            Serial.println("Move CW and change of direction");
-        }
-        if (_inMove == MOVE_CCW && newPosition > _stepper->currentPosition()) // moving in CCW direction AND a change of direction
-        {
-            newPosition += _backlash;
-            Serial.println("Move CW and change of direction");
-        }
-        if (newPosition > _targetPos) {
-            _inMove = MOVE_CW;
-            Serial.println("Move CW");
+        if (_inMove == MOVE_CW) {
+            if (newPosition > min(currentPosition, _targetPos))
+                _inMove = MOVE_CW;
+            else
+                _inMove = MOVE_CCW;
         } else {
-            _inMove = MOVE_CCW;
-            Serial.println("Move CCW");
+            if (newPosition > max(currentPosition, _targetPos))
+                _inMove = MOVE_CW;
+            else
+                _inMove = MOVE_CCW;
         }
-        //    if (_deactivateOutput && _inMove == STOP)
-        _stepper->enableOutputs();
-        Serial.print("Alte Position: ");
-        Serial.println(_targetPos);
-        Serial.print("Neue Position: ");
-        Serial.println(newPosition);
+/*
+        Serial.print("Alte Position: "); Serial.println(_targetPos);
+        Serial.print("Current Position: "); Serial.println(currentPosition);
+        Serial.print("Neue Position: "); Serial.println(newPosition);
+        Serial.print("Fahre zu Position: "); Serial.println(newPosition + _backlash * _inMove);
+        Serial.print("Richtung ist: "); Serial.println(_inMove);
         Serial.println("----------------------------");
-        _stepper->moveTo(newPosition);
+*/
+        _stepper->moveTo(newPosition + _backlash * _inMove);
         _targetPos = newPosition;
-        _inMove = 1; //must also be changed with reworking of backlash considering, just to have a working function w/o backlash
     }
 }
-*/
+
 uint8_t MFStepper::getZeroPin()
 {
     return _zeroPin;
@@ -190,7 +145,7 @@ void MFStepper::update()
 {
     _stepper->run();
     checkZeroPin();
-    if (_stepper->currentPosition() == _targetPos && _deactivateOutput) {
+    if (_stepper->currentPosition() == (_targetPos + _backlash * _inMove) && _deactivateOutput) {
         _stepper->disableOutputs();
         _isStopped = true;
     }
