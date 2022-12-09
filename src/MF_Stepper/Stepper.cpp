@@ -13,7 +13,7 @@ namespace Stepper
     MFStepper *steppers[MAX_STEPPERS];
     uint8_t    steppersRegistered = 0;
 
-    void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t typeID, int8_t backlash, bool deactivateOutput)
+    void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t mode, int8_t backlash, bool deactivateOutput)
     {
         if (steppersRegistered == MAX_STEPPERS)
             return;
@@ -25,7 +25,7 @@ namespace Stepper
         }
 
         steppers[steppersRegistered] = new (allocateMemory(sizeof(MFStepper))) MFStepper;
-        steppers[steppersRegistered]->attach(pin1, pin2, pin3, pin4, btnPin1, typeID, backlash, deactivateOutput);
+        steppers[steppersRegistered]->attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput);
 
         // autoreset is not released yet
         if (btnPin1 > 0) {

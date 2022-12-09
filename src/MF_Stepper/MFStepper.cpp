@@ -7,11 +7,10 @@
 #include "mobiflight.h"
 #include "MFStepper.h"
 
-enum {          // enumeration for type
-    B28BYJ_OLD, // init Stepper in FULL4WIRE for backwards compatibility
-    B28BYJ_NEW, // init Stepper in HALF4WIRE
-    X27,        // init Stepper in HALF4WIRE
-    DRIVER      // init Stepper in DRIVER
+enum {          // enumeration for stepper mode
+    FULL4WIRE,
+    HALF4WIRE,
+    DRIVER
 };
 
 enum {
@@ -25,54 +24,45 @@ MFStepper::MFStepper()
     _initialized = false;
 }
 
-void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t typeID, int8_t backlash, bool deactivateOutput)
+void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t mode, int8_t backlash, bool deactivateOutput)
 {
     if (!FitInMemory(sizeof(AccelStepper))) {
         // Error Message to Connector
         cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
         return;
     }
-    _type             = typeID;
+    _mode             = mode;
     uint16_t maxSpeed = 0;
     uint16_t Accel    = 0;
 
-    switch (_type) {
-    case B28BYJ_OLD:
+    switch (_mode) {
+    case FULL4WIRE:
         // init B28BYJ stepper in full 4 wire mode as before
-        _type    = AccelStepper::FULL4WIRE;
-        maxSpeed = STEPPER_SPEED_B28BYJ_OLD;
-        Accel    = STEPPER_ACCEL_B28BYJ_OLD;
+        maxSpeed = STEPPER_SPEED;
+        Accel    = STEPPER_ACCEL;
         if (pin1 == pin3 && pin2 == pin4) // for backwards compatibility
-            _type = AccelStepper::DRIVER;
+            _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin2, pin1, pin3);
+        else
+            _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
         break;
-    case B28BYJ_NEW:
-        // init B28BYJ stepper in half 4 wire mode as new standard
-        _type    = AccelStepper::HALF4WIRE;
-        maxSpeed = STEPPER_SPEED_B28BYJ;
-        Accel    = STEPPER_ACCEL_B28BYJ;
-        break;
-    case X27:
-        // init new X27 stepper in half 4 wire mode
-        _type    = AccelStepper::HALF4WIRE;
-        maxSpeed = STEPPER_SPEED_X27;
-        Accel    = STEPPER_ACCEL_X27;
+    case HALF4WIRE:
+        // init stepper in half 4 wire mode as new standard
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::HALF4WIRE, pin4, pin2, pin1, pin3);
+        maxSpeed = STEPPER_SPEED;
+        Accel    = STEPPER_ACCEL;
         break;
     case DRIVER:
         // init stepper in driver mode
-        _type    = AccelStepper::DRIVER;
-        maxSpeed = STEPPER_SPEED_DRIVER;
-        Accel    = STEPPER_ACCEL_X27;
+        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2);
+        maxSpeed = STEPPER_SPEED;
+        Accel    = STEPPER_ACCEL;
         break;
     default:
         _initialized = false;
         return;
         break;
     }
-    if (_type == AccelStepper::DRIVER) {
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(_type, pin1, pin2);
-    } else {
-        _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(_type, pin4, pin2, pin1, pin3);
-    }
+
     _stepper->setMaxSpeed(maxSpeed);
     _stepper->setAcceleration(Accel);
 
@@ -99,6 +89,7 @@ void MFStepper::moveTo(long newPosition)
     _resetting = false;
 
     if (_targetPos != newPosition) {
+    /*
         if (_inMove == MOVE_CW && newPosition < _stepper->currentPosition()) // moving in CW direction AND a change of direction
             newPosition -= _backlash;
         if (_inMove == MOVE_CCW && newPosition > _stepper->currentPosition()) // moving in CCW direction AND a change of direction
@@ -107,10 +98,12 @@ void MFStepper::moveTo(long newPosition)
             _inMove = MOVE_CW;
         else
             _inMove = MOVE_CCW;
+    */
         if (_deactivateOutput && _inMove == STOP)
             _stepper->enableOutputs();
         _stepper->moveTo(newPosition);
         _targetPos = newPosition;
+        _inMove = 1; //must also be changed with reworking of backlash considering, just to have a working function w/o backlash
     }
 }
 

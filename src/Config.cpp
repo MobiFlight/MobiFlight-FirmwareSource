@@ -297,9 +297,11 @@ void readConfig()
             params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
             params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
             params[4] = readUintFromEEPROM(&addreeprom); // Button number
-            params[5] = readUintFromEEPROM(&addreeprom); // TypeID
+            params[5] = readUintFromEEPROM(&addreeprom); // Stepper Mode
             params[6] = readUintFromEEPROM(&addreeprom); // backlash
             params[7] = readUintFromEEPROM(&addreeprom); // deactivate output
+            // there is an additional 9th parameter stored in the config (profileID) which is not needed in the firmware
+            // and therefor not read in, it is just skipped like the name with reading until end of command
             Stepper::Add(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
