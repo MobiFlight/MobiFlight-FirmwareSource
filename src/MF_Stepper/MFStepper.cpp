@@ -103,34 +103,38 @@ void MFStepper::moveTo(long newPosition)
                 _inMove = MOVE_CCW;
         }
 */
-
 /*
         if (_inMove == MOVE_CW) {
+    // this if clause is the same as above but not using min() finction
             if (newPosition > currentPosition || newPosition > _targetPos)
                 _inMove = MOVE_CW;
             else
                 _inMove = MOVE_CCW;
         } else {
+    // this if clause is the same as above but not using max() finction
             if (newPosition < currentPosition || newPosition < _targetPos)
                 _inMove = MOVE_CCW;
             else
                 _inMove = MOVE_CW;
         }
 */
-
 /*
         if (_inMove == MOVE_CW) {
+    // only the else from above is required as only in this case _inMove is changed
+    // so it can be transferred in this if clause
             if (newPosition < currentPosition && newPosition < _targetPos)
                 _inMove = MOVE_CCW;
         } else {
+    // only the else from above is required as only in this case _inMove is changed
+    // so it can be transferred in this if clause
             if (newPosition > currentPosition && newPosition > _targetPos)
                 _inMove = MOVE_CW;
         }
 */
-
+    // And now the first if clause is moved into the second if clause
         if (_inMove == MOVE_CW && newPosition < currentPosition && newPosition < _targetPos)
             _inMove = MOVE_CCW;
-
+    // And now the first if clause is moved into the second if clause
         if (_inMove == MOVE_CCW && newPosition > currentPosition && newPosition > _targetPos)
             _inMove = MOVE_CW;
 
