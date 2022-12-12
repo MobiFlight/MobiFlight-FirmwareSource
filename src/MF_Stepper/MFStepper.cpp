@@ -15,7 +15,7 @@ enum { // enumeration for stepper mode
 
 enum {
     MOVE_CCW = false,
-    MOVE_CW = true
+    MOVE_CW  = true
 };
 
 MFStepper::MFStepper()
@@ -35,7 +35,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
 
     switch (mode) {
     case FULL4WIRE:
-        maxSpeed = STEPPER_SPEED;
+        maxSpeed = 100; // STEPPER_SPEED;
         Accel    = STEPPER_ACCEL;
         if (pin1 == pin3 && pin2 == pin4) // for backwards compatibility
             _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin2, pin1, pin3);
@@ -67,7 +67,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         pinMode(_zeroPin, INPUT_PULLUP);
     }
 
-    _backlash         = 0;
+    _backlash         = 40;
     _deactivateOutput = deactivateOutput;
     _initialized      = true;
     _resetting        = false;
@@ -82,7 +82,7 @@ void MFStepper::detach()
 
 void MFStepper::moveTo(long newPosition)
 {
-    _resetting               = false;
+    _resetting           = false;
     long currentPosition = _stepper->currentPosition();
 
     if (_targetPos != newPosition) {
@@ -90,6 +90,7 @@ void MFStepper::moveTo(long newPosition)
             _stepper->enableOutputs();
             _isStopped = false;
         }
+/*
         if (_inMove == MOVE_CW) {
             if (newPosition > min(currentPosition, _targetPos))
                 _inMove = MOVE_CW;
@@ -101,14 +102,50 @@ void MFStepper::moveTo(long newPosition)
             else
                 _inMove = MOVE_CCW;
         }
-/*
-        Serial.print("Alte Position: "); Serial.println(_targetPos);
-        Serial.print("Current Position: "); Serial.println(currentPosition);
-        Serial.print("Neue Position: "); Serial.println(newPosition);
-        Serial.print("Fahre zu Position: "); Serial.println(newPosition + _backlash * _inMove);
-        Serial.print("Richtung ist: "); Serial.println(_inMove);
-        Serial.println("----------------------------");
 */
+
+/*
+        if (_inMove == MOVE_CW) {
+            if (newPosition > currentPosition || newPosition > _targetPos)
+                _inMove = MOVE_CW;
+            else
+                _inMove = MOVE_CCW;
+        } else {
+            if (newPosition < currentPosition || newPosition < _targetPos)
+                _inMove = MOVE_CCW;
+            else
+                _inMove = MOVE_CW;
+        }
+*/
+
+/*
+        if (_inMove == MOVE_CW) {
+            if (newPosition < currentPosition && newPosition < _targetPos)
+                _inMove = MOVE_CCW;
+        } else {
+            if (newPosition > currentPosition && newPosition > _targetPos)
+                _inMove = MOVE_CW;
+        }
+*/
+
+        if (_inMove == MOVE_CW && newPosition < currentPosition && newPosition < _targetPos)
+            _inMove = MOVE_CCW;
+
+        if (_inMove == MOVE_CCW && newPosition > currentPosition && newPosition > _targetPos)
+            _inMove = MOVE_CW;
+
+        Serial.print("Alte Position: ");
+        Serial.println(_targetPos);
+        Serial.print("Current Position: ");
+        Serial.println(currentPosition);
+        Serial.print("Neue Position: ");
+        Serial.println(newPosition);
+        Serial.print("Fahre zu Position: ");
+        Serial.println(newPosition + _backlash * _inMove);
+        Serial.print("Richtung ist: ");
+        Serial.println(_inMove);
+        Serial.println("----------------------------");
+
         _stepper->moveTo(newPosition + _backlash * _inMove);
         _targetPos = newPosition;
     }
