@@ -54,8 +54,7 @@ enum {
     kEncoderChange,                // 101
     kAnalogChange,                 // 102
     kInputShifterChange,           // 103
-    kInputShifterChange,           // 104
-    kDigInMuxChange,               // 105
+    kDigInMuxChange,               // 104
     kDebug = 0xFF                  // 255
 };
 
