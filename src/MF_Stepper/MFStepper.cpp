@@ -14,8 +14,8 @@ enum { // enumeration for stepper mode
 };
 
 enum {
-    MOVE_CCW = false,
-    MOVE_CW  = true
+    MOVE_CCW,
+    MOVE_CW
 };
 
 MFStepper::MFStepper()
