@@ -27,7 +27,6 @@ namespace Stepper
         steppers[steppersRegistered] = new (allocateMemory(sizeof(MFStepper))) MFStepper;
         steppers[steppersRegistered]->attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput);
 
-        // autoreset is not released yet
         if (btnPin1 > 0) {
             // this triggers the auto reset if we need to reset
             steppers[steppersRegistered]->reset();
