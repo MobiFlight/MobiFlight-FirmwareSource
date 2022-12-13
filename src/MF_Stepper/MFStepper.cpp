@@ -35,10 +35,10 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
 
     switch (mode) {
     case FULL4WIRE:
-        maxSpeed = 100; // STEPPER_SPEED;
+        maxSpeed = STEPPER_SPEED;
         Accel    = STEPPER_ACCEL;
         if (pin1 == pin3 && pin2 == pin4) // for backwards compatibility
-            _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin4, pin2, pin1, pin3);
+            _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::DRIVER, pin1, pin2);
         else
             _stepper = new (allocateMemory(sizeof(AccelStepper))) AccelStepper(AccelStepper::FULL4WIRE, pin4, pin2, pin1, pin3);
         break;
@@ -67,7 +67,7 @@ void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, u
         pinMode(_zeroPin, INPUT_PULLUP);
     }
 
-    _backlash         = 40;
+    _backlash         = backlash;
     _deactivateOutput = deactivateOutput;
     _initialized      = true;
     _resetting        = false;
