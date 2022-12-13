@@ -90,65 +90,10 @@ void MFStepper::moveTo(long newPosition)
             _stepper->enableOutputs();
             _isStopped = false;
         }
-/*
-        if (_inMove == MOVE_CW) {
-            if (newPosition > min(currentPosition, _targetPos))
-                _inMove = MOVE_CW;
-            else
-                _inMove = MOVE_CCW;
-        } else {
-            if (newPosition > max(currentPosition, _targetPos))
-                _inMove = MOVE_CW;
-            else
-                _inMove = MOVE_CCW;
-        }
-*/
-/*
-        if (_inMove == MOVE_CW) {
-    // this if clause is the same as above but not using min() finction
-            if (newPosition > currentPosition || newPosition > _targetPos)
-                _inMove = MOVE_CW;
-            else
-                _inMove = MOVE_CCW;
-        } else {
-    // this if clause is the same as above but not using max() finction
-            if (newPosition < currentPosition || newPosition < _targetPos)
-                _inMove = MOVE_CCW;
-            else
-                _inMove = MOVE_CW;
-        }
-*/
-/*
-        if (_inMove == MOVE_CW) {
-    // only the else from above is required as only in this case _inMove is changed
-    // so it can be transferred in this if clause
-            if (newPosition < currentPosition && newPosition < _targetPos)
-                _inMove = MOVE_CCW;
-        } else {
-    // only the else from above is required as only in this case _inMove is changed
-    // so it can be transferred in this if clause
-            if (newPosition > currentPosition && newPosition > _targetPos)
-                _inMove = MOVE_CW;
-        }
-*/
-    // And now the first if clause is moved into the second if clause
         if (_inMove == MOVE_CW && newPosition < currentPosition && newPosition < _targetPos)
             _inMove = MOVE_CCW;
-    // And now the first if clause is moved into the second if clause
         if (_inMove == MOVE_CCW && newPosition > currentPosition && newPosition > _targetPos)
             _inMove = MOVE_CW;
-
-        Serial.print("Alte Position: ");
-        Serial.println(_targetPos);
-        Serial.print("Current Position: ");
-        Serial.println(currentPosition);
-        Serial.print("Neue Position: ");
-        Serial.println(newPosition);
-        Serial.print("Fahre zu Position: ");
-        Serial.println(newPosition + _backlash * _inMove);
-        Serial.print("Richtung ist: ");
-        Serial.println(_inMove);
-        Serial.println("----------------------------");
 
         _stepper->moveTo(newPosition + _backlash * _inMove);
         _targetPos = newPosition;
