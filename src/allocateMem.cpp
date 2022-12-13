@@ -8,11 +8,10 @@
 
 #if defined (ARDUINO_ARCH_AVR)
 uint8_t     deviceBuffer[MF_MAX_DEVICEMEM] = {0};
-#elif defined(ARDUINO_ARCH_RP2040)
-std::size_t    deviceBuffer[MF_MAX_DEVICEMEM] = {0};
 #else
 std::size_t    deviceBuffer[MF_MAX_DEVICEMEM] = {0};
 #endif
+
 uint16_t nextPointer                    = 0;
 
 #if defined (ARDUINO_ARCH_AVR)
