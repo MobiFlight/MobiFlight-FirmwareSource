@@ -72,7 +72,6 @@ void _activateConfig();
 // reads the EEPROM until NUL terminator and returns the number of characters incl. terminator, starting from given address
 bool readConfigLength()
 {
-    char     temp       = 0;
     uint16_t addreeprom = MEM_OFFSET_CONFIG;
     uint16_t length     = MFeeprom.get_length();
     configLength        = 0;
