@@ -13,26 +13,26 @@
       "EEPROMSize": 1496,
       "ExtraConnectionRetry": false,
       "ForceResetOnFirmwareUpdate": true,
-      "MessageSize": 64
+      "MessageSize": 96
     },
     "HardwareIds": ["^VID_2E8A&PID_000A"],
     "Info": {
       "CanInstallFirmware": true,
       "FriendlyName": "RaspiPico",
-      "LatestFirmwareVersion": "2.2.2",
+      "LatestFirmwareVersion": "2.3.0",
       "MobiFlightType": "MobiFlight RaspiPico"
     },
     "ModuleLimits": {
-      "MaxAnalogInputs": 16,
+      "MaxAnalogInputs": 3,
       "MaxInputShifters": 4,
-      "MaxButtons": 68,
-      "MaxEncoders": 20,
+      "MaxButtons": 26,
+      "MaxEncoders": 8,
       "MaxLcdI2C": 2,
       "MaxLedSegments": 4,
-      "MaxOutputs": 40,
-      "MaxServos": 10,
+      "MaxOutputs": 26,
+      "MaxServos": 8,
       "MaxShifters": 4,
-      "MaxSteppers": 10,
+      "MaxSteppers": 6,
       "MaxInputMultiplexer": 2
     },
     "Pins": [
@@ -64,12 +64,14 @@
         "isAnalog": false,
         "isI2C": true,
         "isPWM": true,
+        "Name": "4/I2C",
         "Pin": 4
       },
       {
         "isAnalog": false,
         "isI2C": true,
         "isPWM": true,
+        "Name": "5/I2C",
         "Pin": 5
       },
       {

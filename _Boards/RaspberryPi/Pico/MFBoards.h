@@ -30,12 +30,12 @@
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
 
-#define MAX_OUTPUTS         15
+#define MAX_OUTPUTS         26
 #define MAX_BUTTONS         26
-#define MAX_LEDSEGMENTS     2
-#define MAX_ENCODERS        12
-#define MAX_STEPPERS        4
-#define MAX_MFSERVOS        4
+#define MAX_LEDSEGMENTS     4
+#define MAX_ENCODERS        8
+#define MAX_STEPPERS        6
+#define MAX_MFSERVOS        8
 #define MAX_MFLCD_I2C       2
 #define MAX_ANALOG_INPUTS   3
 #define MAX_OUTPUT_SHIFTERS 4
