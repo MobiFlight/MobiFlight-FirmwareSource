@@ -100,6 +100,14 @@ namespace Stepper
             steppers[i]->update();
         }
     }
+
+    void PowerSave(bool state)
+    {
+        for (uint8_t i = 0; i < steppersRegistered; ++i) {
+            steppers[i]->powerSavingMode(state);
+        }
+    }
+
 } // namespace
 
 // Stepper.cpp

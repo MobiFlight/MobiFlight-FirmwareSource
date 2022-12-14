@@ -164,4 +164,12 @@ void MFStepper::setAcceleration(uint16_t acceleration)
     _stepper->setAcceleration(acceleration);
 }
 
+void MFStepper::powerSavingMode(bool state)
+{
+    if (state)
+        _stepper->disableOutputs();
+    else
+        _stepper->enableOutputs();
+}
+
 // MFStepper.cpp

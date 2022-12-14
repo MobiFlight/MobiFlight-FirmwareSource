@@ -15,6 +15,7 @@ namespace Stepper
     void OnSetZero();
     void update();
     void OnSetSpeedAccel();
+    void PowerSave(bool state);
 }
 
 // Stepper.h

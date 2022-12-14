@@ -25,6 +25,7 @@ public:
     void    setAcceleration(uint16_t acceleration);
     void    setZero();
     uint8_t getZeroPin();
+    void    powerSavingMode(bool state);
 
 private:
     bool          _initialized;
