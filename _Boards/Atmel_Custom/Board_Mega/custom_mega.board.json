@@ -2,7 +2,7 @@
   "$schema": "./mfboard.schema.json",
   "AvrDudeSettings": {
     "Device": "atmega2560",
-    "BaudRate": "115200",
+    "BaudRates": [ "115200" ],
     "Programmer": "wiring",
     "FirmwareBaseName": "mobiflight_custom_mega",
     "ResetFirmwareFile": "reset.arduino_mega_1_0_2.hex",
@@ -34,7 +34,7 @@
     "^VID_04D9&PID_B534"
   ],
   "Info": {
-    "CanInstallFirmware": false,
+    "CanInstallFirmware": true,
     "DelayAfterFirmwareUpdate": 0,
     "LatestFirmwareVersion": "0.0.1",
     "FriendlyName": "Arduino Mega 2560",

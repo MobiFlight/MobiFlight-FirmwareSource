@@ -1,8 +1,9 @@
 {
   "$schema": "./mfboard.schema.json",
   "AvrDudeSettings": {
+    "Attempts": 1,
     "Device": "atmega328p",
-    "BaudRate": "115200",
+    "BaudRates": [ "115200" ],
     "Programmer": "arduino",
     "FirmwareBaseName": "mobiflight_custom_uno",
     "Timeout": 15000,
@@ -22,10 +23,12 @@
     "^VID_2A03&PID_0043",
     "^VID_2341&PID_0243",
     "^VID_2341&PID_0001",
-    "^VID_1A86&PID_7523"
+    "^VID_1A86&PID_7523",
+    "^VID_0403&PID_6001",
+    "^VID_0403\\+PID_6001\\+.+"
   ],
   "Info": {
-    "CanInstallFirmware": false,
+    "CanInstallFirmware": true,
     "FriendlyName": "Arduino Uno",
     "LatestFirmwareVersion": "0.0.1",
     "MobiFlightType": "Custom Uno"
