@@ -52,9 +52,9 @@ extern MFMuxDriver MUX;
 const uint8_t MEM_OFFSET_NAME   = 0;
 const uint8_t MEM_LEN_NAME      = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
-#if defined (ARDUINO_ARCH_AVR)
+#if defined(ARDUINO_ARCH_AVR)
 const uint8_t MEM_LEN_SERIAL    = 11;
-#else if defined (ARDIUNO_ARCH_RP2040)
+#elif defined(ARDUINO_ARCH_RP2040)
 // Pico has a unique 64-bit device identifier which is retrieved from the external NOR flash device at boot.
 // These 8 bytes are transferred to characters, so 16 bytes are required
 // Additionally 3 bytes for "SN-" and one byte for the NULL terminator is required
@@ -445,17 +445,19 @@ bool getStatusConfig()
 // ************************************************************
 void generateSerial(bool force)
 {
+#if defined(ARDUINO_ARCH_AVR)
     MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
     if (!force && serial[0] == 'S' && serial[1] == 'N')
         return;
-#if defined (ARDUINO_ARCH_AVR)
     randomSeed(analogRead(RANDOM_SEED_INPUT));
     sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
     sprintf(&serial[7], "%03x", (unsigned int)random(4095));
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-#else if defined (ARDIUNO_ARCH_RP2040)
+#elif defined(ARDUINO_ARCH_RP2040)
     sprintf(serial, "SN-");
     pico_get_unique_board_id_string(&serial[3], MEM_LEN_SERIAL - 3);
+    if (!force && MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'S' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'N')
+        return;
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "SN", 2);
 #endif
     if (!force) {
