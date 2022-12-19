@@ -54,6 +54,4 @@
 #define MEMLEN_NAMES_BUFFER     1000    // max. size for configBuffer, contains only names from inputs
 #define MF_MAX_DEVICEMEM        2000    // max. memory size for devices
 
-#define RANDOM_SEED_INPUT   A0      // better to have randomSeed(analogRead(RANDOM_SEED_INPUT)); in generateSerial(), "0" is not valid for all HW platforms
-
 #endif
