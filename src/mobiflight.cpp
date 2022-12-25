@@ -9,6 +9,7 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "MFEEPROM.h"
+#include "ArduinoUniqueID.h"
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
@@ -153,6 +154,17 @@ void setup()
     cmdMessenger.printLfCr();
     ResetBoard();
     initPollIntervals();
+
+    Serial.print("UniqueID: ");
+	for (size_t i = 0; i < UniqueIDsize; i++)
+	{
+		if (UniqueID[i] < 0x10)
+			Serial.print("0");
+		Serial.print(UniqueID[i], HEX);
+		Serial.print(" ");
+	}
+	Serial.println();
+
 }
 
 // ************************************************************
