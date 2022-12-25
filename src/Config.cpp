@@ -6,10 +6,10 @@
 
 #include "mobiflight.h"
 #include "MFEEPROM.h"
-
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
+#include "ArduinoUniqueID.h"
 
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
@@ -55,12 +55,12 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char      serial[MEM_LEN_SERIAL]     = MOBIFLIGHT_SERIAL;
-char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG] = "";
-uint16_t  configLength               = 0;
-boolean   configActivated            = false;
+char      serial[UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL;
+char      name[MEM_LEN_NAME]           = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG               = MEMLEN_CONFIG;
+char      nameBuffer[MEM_LEN_CONFIG]   = "";
+uint16_t  configLength                 = 0;
+boolean   configActivated              = false;
 
 void resetConfig();
 void readConfig();
@@ -437,15 +437,32 @@ bool getStatusConfig()
 // ************************************************************
 void generateSerial(bool force)
 {
-    MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-    if (!force && serial[0] == 'S' && serial[1] == 'N')
+    // A serial number according old style is already generated and saved to the eeprom
+    // So keep it to avoid a connector message with orphaned board
+    if (!force && serial[0] == 'S' && serial[1] == 'N') {
+        MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
-    randomSeed(analogRead(RANDOM_SEED_INPUT));
-    sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
-    sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-    MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+    }
+    // A serial number according the uniqueID is already available, so read it
+    if (!force && serial[0] == 'I' && serial[1] == 'D') {
+        sprintf(serial, "SN-");
+        for (size_t i = 0; i < UniqueIDsize; i++) {
+            serial[3 + i] = UniqueID[i]; // ToDo: transfer Unique ID to a string
+        }
+        return;
+    }
+    // A serial number was not generated so far on first start up
+    // So read the unique ID
+    sprintf(serial, "SN-");
+    for (size_t i = 0; i < UniqueIDsize; i++) {
+        serial[3 + i] = UniqueID[i]; // ToDo: transfer Unique ID to a string
+    }
+    // and mark this in the eeprom
+    MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
+    // Set first byte of config to 0x00 to ensure with empty config on 1st start up
+    // But not if forced from the connector to generate a new one
     if (!force) {
-        MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
+        MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
     }
 }
 
