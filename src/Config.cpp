@@ -447,15 +447,31 @@ void generateSerial(bool force)
     if (!force && serial[0] == 'I' && serial[1] == 'D') {
         sprintf(serial, "SN-");
         for (size_t i = 0; i < UniqueIDsize; i++) {
-            serial[3 + i] = UniqueID[i]; // ToDo: transfer Unique ID to a string
+            /*
+                        if (UniqueID[i] < 0x10) {
+                            sprintf(&serial[3 + i], "0");
+                            sprintf(&serial[3 + i + 1], "%X", UniqueID[i]);
+                        } else {
+                            sprintf(&serial[3 + i], "%X", UniqueID[i]);
+                        }
+            */
+            sprintf(&serial[3 + i * 2], "%2X", UniqueID[i]);
         }
         return;
     }
-    // A serial number was not generated so far on first start up
+    // A serial number was not generated so far on first start up or it is forced to generate a new one
     // So read the unique ID
     sprintf(serial, "SN-");
     for (size_t i = 0; i < UniqueIDsize; i++) {
-        serial[3 + i] = UniqueID[i]; // ToDo: transfer Unique ID to a string
+        /*
+                if (UniqueID[i] < 0x10) {
+                    sprintf(&serial[3 + i], "0");
+                    sprintf(&serial[3 + i + 1], "%X", UniqueID[i]);
+                } else {
+                    sprintf(&serial[3 + i], "%X", UniqueID[i]);
+                }
+        */
+        sprintf(&serial[3 + i * 2], "%2X", UniqueID[i]);
     }
     // and mark this in the eeprom
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
