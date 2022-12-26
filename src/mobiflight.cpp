@@ -154,17 +154,6 @@ void setup()
     cmdMessenger.printLfCr();
     ResetBoard();
     initPollIntervals();
-
-    Serial.print("UniqueID: ");
-	for (size_t i = 0; i < UniqueIDsize; i++)
-	{
-		if (UniqueID[i] < 0x10)
-			Serial.print("0");
-		Serial.print(UniqueID[i], HEX);
-		Serial.print(" ");
-	}
-	Serial.println();
-
 }
 
 // ************************************************************

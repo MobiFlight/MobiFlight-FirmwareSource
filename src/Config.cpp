@@ -55,12 +55,12 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char      serial[UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL;
-char      name[MEM_LEN_NAME]           = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG               = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG]   = "";
-uint16_t  configLength                 = 0;
-boolean   configActivated              = false;
+char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL;
+char      name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG                   = MEMLEN_CONFIG;
+char      nameBuffer[MEM_LEN_CONFIG]       = "";
+uint16_t  configLength                     = 0;
+boolean   configActivated                  = false;
 
 void resetConfig();
 void readConfig();
@@ -439,47 +439,49 @@ void generateSerial(bool force)
 {
     // A serial number according old style is already generated and saved to the eeprom
     // So keep it to avoid a connector message with orphaned board
-    if (!force && serial[0] == 'S' && serial[1] == 'N') {
+    if (!force && MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'S' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'N') {
         MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
     }
+
     // A serial number according the uniqueID is already available, so read it
-    if (!force && serial[0] == 'I' && serial[1] == 'D') {
+    if (!force && MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'D') {
         sprintf(serial, "SN-");
         for (size_t i = 0; i < UniqueIDsize; i++) {
-            /*
-                        if (UniqueID[i] < 0x10) {
-                            sprintf(&serial[3 + i], "0");
-                            sprintf(&serial[3 + i + 1], "%X", UniqueID[i]);
-                        } else {
-                            sprintf(&serial[3 + i], "%X", UniqueID[i]);
-                        }
-            */
-            sprintf(&serial[3 + i * 2], "%2X", UniqueID[i]);
+            if (UniqueID[i] < 0x10) {
+                sprintf(&serial[3 + i * 2], "0%X", UniqueID[i]);
+            } else {
+                sprintf(&serial[3 + i * 2], "%X", UniqueID[i]);
+            }
         }
         return;
     }
-    // A serial number was not generated so far on first start up or it is forced to generate a new one
-    // So read the unique ID
-    sprintf(serial, "SN-");
-    for (size_t i = 0; i < UniqueIDsize; i++) {
-        /*
-                if (UniqueID[i] < 0x10) {
-                    sprintf(&serial[3 + i], "0");
-                    sprintf(&serial[3 + i + 1], "%X", UniqueID[i]);
-                } else {
-                    sprintf(&serial[3 + i], "%X", UniqueID[i]);
-                }
-        */
-        sprintf(&serial[3 + i * 2], "%2X", UniqueID[i]);
-    }
-    // and mark this in the eeprom
-    MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
-    // Set first byte of config to 0x00 to ensure with empty config on 1st start up
-    // But not if forced from the connector to generate a new one
+
+    // Coming here it's the first start up of the board and no serial number or UniqueID is available
+    // Read the uniqueID and use it as serial numnber
     if (!force) {
+        sprintf(serial, "SN-");
+        for (size_t i = 0; i < UniqueIDsize; i++) {
+            if (UniqueID[i] < 0x10) {
+                sprintf(&serial[3 + i * 2], "0%X", UniqueID[i]);
+            } else {
+                sprintf(&serial[3 + i * 2], "%X", UniqueID[i]);
+            }
+        }
+        // and mark this in the eeprom
+        MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
+        // Set first byte of config to 0x00 to ensure with empty config on 1st start up
         MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
+        return;
     }
+
+    // A serial number is forced to generated from the user
+    // It is very likely that the reason is a double serial number as the UniqueID for AVR's must not be Unique
+    // so generate one acc. the old style and use millis() for seed
+    randomSeed(millis());
+    sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
+    sprintf(&serial[7], "%03x", (unsigned int)random(4095));
+    MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
 void OnGenNewSerial()
