@@ -52,18 +52,17 @@ extern MFMuxDriver MUX;
 const uint8_t MEM_OFFSET_NAME   = 0;
 const uint8_t MEM_LEN_NAME      = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
-#if defined(ARDUINO_ARCH_AVR)
 const uint8_t MEM_LEN_SERIAL    = 11;
+const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
+#if defined(ARDUINO_ARCH_AVR)
+char      serial[MEM_LEN_SERIAL]     = MOBIFLIGHT_SERIAL;
 #elif defined(ARDUINO_ARCH_RP2040)
 // Pico has a unique 64-bit device identifier which is retrieved from the external NOR flash device at boot.
 // These 8 bytes are transferred to characters, so 16 bytes are required
 // Additionally 3 bytes for "SN-" and one byte for the NULL terminator is required
 // On first start up only "SN" is written to the EEPROM to check first start up of the firmware
-const uint8_t MEM_LEN_SERIAL    = PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1 + 3;
+char      serial[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1 + 3]     = MOBIFLIGHT_SERIAL;
 #endif
-const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
-
-char      serial[MEM_LEN_SERIAL]     = MOBIFLIGHT_SERIAL;
 char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
 char      nameBuffer[MEM_LEN_CONFIG] = "";
