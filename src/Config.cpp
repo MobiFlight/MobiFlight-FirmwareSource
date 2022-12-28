@@ -55,7 +55,7 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL;
+char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
 char      name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG                   = MEMLEN_CONFIG;
 char      nameBuffer[MEM_LEN_CONFIG]       = "";
@@ -474,7 +474,7 @@ void generateSerial(bool force)
         MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
         return;
     }
-
+#if defined(ARDUINO_ARCH_AVR)
     // A serial number is forced to generated from the user
     // It is very likely that the reason is a double serial number as the UniqueID for AVR's must not be Unique
     // so generate one acc. the old style and use millis() for seed
@@ -482,6 +482,7 @@ void generateSerial(bool force)
     sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
     sprintf(&serial[7], "%03x", (unsigned int)random(4095));
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+#endif
 }
 
 void OnGenNewSerial()
