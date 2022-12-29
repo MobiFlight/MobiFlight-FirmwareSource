@@ -55,7 +55,7 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL;
+char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
 char      name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG                   = MEMLEN_CONFIG;
 char      nameBuffer[MEM_LEN_CONFIG]       = "";
