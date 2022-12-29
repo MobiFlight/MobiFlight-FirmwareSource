@@ -17,6 +17,9 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
         return;
     byte digit = 8;
     byte pos   = 0;
+    _ledControl.shutdown(module, true);
+    _ledControl.setScanLimit(module, 7);
+
     for (uint8_t i = 0; i < 8; i++) {
         digit--;
         if (((1 << digit) & mask) == 0)
@@ -24,6 +27,8 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
         _ledControl.setChar(module, digit, string[pos], ((1 << digit) & points));
         pos++;
     }
+
+    _ledControl.shutdown(module, false);
 }
 
 void MFSegments::setBrightness(byte module, byte value)
