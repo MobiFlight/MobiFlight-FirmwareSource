@@ -29,11 +29,14 @@ namespace DigInMux
         if (digInMuxRegistered == MAX_DIGIN_MUX)
             return;
         MFDigInMux *dip;
+        if (!FitInMemory(sizeof(MFDigInMux))) {
+            // Error Message to Connector
+            cmdMessenger.sendCmd(kStatus, F("DigInMux does not fit in Memory"));
+            return;
+        }
         dip                          = new (allocateMemory(sizeof(MFDigInMux))) MFDigInMux(&MUX, name);
         digInMux[digInMuxRegistered] = dip;
         dip->attach(dataPin, (nRegs == 1), name);
-        dip->clear();
-        // MFDigInMux::setMux(&MUX);
         MFDigInMux::attachHandler(handlerOnDigInMux);
         digInMuxRegistered++;
 
