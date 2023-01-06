@@ -438,6 +438,7 @@ bool getStatusConfig()
 void generateSerial(bool force)
 {
     if (force) {
+#if defined(ARDUINO_ARCH_AVR)
         // A serial number is forced to generated from the user
         // It is very likely that the reason is a double serial number as the UniqueID for AVR's must not be Unique
         // so generate one acc. the old style and use millis() for seed
@@ -445,6 +446,7 @@ void generateSerial(bool force)
         sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
         sprintf(&serial[7], "%03x", (unsigned int)random(4095));
         MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+#endif
         return;
     }
 
