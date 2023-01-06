@@ -60,7 +60,6 @@
 #define MEMLEN_NAMES_BUFFER 220  // max. size for configBuffer, contains only names from inputs
 #define MF_MAX_DEVICEMEM    300  // max. memory size for devices
 
-#define RANDOM_SEED_INPUT A0
 
 #endif
 
