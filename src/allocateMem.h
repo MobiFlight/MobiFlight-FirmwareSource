@@ -8,9 +8,12 @@
 
 #include <new>
 
-extern char deviceBuffer[];
+#if defined (ARDUINO_ARCH_AVR)
+uint8_t     *allocateMemory(uint8_t size);
+#else
+std::size_t    *allocateMemory(uint8_t size);
+#endif
 
-char       *allocateMemory(uint8_t size);
 void        ClearMemory();
 uint16_t    GetAvailableMemory();
 bool        FitInMemory(uint8_t size);
