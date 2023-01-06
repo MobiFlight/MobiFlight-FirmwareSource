@@ -9,6 +9,7 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "MFEEPROM.h"
+#include "ArduinoUniqueID.h"
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
