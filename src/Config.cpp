@@ -6,11 +6,10 @@
 
 #include "mobiflight.h"
 #include "MFEEPROM.h"
-
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
-
+#include "ArduinoUniqueID.h"
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
@@ -54,8 +53,15 @@ const uint8_t MEM_LEN_NAME      = 48;
 const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
-
+#if defined(ARDUINO_ARCH_AVR)
 char      serial[MEM_LEN_SERIAL]     = MOBIFLIGHT_SERIAL;
+#elif defined(ARDUINO_ARCH_RP2040)
+// Pico has a unique 64-bit device identifier which is retrieved from the external NOR flash device at boot.
+// These 8 bytes are transferred to characters, so 16 bytes are required
+// Additionally 3 bytes for "SN-" and one byte for the NULL terminator is required
+// On first start up only "SN" is written to the EEPROM to check first start up of the firmware
+char      serial[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1 + 3]     = MOBIFLIGHT_SERIAL;
+#endif
 char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
 const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
 char      nameBuffer[MEM_LEN_CONFIG] = "";
@@ -437,15 +443,42 @@ bool getStatusConfig()
 // ************************************************************
 void generateSerial(bool force)
 {
-    MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-    if (!force && serial[0] == 'S' && serial[1] == 'N')
+    if (force) {
+#if defined(ARDUINO_ARCH_AVR)
+        // A serial number is forced to generated from the user
+        // It is very likely that the reason is a double serial number as the UniqueID for AVR's must not be Unique
+        // so generate one acc. the old style and use millis() for seed
+        randomSeed(millis());
+        sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
+        sprintf(&serial[7], "%03x", (unsigned int)random(4095));
+        MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+#endif
         return;
-    randomSeed(analogRead(RANDOM_SEED_INPUT));
-    sprintf(serial, "SN-%03x-", (unsigned int)random(4095));
-    sprintf(&serial[7], "%03x", (unsigned int)random(4095));
-    MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-    if (!force) {
-        MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00); // First byte of config to 0x00 to ensure to start 1st time with empty config, but not if forced from the connector to generate a new one
+    }
+
+    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'S' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'N') {
+        // A serial number according old style is already generated and saved to the eeprom
+        // So keep it to avoid a connector message with orphaned board
+        MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+        return;
+    }
+
+    // Read the uniqueID and use it as serial numnber
+    sprintf(serial, "SN-");
+    for (size_t i = 0; i < UniqueIDsize; i++) {
+        if (UniqueID[i] < 0x10) {
+            sprintf(&serial[3 + i * 2], "0%X", UniqueID[i]);
+        } else {
+            sprintf(&serial[3 + i * 2], "%X", UniqueID[i]);
+        }
+    }
+
+    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'D') {
+        // Coming here it's the first start up of the board and no serial number or UniqueID is available
+        // mark this in the eeprom that a UniqueID is used on first start up
+        MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
+        // Set first byte of config to 0x00 to ensure with empty config on 1st start up
+        MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
     }
 }
 
