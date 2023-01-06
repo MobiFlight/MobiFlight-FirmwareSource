@@ -59,7 +59,6 @@
 #define MEMLEN_CONFIG     1496 // max. size for config which wil be stored in EEPROM
 #define MF_MAX_DEVICEMEM  1500 // max. memory size for devices
 
-#define RANDOM_SEED_INPUT A0
 
 #endif
 
