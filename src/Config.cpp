@@ -242,7 +242,7 @@ bool readStringFromEEPROM(uint16_t *addreeprom, char *buffer)
     char    temp    = 0;
     uint8_t counter = 0;
     do {
-        temp              = MFeeprom.read_char((*addreeprom)++); // read the first character
+        temp              = MFeeprom.read_byte((*addreeprom)++); // read the first character
         buffer[counter++] = temp;                                // save character and locate next buffer position
         if (counter >= MEMLEN_STRING_BUFFER) {                   // nameBuffer will be exceeded
             return false;                                        // abort copying to buffer
