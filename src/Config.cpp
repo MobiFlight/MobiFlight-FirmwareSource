@@ -232,10 +232,10 @@ void readConfig()
 {
     if (configLength == 0) // do nothing if no config is available
         return;
-    uint16_t addreeprom   = MEM_OFFSET_CONFIG; // define first memory location where config is saved in EEPROM
-    uint16_t addrbuffer   = 0;                 // and start with first memory location from nameBuffer
-    char     params[6]    = "";
-    uint8_t  command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
+    uint16_t addreeprom   = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
+    uint16_t addrbuffer   = 0;                               // and start with first memory location from nameBuffer
+    char     params[8]    = "";                              // buffer for reading parameters from EEPROM and sending to ::Add() function of device
+    char     command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
 
@@ -270,7 +270,7 @@ void readConfig()
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
-        case kTypeStepperDeprecated:
+        case kTypeStepperDeprecated1:
             // this is for backwards compatibility
             params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
             params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
@@ -280,16 +280,29 @@ void readConfig()
             Stepper::Add(params[0], params[1], params[2], params[3], 0);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
-#endif
 
-#if MF_STEPPER_SUPPORT == 1
-        case kTypeStepper:
+        case kTypeStepperDeprecated2:
             params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
             params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
             params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
             params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
             params[4] = readUintFromEEPROM(&addreeprom); // Button number
             Stepper::Add(params[0], params[1], params[2], params[3], params[4]);
+            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            break;
+
+        case kTypeStepper:
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
+            params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
+            params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
+            params[4] = readUintFromEEPROM(&addreeprom); // Button number
+            params[5] = readUintFromEEPROM(&addreeprom); // Stepper Mode
+            params[6] = readUintFromEEPROM(&addreeprom); // backlash
+            params[7] = readUintFromEEPROM(&addreeprom); // deactivate output
+            // there is an additional 9th parameter stored in the config (profileID) which is not needed in the firmware
+            // and therefor not read in, it is just skipped like the name with reading until end of command
+            Stepper::Add(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
 #endif
