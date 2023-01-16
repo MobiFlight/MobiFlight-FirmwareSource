@@ -61,6 +61,7 @@ void attachCommandCallbacks()
     cmdMessenger.attach(kSetStepper, Stepper::OnSet);
     cmdMessenger.attach(kResetStepper, Stepper::OnReset);
     cmdMessenger.attach(kSetZeroStepper, Stepper::OnSetZero);
+    cmdMessenger.attach(kSetStepperSpeedAccel, Stepper::OnSetSpeedAccel);
 #endif
 
 #if MF_SERVO_SUPPORT == 1

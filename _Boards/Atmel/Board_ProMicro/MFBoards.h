@@ -52,10 +52,6 @@
 #define MAX_DIGIN_MUX       3
 #define MAX_CUSTOM_DEVICES  2
 
-#define STEPS         64
-#define STEPPER_SPEED 400 // 300 already worked, 467, too?
-#define STEPPER_ACCEL 800
-
 #define MOBIFLIGHT_TYPE     "MobiFlight Micro"
 #define MOBIFLIGHT_SERIAL   "0987654321"
 #define MOBIFLIGHT_NAME     "MobiFlight Micro"
