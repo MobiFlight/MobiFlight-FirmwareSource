@@ -43,6 +43,7 @@ enum {
     kAnalogChangeDeprecated,       // 28
     kInputShifterChangeDeprecated, // 29
     kDigInMuxChangeDeprecated,     // 30
+    kSetStepperSpeedAccel,         // 31
 
     // functions which get be called from the UI via the command messenger
     // must be added before. The command messenger has a fix buffer size
@@ -50,12 +51,12 @@ enum {
     // -------------------------------------------------------------------
     // new handler ID's for input devices must be added here
     // This will save size of the Callback buffer
-    kButtonChange = 100,           // 100
-    kEncoderChange,                // 101
-    kAnalogChange,                 // 102
-    kInputShifterChange,           // 103
-    kDigInMuxChange,               // 104
-    kDebug = 0xFF                  // 255
+    kButtonChange = 100, // 100
+    kEncoderChange,      // 101
+    kAnalogChange,       // 102
+    kInputShifterChange, // 103
+    kDigInMuxChange,     // 104
+    kDebug = 0xFF        // 255
 };
 
 void     attachCommandCallbacks();
