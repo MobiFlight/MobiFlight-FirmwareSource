@@ -5,6 +5,7 @@
 //
 
 #include "MFInputShifter.h"
+#include "MFFastIO.h"
 
 inputShifterEvent MFInputShifter::_inputHandler = NULL;
 
@@ -12,21 +13,6 @@ MFInputShifter::MFInputShifter(const char *name)
 {
     _initialized = false;
     _name        = name;
-}
-
-inline void MFInputShifter::Pin_HIGH(volatile uint8_t *PinPort, uint8_t PinMask)
-{
-    *PinPort |= PinMask;
-}
-inline void MFInputShifter::Pin_LOW(volatile uint8_t *PinPort, uint8_t PinMask)
-{
-    *PinPort &= ~PinMask;
-}
-
-inline uint8_t MFInputShifter::dataPin_READ(volatile uint8_t *PinPort, uint8_t PinMask)
-{
-    if (*PinPort & PinMask) return HIGH;
-    return LOW;
 }
 
 // Registers a new input shifter and configures the clock, data and latch pins as well
@@ -61,16 +47,16 @@ void MFInputShifter::update()
 
 void MFInputShifter::poll(uint8_t doTrigger)
 {
-    Pin_HIGH(_clockPinPort, _clockPinMask); // Preset clock to retrieve first bit
-    Pin_HIGH(_latchPinPort, _latchPinMask); // Disable input latching and enable shifting
+    digitalWriteFast(_clockPinPort, _clockPinMask, HIGH); // Preset clock to retrieve first bit
+    digitalWriteFast(_latchPinPort, _latchPinMask, HIGH); // Disable input latching and enable shifting
     // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
     // called it will pull in the data from each chained module.
     for (uint8_t module = 0; module < _moduleCount; module++) {
         uint8_t currentState = 0;
         for (uint8_t i = 0; i < 8; ++i) {
-            Pin_HIGH(_clockPinPort, _clockPinMask);
-            currentState |= dataPin_READ(_dataPinPort, _dataPinMask) << i;
-            Pin_LOW(_clockPinPort, _clockPinMask);
+            digitalWriteFast(_clockPinPort, _clockPinMask, HIGH);
+            currentState |= digitalReadFast(_dataPinPort, _dataPinMask) << i;
+            digitalWriteFast(_clockPinPort, _clockPinMask, LOW);
         }
         // If an input changed on the current module from the last time it was read
         // then hand it off to figure out which bits specifically changed.
@@ -79,7 +65,7 @@ void MFInputShifter::poll(uint8_t doTrigger)
             _lastState[module] = currentState;
         }
     }
-    Pin_LOW(_latchPinPort, _latchPinMask);
+    digitalWriteFast(_latchPinPort, _latchPinMask, LOW);
 }
 
 // Detects changes between the current state and the previously saved state
