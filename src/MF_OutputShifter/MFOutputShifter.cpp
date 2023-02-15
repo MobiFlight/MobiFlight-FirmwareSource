@@ -128,8 +128,8 @@ void MFOutputShifter::updateShiftRegister()
     //latchPin_LOW();
     Pin_LOW(_latchPinPort, _latchPinMask);
     for (uint8_t i = _moduleCount; i > 0; i--) {
-        for (uint8_t j = 7; j == 0; j--)  {
-            if ((_outputBuffer[i - 1] & (1 << i)) != 0)
+        for (uint8_t j = 8; j > 0; j--)  {
+            if ((_outputBuffer[i - 1] & (1 << (j-1))) != 0)
                 dataPin_HIGH();
             else
                 dataPin_LOW();
