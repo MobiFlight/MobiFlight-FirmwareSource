@@ -7,6 +7,7 @@
 #include "mobiflight.h"
 #include "MFDigInMux.h"
 #include "MFMuxDriver.h"
+#include "MFFastIO.h"
 
 MFMuxDriver *MFDigInMux::_MUX;
 
@@ -37,11 +38,12 @@ void MFDigInMux::setMux(MFMuxDriver *MUX)
 void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
 {
     // if(!_MUX) return;     // no need to check, the object can be set up in advance before the MUX is configured
-    _dataPin = dataPin;
+    _dataPinPort = portInputRegister(digitalPinToPort(dataPin));
+    _dataPinMask = digitalPinToBitMask(dataPin);
     _name    = name;
     _flags   = 0x00;
     if (halfSize) bitSet(_flags, MUX_HALFSIZE);
-    pinMode(_dataPin, INPUT_PULLUP);
+    pinMode(dataPin, INPUT_PULLUP);
     bitSet(_flags, MUX_INITED);
 
     // Initialize all inputs with current status
@@ -51,7 +53,7 @@ void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
 void MFDigInMux::detach()
 {
     if (bitRead(_flags, MUX_INITED)) {
-        pinMode(_dataPin, INPUT_PULLUP);
+        // pinMode(_dataPin, INPUT_PULLUP);     // think about this
         bitClear(_flags, MUX_INITED);
     }
 }
@@ -88,9 +90,8 @@ void MFDigInMux::poll(bool doTrigger)
         // for added safety, we perform one more (useless) digitalRead().
         // NB An external pullup (10k or 4k7) is recommended anyway for better interference immunity.
 
-        pinVal = digitalRead(_dataPin);
-        pinVal = digitalRead(_dataPin);
-        // delayMicroseconds(5);  // This is overkill
+        pinVal = digitalReadFast(_dataPinPort, _dataPinMask);
+        delayMicroseconds(5);
         currentState <<= 1;
         currentState |= (pinVal ? 1 : 0);
     }
