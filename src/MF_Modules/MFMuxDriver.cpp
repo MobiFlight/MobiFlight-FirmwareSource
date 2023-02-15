@@ -12,7 +12,7 @@ MFMuxDriver::MFMuxDriver(void)
 {
     _flags = 0x00;
     for (uint8_t i = 0; i < 4; i++) {
-    //    *_selPinPort[i] = 0xFF;     // think about this!!
+        //    *_selPinPort[i] = 0xFF;     // think about this!!
     }
 }
 
@@ -20,16 +20,16 @@ MFMuxDriver::MFMuxDriver(void)
 void MFMuxDriver::
     attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
-    *_selPinPort[0] = portOutputRegister(digitalPinToPort(Sel0Pin));
-    _selPinMask[0]  = digitalPinToBitMask(Sel0Pin);
-    *_selPinPort[1] = portOutputRegister(digitalPinToPort(Sel1Pin));
-    _selPinMask[1]  = digitalPinToBitMask(Sel1Pin);
-    *_selPinPort[2] = portOutputRegister(digitalPinToPort(Sel2Pin));
-    _selPinMask[2]  = digitalPinToBitMask(Sel2Pin);
-    *_selPinPort[3] = portOutputRegister(digitalPinToPort(Sel3Pin));
-    _selPinMask[3]  = digitalPinToBitMask(Sel3Pin);
-  
-    _flags          = 0x00;
+    _selPinPort[0] = portOutputRegister(digitalPinToPort(Sel0Pin));
+    _selPinMask[0] = digitalPinToBitMask(Sel0Pin);
+    _selPinPort[1] = portOutputRegister(digitalPinToPort(Sel1Pin));
+    _selPinMask[1] = digitalPinToBitMask(Sel1Pin);
+    _selPinPort[2] = portOutputRegister(digitalPinToPort(Sel2Pin));
+    _selPinMask[2] = digitalPinToBitMask(Sel2Pin);
+    _selPinPort[3] = portOutputRegister(digitalPinToPort(Sel3Pin));
+    _selPinMask[3] = digitalPinToBitMask(Sel3Pin);
+
+    _flags = 0x00;
 
     pinMode(Sel0Pin, OUTPUT);
     pinMode(Sel1Pin, OUTPUT);
@@ -43,9 +43,9 @@ void MFMuxDriver::
 void MFMuxDriver::detach()
 {
     for (uint8_t i = 0; i < 4; i++) {
-    //   if (*_selPinPort[i] == 0xFF) continue;
-    //    pinMode(_selPin[i], INPUT_PULLUP);    // think about this!!
-    //    *_selPinPort[i] = 0xFF;
+        //   if (*_selPinPort[i] == 0xFF) continue;
+        //    pinMode(_selPin[i], INPUT_PULLUP);    // think about this!!
+        //    *_selPinPort[i] = 0xFF;
     }
     bitClear(_flags, MUX_INITED);
 }
