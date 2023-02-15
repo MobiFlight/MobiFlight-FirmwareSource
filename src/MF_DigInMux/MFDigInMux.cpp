@@ -40,8 +40,8 @@ void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
     // if(!_MUX) return;     // no need to check, the object can be set up in advance before the MUX is configured
     _dataPinPort = portInputRegister(digitalPinToPort(dataPin));
     _dataPinMask = digitalPinToBitMask(dataPin);
-    _name    = name;
-    _flags   = 0x00;
+    _name        = name;
+    _flags       = 0x00;
     if (halfSize) bitSet(_flags, MUX_HALFSIZE);
     pinMode(dataPin, INPUT_PULLUP);
     bitSet(_flags, MUX_INITED);
