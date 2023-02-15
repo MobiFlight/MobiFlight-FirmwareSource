@@ -53,11 +53,7 @@ private:
     void                     trigger(uint8_t pin, bool state);
     inline void              Pin_HIGH(volatile uint8_t *PinPort, uint8_t PinMask);
     inline void              Pin_LOW(volatile uint8_t *PinPort, uint8_t PinMask);
-    inline void              latchPin_HIGH(void);
-    inline void              latchPin_LOW(void);
-    inline void              clockPin_HIGH(void);
-    inline void              clockPin_LOW(void);
-    inline uint8_t           dataPin_READ(void);
+    inline uint8_t           dataPin_READ(volatile uint8_t *PinPort, uint8_t PinMask);
     static inputShifterEvent _inputHandler;
 };
 

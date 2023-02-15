@@ -14,7 +14,6 @@ MFInputShifter::MFInputShifter(const char *name)
     _name        = name;
 }
 
-
 inline void MFInputShifter::Pin_HIGH(volatile uint8_t *PinPort, uint8_t PinMask)
 {
     *PinPort |= PinMask;
@@ -24,27 +23,9 @@ inline void MFInputShifter::Pin_LOW(volatile uint8_t *PinPort, uint8_t PinMask)
     *PinPort &= ~PinMask;
 }
 
-inline void MFInputShifter::latchPin_HIGH(void)
+inline uint8_t MFInputShifter::dataPin_READ(volatile uint8_t *PinPort, uint8_t PinMask)
 {
-    *_latchPinPort |= _latchPinMask;
-}
-inline void MFInputShifter::latchPin_LOW(void)
-{
-    *_latchPinPort &= ~_latchPinMask;
-}
-
-inline void MFInputShifter::clockPin_HIGH(void)
-{
-    *_clockPinPort |= _clockPinMask;
-}
-inline void MFInputShifter::clockPin_LOW(void)
-{
-    *_clockPinPort &= ~_clockPinMask;
-}
-
-inline uint8_t MFInputShifter::dataPin_READ(void)
-{
-    if (*_dataPinPort & _dataPinMask) return HIGH;
+    if (*PinPort & PinMask) return HIGH;
     return LOW;
 }
 
@@ -80,22 +61,16 @@ void MFInputShifter::update()
 
 void MFInputShifter::poll(uint8_t doTrigger)
 {
-uint32_t millisStop = 0;
-Serial.println("Start reading InputShifters 100 times");
-uint32_t millisStart = millis();
-for (uint8_t test = 0; test < 100; test++) {
-    //clockPin_HIGH(); // Preset clock to retrieve first bit
-    Pin_HIGH(_clockPinPort, _clockPinMask);
-    //latchPin_HIGH(); // Disable input latching and enable shifting
-    Pin_HIGH(_latchPinPort, _latchPinMask);
+    Pin_HIGH(_clockPinPort, _clockPinMask); // Preset clock to retrieve first bit
+    Pin_HIGH(_latchPinPort, _latchPinMask); // Disable input latching and enable shifting
     // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
     // called it will pull in the data from each chained module.
     for (uint8_t module = 0; module < _moduleCount; module++) {
         uint8_t currentState = 0;
         for (uint8_t i = 0; i < 8; ++i) {
-            clockPin_HIGH();
-            currentState |= dataPin_READ() << i;
-            clockPin_LOW();
+            Pin_HIGH(_clockPinPort, _clockPinMask);
+            currentState |= dataPin_READ(_dataPinPort, _dataPinMask) << i;
+            Pin_LOW(_clockPinPort, _clockPinMask);
         }
         // If an input changed on the current module from the last time it was read
         // then hand it off to figure out which bits specifically changed.
@@ -104,11 +79,7 @@ for (uint8_t test = 0; test < 100; test++) {
             _lastState[module] = currentState;
         }
     }
-    //latchPin_LOW();
     Pin_LOW(_latchPinPort, _latchPinMask);
-}
-millisStop = millis() - millisStart;
-Serial.print("Stop reading InputShifters 100 times, took:"); Serial.print(millisStop); Serial.println("ms");
 }
 
 // Detects changes between the current state and the previously saved state
