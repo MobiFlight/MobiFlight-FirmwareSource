@@ -6,12 +6,13 @@
 
 #include "mobiflight.h"
 #include "MFMuxDriver.h"
+#include "MFFastIO.h"
 
 MFMuxDriver::MFMuxDriver(void)
 {
     _flags = 0x00;
     for (uint8_t i = 0; i < 4; i++) {
-        _selPin[i] = 0xFF;
+    //    *_selPinPort[i] = 0xFF;     // think about this!!
     }
 }
 
@@ -19,25 +20,32 @@ MFMuxDriver::MFMuxDriver(void)
 void MFMuxDriver::
     attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
-    _selPin[0] = Sel0Pin;
-    _selPin[1] = Sel1Pin;
-    _selPin[2] = Sel2Pin;
-    _selPin[3] = Sel3Pin;
-    _flags     = 0x00;
+    *_selPinPort[0] = portOutputRegister(digitalPinToPort(Sel0Pin));
+    _selPinMask[0]  = digitalPinToBitMask(Sel0Pin);
+    *_selPinPort[1] = portOutputRegister(digitalPinToPort(Sel1Pin));
+    _selPinMask[1]  = digitalPinToBitMask(Sel1Pin);
+    *_selPinPort[2] = portOutputRegister(digitalPinToPort(Sel2Pin));
+    _selPinMask[2]  = digitalPinToBitMask(Sel2Pin);
+    *_selPinPort[3] = portOutputRegister(digitalPinToPort(Sel3Pin));
+    _selPinMask[3]  = digitalPinToBitMask(Sel3Pin);
+  
+    _flags          = 0x00;
 
-    for (uint8_t i = 0; i < 4; i++)
-        pinMode(_selPin[i], OUTPUT);
+    pinMode(Sel0Pin, OUTPUT);
+    pinMode(Sel1Pin, OUTPUT);
+    pinMode(Sel2Pin, OUTPUT);
+    pinMode(Sel3Pin, OUTPUT);
+
     bitSet(_flags, MUX_INITED);
-
     setChannel(0);
 }
 
 void MFMuxDriver::detach()
 {
     for (uint8_t i = 0; i < 4; i++) {
-        if (_selPin[i] == 0xFF) continue;
-        pinMode(_selPin[i], INPUT_PULLUP);
-        _selPin[i] = 0xFF;
+    //   if (*_selPinPort[i] == 0xFF) continue;
+    //    pinMode(_selPin[i], INPUT_PULLUP);    // think about this!!
+    //    *_selPinPort[i] = 0xFF;
     }
     bitClear(_flags, MUX_INITED);
 }
@@ -58,7 +66,7 @@ void MFMuxDriver::setChannel(uint8_t value)
 
     _channel = value;
     for (uint8_t i = 0; i < 4; i++) {
-        digitalWrite(_selPin[i], (value & 0x01));
+        digitalWriteFast(_selPinPort[i], _selPinMask[i], (value & 0x01));
         value >>= 1;
     }
 }
