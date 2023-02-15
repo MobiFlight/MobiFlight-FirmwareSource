@@ -14,19 +14,56 @@ MFInputShifter::MFInputShifter(const char *name)
     _name        = name;
 }
 
+
+inline void MFInputShifter::Pin_HIGH(volatile uint8_t *PinPort, uint8_t PinMask)
+{
+    *PinPort |= PinMask;
+}
+inline void MFInputShifter::Pin_LOW(volatile uint8_t *PinPort, uint8_t PinMask)
+{
+    *PinPort &= ~PinMask;
+}
+
+inline void MFInputShifter::latchPin_HIGH(void)
+{
+    *_latchPinPort |= _latchPinMask;
+}
+inline void MFInputShifter::latchPin_LOW(void)
+{
+    *_latchPinPort &= ~_latchPinMask;
+}
+
+inline void MFInputShifter::clockPin_HIGH(void)
+{
+    *_clockPinPort |= _clockPinMask;
+}
+inline void MFInputShifter::clockPin_LOW(void)
+{
+    *_clockPinPort &= ~_clockPinMask;
+}
+
+inline uint8_t MFInputShifter::dataPin_READ(void)
+{
+    if (*_dataPinPort & _dataPinMask) return HIGH;
+    return LOW;
+}
+
 // Registers a new input shifter and configures the clock, data and latch pins as well
 // as the number of modules to read from.
 void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name)
 {
-    _latchPin    = latchPin;
-    _clockPin    = clockPin;
-    _dataPin     = dataPin;
-    _name        = name;
-    _moduleCount = moduleCount;
+    _latchPinPort = portOutputRegister(digitalPinToPort(latchPin));
+    _latchPinMask = digitalPinToBitMask(latchPin);
+    _clockPinPort = portOutputRegister(digitalPinToPort(clockPin));
+    _clockPinMask = digitalPinToBitMask(clockPin);
+    _dataPinPort  = portInputRegister(digitalPinToPort(dataPin));
+    _dataPinMask  = digitalPinToBitMask(dataPin);
+    _name         = name;
+    _moduleCount  = moduleCount;
 
-    pinMode(_latchPin, OUTPUT);
-    pinMode(_clockPin, OUTPUT);
-    pinMode(_dataPin, INPUT);
+    pinMode(latchPin, OUTPUT);
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, INPUT);
     _initialized = true;
 
     // And now initialize all buttons with the actual status
@@ -43,16 +80,23 @@ void MFInputShifter::update()
 
 void MFInputShifter::poll(uint8_t doTrigger)
 {
-    digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
-    digitalWrite(_latchPin, HIGH); // Disable input latching and enable shifting
-
+uint32_t millisStop = 0;
+Serial.println("Start reading InputShifters 100 times");
+uint32_t millisStart = millis();
+for (uint8_t test = 0; test < 100; test++) {
+    //clockPin_HIGH(); // Preset clock to retrieve first bit
+    Pin_HIGH(_clockPinPort, _clockPinMask);
+    //latchPin_HIGH(); // Disable input latching and enable shifting
+    Pin_HIGH(_latchPinPort, _latchPinMask);
     // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
     // called it will pull in the data from each chained module.
     for (uint8_t module = 0; module < _moduleCount; module++) {
-        uint8_t currentState;
-
-        currentState = shiftIn(_dataPin, _clockPin, MSBFIRST);
-
+        uint8_t currentState = 0;
+        for (uint8_t i = 0; i < 8; ++i) {
+            clockPin_HIGH();
+            currentState |= dataPin_READ() << i;
+            clockPin_LOW();
+        }
         // If an input changed on the current module from the last time it was read
         // then hand it off to figure out which bits specifically changed.
         if (currentState != _lastState[module]) {
@@ -60,8 +104,11 @@ void MFInputShifter::poll(uint8_t doTrigger)
             _lastState[module] = currentState;
         }
     }
-
-    digitalWrite(_latchPin, LOW); // disable shifting and enable input latching
+    //latchPin_LOW();
+    Pin_LOW(_latchPinPort, _latchPinMask);
+}
+millisStop = millis() - millisStart;
+Serial.print("Stop reading InputShifters 100 times, took:"); Serial.print(millisStop); Serial.println("ms");
 }
 
 // Detects changes between the current state and the previously saved state

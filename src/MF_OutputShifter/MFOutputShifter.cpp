@@ -6,6 +6,42 @@
 
 #include "MFOutputShifter.h"
 
+inline void MFOutputShifter::Pin_HIGH(volatile uint8_t *PinPort, uint8_t PinMask)
+{
+    *PinPort |= PinMask;
+}
+inline void MFOutputShifter::Pin_LOW(volatile uint8_t *PinPort, uint8_t PinMask)
+{
+    *PinPort &= ~PinMask;
+}
+
+inline void MFOutputShifter::latchPin_HIGH(void)
+{
+    *_latchPinPort |= _latchPinMask;
+}
+inline void MFOutputShifter::latchPin_LOW(void)
+{
+    *_latchPinPort &= ~_latchPinMask;
+}
+
+inline void MFOutputShifter::clockPin_HIGH(void)
+{
+    *_clockPinPort |= _clockPinMask;
+}
+inline void MFOutputShifter::clockPin_LOW(void)
+{
+    *_clockPinPort &= ~_clockPinMask;
+}
+
+inline void MFOutputShifter::dataPin_HIGH(void)
+{
+    *_dataPinPort |= _dataPinMask;
+}
+inline void MFOutputShifter::dataPin_LOW(void)
+{
+    *_dataPinPort &= ~_dataPinMask;
+}
+
 MFOutputShifter::MFOutputShifter()
 {
     _initialized = false;
@@ -42,14 +78,17 @@ void MFOutputShifter::setPins(char *pins, uint8_t value)
 void MFOutputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount)
 {
     _initialized = true;
-    _latchPin    = latchPin;
-    _clockPin    = clockPin;
-    _dataPin     = dataPin;
+    _latchPinPort = portOutputRegister(digitalPinToPort(latchPin));
+    _latchPinMask = digitalPinToBitMask(latchPin);
+    _clockPinPort = portOutputRegister(digitalPinToPort(clockPin));
+    _clockPinMask = digitalPinToBitMask(clockPin);
+    _dataPinPort  = portInputRegister(digitalPinToPort(dataPin));
+    _dataPinMask  = digitalPinToBitMask(dataPin);
     _moduleCount = moduleCount;
 
-    pinMode(_latchPin, OUTPUT);
-    pinMode(_clockPin, OUTPUT);
-    pinMode(_dataPin, OUTPUT);
+    pinMode(latchPin, OUTPUT);
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
 
     clear();
 }
@@ -86,11 +125,20 @@ void MFOutputShifter::test()
 
 void MFOutputShifter::updateShiftRegister()
 {
-    digitalWrite(_latchPin, LOW);
+    //latchPin_LOW();
+    Pin_LOW(_latchPinPort, _latchPinMask);
     for (uint8_t i = _moduleCount; i > 0; i--) {
-        shiftOut(_dataPin, _clockPin, MSBFIRST, _outputBuffer[i - 1]); // LSBFIRST, MSBFIRST,
+        for (uint8_t j = 7; j == 0; j--)  {
+            if ((_outputBuffer[i - 1] & (1 << i)) != 0)
+                dataPin_HIGH();
+            else
+                dataPin_LOW();
+		    clockPin_HIGH();
+		    clockPin_LOW();		
+	    }
     }
-    digitalWrite(_latchPin, HIGH);
+    //latchPin_HIGH();
+    Pin_HIGH(_latchPinPort, _latchPinMask);
 }
 
 // MFOutputShifter.cpp

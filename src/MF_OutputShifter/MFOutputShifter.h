@@ -26,12 +26,24 @@ public:
     void updateShiftRegister();
 
 private:
-    uint8_t _latchPin;    // Latch pin
-    uint8_t _clockPin;    // Clock pin
-    uint8_t _dataPin;     // Data/SI pin
+    volatile uint8_t *_latchPinPort;
+    uint8_t           _latchPinMask;
+    volatile uint8_t *_clockPinPort;
+    uint8_t           _clockPinMask;
+    volatile uint8_t *_dataPinPort;
+    uint8_t           _dataPinMask;
     uint8_t _moduleCount; // Number of 8 bit modules in series. For a shift register with 16 bit one needs to select 2 modules a 8......
     uint8_t _outputBuffer[MAX_CHAINED_OUTPUT_SHIFTERS];
     bool    _initialized = false;
+
+    inline void              Pin_HIGH(volatile uint8_t *PinPort, uint8_t PinMask);
+    inline void              Pin_LOW(volatile uint8_t *PinPort, uint8_t PinMask);
+    inline void              latchPin_HIGH(void);
+    inline void              latchPin_LOW(void);
+    inline void              clockPin_HIGH(void);
+    inline void              clockPin_LOW(void);
+    inline void              dataPin_HIGH(void);
+    inline void              dataPin_LOW(void);
 };
 
 // MFOutputShifter.h
