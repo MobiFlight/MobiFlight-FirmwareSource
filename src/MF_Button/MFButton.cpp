@@ -11,7 +11,7 @@ buttonEvent MFButton::_handler = NULL;
 MFButton::MFButton(uint8_t pin, const char *name)
 {
 #ifdef USE_FAST_IO
-    _pinPort = portOutputRegister(digitalPinToPort(pin));
+    _pinPort = portInputRegister(digitalPinToPort(pin));
     _pinMask = digitalPinToBitMask(pin);
 #endif
     _pin   = pin;
