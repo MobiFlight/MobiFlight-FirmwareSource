@@ -38,8 +38,8 @@ void MFDigInMux::attach(uint8_t dataPin, bool halfSize, char const *name)
 {
     // if(!_MUX) return;     // no need to check, the object can be set up in advance before the MUX is configured
 #ifdef USE_FAST_IO
-    _dataPinPort = portInputRegister(digitalPinToPort(dataPin));
-    _dataPinMask = digitalPinToBitMask(dataPin);
+    _dataPinFast.Port = portInputRegister(digitalPinToPort(dataPin));
+    _dataPinFast.Mask = digitalPinToBitMask(dataPin);
 #endif
     _dataPin = dataPin;
     _name        = name;
@@ -92,11 +92,11 @@ void MFDigInMux::poll(bool doTrigger)
         // for added safety, we perform one more (useless) digitalRead().
         // NB An external pullup (10k or 4k7) is recommended anyway for better interference immunity.
 #ifdef USE_FAST_IO
-        pinVal = digitalReadFast(_dataPinPort, _dataPinMask);
+        pinVal = DIGITALREAD(_dataPinFast);
         delayMicroseconds(5);
 #else
-        pinVal = digitalRead(_dataPin);
-        pinVal = digitalRead(_dataPin);
+        pinVal = DIGITALREAD(_dataPin);
+        pinVal = DIGITALREAD(_dataPin);
 #endif
         currentState <<= 1;
         currentState |= (pinVal ? 1 : 0);

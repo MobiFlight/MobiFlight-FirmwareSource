@@ -65,10 +65,10 @@ void MFEncoder::attach(uint8_t pin1, uint8_t pin2, uint8_t TypeEncoder, const ch
     _pos  = 0;
     _name = name;
 #ifdef USE_FAST_IO
-    _pin1Port = portInputRegister(digitalPinToPort(pin1));
-    _pin1Mask = digitalPinToBitMask(pin1);
-    _pin2Port = portInputRegister(digitalPinToPort(pin2));
-    _pin2Mask = digitalPinToBitMask(pin2);
+    _pin1.Port = portInputRegister(digitalPinToPort(pin1));
+    _pin1.Mask = digitalPinToBitMask(pin1);
+    _pin2.Port = portInputRegister(digitalPinToPort(pin2));
+    _pin2.Mask = digitalPinToBitMask(pin2);
 #else
     _pin1     = pin1;
     _pin2     = pin2;
@@ -110,16 +110,16 @@ void MFEncoder::update()
         if (abs(delta) < (MF_ENC_FAST_LIMIT)) {
             // slow turn detected
             if (dir) {
-                (*_handler)(encLeft, _pin1, _name);
+                (*_handler)(encLeft, _name);
             } else {
-                (*_handler)(encRight, _pin2, _name);
+                (*_handler)(encRight, _name);
             }
         } else {
             // fast turn detected
             if (dir) {
-                (*_handler)(encLeftFast, _pin1, _name);
+                (*_handler)(encLeftFast, _name);
             } else {
-                (*_handler)(encRightFast, _pin2, _name);
+                (*_handler)(encRightFast, _name);
             }
         }
     }
@@ -134,13 +134,8 @@ void MFEncoder::update()
 
 void MFEncoder::tick(void)
 {
-#ifdef USE_FAST_IO
-    bool sig1 = !digitalReadFast(_pin1Port, _pin1Mask); // to keep backwards compatibility for encoder type digitalRead must be negated
-    bool sig2 = !digitalReadFast(_pin2Port, _pin2Mask); // to keep backwards compatibility for encoder type digitalRead must be negated
-#else
-    bool sig1 = !digitalRead(_pin1); // to keep backwards compatibility for encoder type digitalRead must be negated
-    bool sig2 = !digitalRead(_pin2); // to keep backwards compatibility for encoder type digitalRead must be negated
-#endif
+    bool sig1 = !DIGITALREAD(_pin1); // to keep backwards compatibility for encoder type digitalRead must be negated
+    bool sig2 = !DIGITALREAD(_pin2); // to keep backwards compatibility for encoder type digitalRead must be negated
     int      _speed    = 0;
     uint32_t currentMs = millis();
 

@@ -20,14 +20,14 @@ void MFMuxDriver::
     attach(uint8_t Sel0Pin, uint8_t Sel1Pin, uint8_t Sel2Pin, uint8_t Sel3Pin)
 {
 #ifdef USE_FAST_IO
-    _selPinPort[0] = portOutputRegister(digitalPinToPort(Sel0Pin));
-    _selPinMask[0] = digitalPinToBitMask(Sel0Pin);
-    _selPinPort[1] = portOutputRegister(digitalPinToPort(Sel1Pin));
-    _selPinMask[1] = digitalPinToBitMask(Sel1Pin);
-    _selPinPort[2] = portOutputRegister(digitalPinToPort(Sel2Pin));
-    _selPinMask[2] = digitalPinToBitMask(Sel2Pin);
-    _selPinPort[3] = portOutputRegister(digitalPinToPort(Sel3Pin));
-    _selPinMask[3] = digitalPinToBitMask(Sel3Pin);
+    _selPinFast[0].Port = portOutputRegister(digitalPinToPort(Sel0Pin));
+    _selPinFast[0].Mask = digitalPinToBitMask(Sel0Pin);
+    _selPinFast[1].Port = portOutputRegister(digitalPinToPort(Sel1Pin));
+    _selPinFast[1].Mask = digitalPinToBitMask(Sel1Pin);
+    _selPinFast[2].Port = portOutputRegister(digitalPinToPort(Sel2Pin));
+    _selPinFast[2].Mask = digitalPinToBitMask(Sel2Pin);
+    _selPinFast[3].Port = portOutputRegister(digitalPinToPort(Sel3Pin));
+    _selPinFast[3].Mask = digitalPinToBitMask(Sel3Pin);
 #endif
     _selPin[0] = Sel0Pin;
     _selPin[1] = Sel1Pin;
@@ -70,9 +70,9 @@ void MFMuxDriver::setChannel(uint8_t value)
     _channel = value;
     for (uint8_t i = 0; i < 4; i++) {
 #ifdef USE_FAST_IO
-        digitalWriteFast(_selPinPort[i], _selPinMask[i], (value & 0x01));
+        DIGITALWRITE(_selPinFast[i], (value & 0x01));
 #else
-        digitalWrite(_selPin[i], (value & 0x01));
+        DIGITALWRITE(_selPin[i], (value & 0x01));
 #endif
         value >>= 1;
     }

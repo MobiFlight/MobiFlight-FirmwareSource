@@ -18,12 +18,10 @@
 #pragma once
 
 #include <Arduino.h>
-#ifdef USE_FAST_IO
 #include "MFFastIO.h"
-#endif
 
 extern "C" {
-typedef void (*encoderEvent)(uint8_t, uint8_t, const char *);
+typedef void (*encoderEvent)(uint8_t, const char *);
 };
 
 // this prevents the internal position overflow.
@@ -67,14 +65,8 @@ public:
 
 private:
     static encoderEvent _handler;
-#ifdef USE_FAST_IO
-    volatile FASTIO_Port_t *_pin1Port;
-    FASTIO_Port_t           _pin1Mask;
-    volatile FASTIO_Port_t *_pin2Port;
-    FASTIO_Port_t           _pin2Mask;
-#endif
-    uint8_t _pin1;
-    uint8_t _pin2;
+    FASTIO_s _pin1;
+    FASTIO_s _pin2;
     bool        _initialized;
     const char *_name;
     int16_t     _pos;

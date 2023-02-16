@@ -43,12 +43,12 @@ void MFOutputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin
 {
     _initialized  = true;
 #ifdef USE_FAST_IO
-    _latchPinPort = portOutputRegister(digitalPinToPort(latchPin));
-    _latchPinMask = digitalPinToBitMask(latchPin);
-    _clockPinPort = portOutputRegister(digitalPinToPort(clockPin));
-    _clockPinMask = digitalPinToBitMask(clockPin);
-    _dataPinPort  = portInputRegister(digitalPinToPort(dataPin));
-    _dataPinMask  = digitalPinToBitMask(dataPin);
+    _latchPin.Port = portOutputRegister(digitalPinToPort(latchPin));
+    _latchPin.Mask = digitalPinToBitMask(latchPin);
+    _clockPin.Port = portOutputRegister(digitalPinToPort(clockPin));
+    _clockPin.Mask = digitalPinToBitMask(clockPin);
+    _dataPin.Port  = portInputRegister(digitalPinToPort(dataPin));
+    _dataPin.Mask  = digitalPinToBitMask(dataPin);
 #else
     _latchPin    = latchPin;
     _clockPin    = clockPin;
@@ -95,23 +95,15 @@ void MFOutputShifter::test()
 
 void MFOutputShifter::updateShiftRegister()
 {
-#ifdef USE_FAST_IO
-    digitalWriteFast(_latchPinPort, _latchPinMask, LOW);
+    DIGITALWRITE(_latchPin, LOW);
     for (uint8_t i = _moduleCount; i > 0; i--) {
         for (int8_t j = 7; j >= 0; j--) {
-            digitalWriteFast(_dataPinPort, _dataPinMask, (_outputBuffer[i - 1] & (1 << (j))));
-            digitalWriteFast(_clockPinPort, _clockPinMask, HIGH);
-            digitalWriteFast(_clockPinPort, _clockPinMask, LOW);
+            DIGITALWRITE(_dataPin, (_outputBuffer[i - 1] & (1 << (j))));
+            DIGITALWRITE(_clockPin, HIGH);
+            DIGITALWRITE(_clockPin, LOW);
         }
     }
-    digitalWriteFast(_latchPinPort, _latchPinMask, HIGH);
-#else
-    digitalWrite(_latchPin, LOW);
-    for (uint8_t i = _moduleCount; i > 0; i--) {
-        shiftOut(_dataPin, _clockPin, MSBFIRST, _outputBuffer[i - 1]); // LSBFIRST, MSBFIRST,
-    }
-    digitalWrite(_latchPin, HIGH);
-#endif
+    DIGITALWRITE(_latchPin, HIGH);
 }
 
 // MFOutputShifter.cpp

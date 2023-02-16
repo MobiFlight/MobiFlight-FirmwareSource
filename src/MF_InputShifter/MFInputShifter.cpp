@@ -19,12 +19,12 @@ MFInputShifter::MFInputShifter(const char *name)
 void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name)
 {
 #ifdef USE_FAST_IO
-    _latchPinPort = portOutputRegister(digitalPinToPort(latchPin));
-    _latchPinMask = digitalPinToBitMask(latchPin);
-    _clockPinPort = portOutputRegister(digitalPinToPort(clockPin));
-    _clockPinMask = digitalPinToBitMask(clockPin);
-    _dataPinPort  = portInputRegister(digitalPinToPort(dataPin));
-    _dataPinMask  = digitalPinToBitMask(dataPin);
+    _latchPin.Port = portOutputRegister(digitalPinToPort(latchPin));
+    _latchPin.Mask = digitalPinToBitMask(latchPin);
+    _clockPin.Port = portOutputRegister(digitalPinToPort(clockPin));
+    _clockPin.Mask = digitalPinToBitMask(clockPin);
+    _dataPin.Port  = portInputRegister(digitalPinToPort(dataPin));
+    _dataPin.Mask  = digitalPinToBitMask(dataPin);
 #else
     _latchPin = latchPin;
     _clockPin = clockPin;
@@ -52,27 +52,19 @@ void MFInputShifter::update()
 
 void MFInputShifter::poll(uint8_t doTrigger)
 {
-#ifdef USE_FAST_IO
-    digitalWriteFast(_clockPinPort, _clockPinMask, HIGH); // Preset clock to retrieve first bit
-    digitalWriteFast(_latchPinPort, _latchPinMask, HIGH); // Disable input latching and enable shifting
-#else
-    digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
-    digitalWrite(_latchPin, HIGH); // Disable input latching and enable shifting
-#endif
+    DIGITALWRITE(_clockPin, HIGH); // Preset clock to retrieve first bit
+    DIGITALWRITE(_latchPin, HIGH); // Disable input latching and enable shifting
+
     // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
     // called it will pull in the data from each chained module.
     for (uint8_t module = 0; module < _moduleCount; module++) {
         uint8_t currentState = 0;
-#ifdef USE_FAST_IO
         for (uint8_t i = 0; i < 8; ++i) {
 
-            digitalWriteFast(_clockPinPort, _clockPinMask, HIGH);
-            currentState |= digitalReadFast(_dataPinPort, _dataPinMask) << i;
-            digitalWriteFast(_clockPinPort, _clockPinMask, LOW);
+            DIGITALWRITE(_clockPin, HIGH);
+            currentState |= DIGITALREAD(_dataPin) << i;
+            DIGITALWRITE(_clockPin, LOW);
         }
-#else
-        currentState = shiftIn(_dataPin, _clockPin, MSBFIRST);
-#endif
         // If an input changed on the current module from the last time it was read
         // then hand it off to figure out which bits specifically changed.
         if (currentState != _lastState[module]) {
@@ -80,11 +72,8 @@ void MFInputShifter::poll(uint8_t doTrigger)
             _lastState[module] = currentState;
         }
     }
-#ifdef USE_FAST_IO
-    digitalWriteFast(_latchPinPort, _latchPinMask, LOW); // disable shifting and enable input latching
-#else
-    digitalWrite(_latchPin, LOW); // disable shifting and enable input latching
-#endif
+    DIGITALWRITE(_latchPin, LOW); // disable shifting and enable input latching
+
 }
 
 // Detects changes between the current state and the previously saved state

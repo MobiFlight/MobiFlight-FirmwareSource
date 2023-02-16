@@ -8,6 +8,7 @@
 
 #include <Arduino.h>
 #include "MFMuxDriver.h"
+#include "MFFastIO.h"
 
 extern "C" {
 typedef void (*MuxDigInEvent)(byte, uint8_t, const char *);
@@ -46,8 +47,7 @@ private:
 
     const char *_name;
 #ifdef USE_FAST_IO
-    volatile FASTIO_Port_t *_dataPinPort; // Data pin - MUX common, input to AVR
-    FASTIO_Port_t  _dataPinMask;
+    FASTIO_s _dataPinFast;
 #endif
     uint8_t  _dataPin; // Data pin - MUX common, input to AVR
     uint8_t  _flags;

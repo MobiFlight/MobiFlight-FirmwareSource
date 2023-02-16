@@ -8,22 +8,40 @@
 
 #include <Arduino.h>
 
-#ifdef ARDUINO_ARCH_RP2040
-typedef uint32_t FASTIO_Port_t;
-#else
-typedef uint8_t FASTIO_Port_t;
-#endif
+#ifdef USE_FAST_IO
 
-inline void digitalWriteFast(volatile FASTIO_Port_t *PinPort, FASTIO_Port_t PinMask, uint8_t value)
+#define DIGITALREAD(a)     digitalReadFast(a)
+#define DIGITALWRITE(a, b) digitalWriteFast(a, b)
+typedef struct {
+#ifdef ARDUINO_ARCH_RP2040
+    volatile uint32_t *Port;
+    uint32_t           Mask;
+#else
+    volatile uint8_t *Port;
+    uint8_t           Mask;
+#endif
+} FASTIO_s;
+
+
+inline void digitalWriteFast(FASTIO_s Pin, uint8_t value)
 {
     if (value)
-        *PinPort |= PinMask;
+        *Pin.Port |= Pin.Mask;
     else
-        *PinPort &= ~PinMask;
+        *Pin.Port &= ~Pin.Mask;
 }
 
-inline uint8_t digitalReadFast(volatile FASTIO_Port_t *PinPort, FASTIO_Port_t PinMask)
+inline uint8_t digitalReadFast(FASTIO_s Pin)
 {
-    if (*PinPort & PinMask) return HIGH;
+    if (*Pin.Port & Pin.Mask) return HIGH;
     return LOW;
 }
+
+#else
+
+#define DIGITALREAD  digitalRead
+#define DIGITALWRITE digitalWrite
+
+typedef uint8_t FASTIO_s;
+
+#endif

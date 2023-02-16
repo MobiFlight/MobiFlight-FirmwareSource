@@ -13,7 +13,7 @@ namespace Button
     MFButton *buttons[MAX_BUTTONS];
     uint8_t   buttonsRegistered = 0;
 
-    void      handlerOnButton(uint8_t eventId, uint8_t pin, const char *name)
+    void      handlerOnButton(uint8_t eventId, const char *name)
     {
         cmdMessenger.sendCmdStart(kButtonChange);
         cmdMessenger.sendCmdArg(name);
