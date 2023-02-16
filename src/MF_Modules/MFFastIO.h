@@ -22,7 +22,6 @@ typedef struct {
 #endif
 } FASTIO_s;
 
-
 inline void digitalWriteFast(FASTIO_s Pin, uint8_t value)
 {
     if (value)
@@ -39,8 +38,8 @@ inline uint8_t digitalReadFast(FASTIO_s Pin)
 
 #else
 
-#define DIGITALREAD  digitalRead
-#define DIGITALWRITE digitalWrite
+#define DIGITALREAD(a)     digitalRead(a)
+#define DIGITALWRITE(a, b) digitalWrite(a, b)
 
 typedef uint8_t FASTIO_s;
 
