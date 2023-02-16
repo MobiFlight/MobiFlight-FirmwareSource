@@ -7,6 +7,9 @@
 #pragma once
 
 #include <Arduino.h>
+#ifdef USE_FAST_IO
+#include "MFFastIO.h"
+#endif
 
 extern "C" {
 // callback functions always follow the signature: void cmd(void);
@@ -29,10 +32,14 @@ public:
     void        trigger(uint8_t state);
     void        triggerOnPress();
     void        triggerOnRelease();
-    const char *_name;
-    uint8_t     _pin;
 
 private:
+    const char *_name;
+#ifdef USE_FAST_IO
+    volatile FASTIO_Port_t *_pinPort;
+    FASTIO_Port_t _pinMask;
+#endif
+    uint8_t     _pin;
     static buttonEvent _handler;
     bool               _state;
 };

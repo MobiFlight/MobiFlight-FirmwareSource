@@ -10,15 +10,23 @@ buttonEvent MFButton::_handler = NULL;
 
 MFButton::MFButton(uint8_t pin, const char *name)
 {
+#ifdef USE_FAST_IO
+    _pinPort = portOutputRegister(digitalPinToPort(pin));
+    _pinMask = digitalPinToBitMask(pin);
+#endif
     _pin   = pin;
     _name  = name;
-    pinMode(_pin, INPUT_PULLUP);    // set pin to input
-    _state = digitalRead(_pin);     // initialize on actual status
+    pinMode(pin, INPUT_PULLUP);    // set pin to input
+    _state = digitalRead(pin);     // initialize on actual status
 }
 
 void MFButton::update()
 {
+#ifdef USE_FAST_IO
+    uint8_t newState = digitalReadFast(_pinPort, _pinMask);
+#else
     uint8_t newState = (uint8_t)digitalRead(_pin);
+#endif
     if (newState != _state) {
         _state = newState;
         trigger(_state);
