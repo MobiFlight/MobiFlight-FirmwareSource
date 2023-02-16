@@ -62,7 +62,7 @@ void MFInputShifter::poll(uint8_t doTrigger)
     // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
     // called it will pull in the data from each chained module.
     for (uint8_t module = 0; module < _moduleCount; module++) {
-        uint8_t currentState;
+        uint8_t currentState = 0;
 #ifdef USE_FAST_IO
         for (uint8_t i = 0; i < 8; ++i) {
 
