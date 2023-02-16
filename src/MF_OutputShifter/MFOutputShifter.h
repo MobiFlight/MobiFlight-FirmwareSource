@@ -7,6 +7,9 @@
 #pragma once
 
 #include <Arduino.h>
+#ifdef USE_FAST_IO
+#include "MFFastIO.h"
+#endif
 
 // Maximum number of shifters allowed on an individual chain. While this is currently set to 4
 // there is no technical limit in the code for how many can be chained. It is constrained only
@@ -26,15 +29,21 @@ public:
     void updateShiftRegister();
 
 private:
-    volatile uint8_t *_latchPinPort;
-    uint8_t           _latchPinMask;
-    volatile uint8_t *_clockPinPort;
-    uint8_t           _clockPinMask;
-    volatile uint8_t *_dataPinPort;
-    uint8_t           _dataPinMask;
-    uint8_t           _moduleCount; // Number of 8 bit modules in series. For a shift register with 16 bit one needs to select 2 modules a 8......
-    uint8_t           _outputBuffer[MAX_CHAINED_OUTPUT_SHIFTERS];
-    bool              _initialized = false;
+#ifdef USE_FAST_IO
+    volatile FASTIO_Port_t *_latchPinPort;
+    FASTIO_Port_t           _latchPinMask;
+    volatile FASTIO_Port_t *_clockPinPort;
+    FASTIO_Port_t           _clockPinMask;
+    volatile FASTIO_Port_t *_dataPinPort;
+    FASTIO_Port_t           _dataPinMask;
+#else
+    uint8_t _latchPin;
+    uint8_t _clockPin;
+    uint8_t _dataPin;
+#endif
+    uint8_t _moduleCount; // Number of 8 bit modules in series. For a shift register with 16 bit one needs to select 2 modules a 8......
+    uint8_t _outputBuffer[MAX_CHAINED_OUTPUT_SHIFTERS];
+    bool    _initialized = false;
 };
 
 // MFOutputShifter.h

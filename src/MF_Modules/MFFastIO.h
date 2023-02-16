@@ -8,7 +8,13 @@
 
 #include <Arduino.h>
 
-inline void digitalWriteFast(volatile uint8_t *PinPort, uint8_t PinMask, uint8_t value)
+#ifdef ARDUINO_ARCH_RP2040
+typedef uint32_t FASTIO_Port_t;
+#else
+typedef uint8_t FASTIO_Port_t;
+#endif
+
+inline void digitalWriteFast(volatile FASTIO_Port_t *PinPort, FASTIO_Port_t PinMask, uint8_t value)
 {
     if (value)
         *PinPort |= PinMask;
@@ -16,7 +22,7 @@ inline void digitalWriteFast(volatile uint8_t *PinPort, uint8_t PinMask, uint8_t
         *PinPort &= ~PinMask;
 }
 
-inline uint8_t digitalReadFast(volatile uint8_t *PinPort, uint8_t PinMask)
+inline uint8_t digitalReadFast(volatile FASTIO_Port_t *PinPort, FASTIO_Port_t PinMask)
 {
     if (*PinPort & PinMask) return HIGH;
     return LOW;

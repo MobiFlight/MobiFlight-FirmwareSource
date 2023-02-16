@@ -44,11 +44,14 @@ private:
     static MFMuxDriver  *_MUX;
     static MuxDigInEvent _inputHandler;
 
-    const char       *_name;
-    volatile uint8_t *_dataPinPort; // Data pin - MUX common, input to AVR
-    uint8_t           _dataPinMask;
-    uint8_t           _flags;
-    uint16_t          _lastState;
+    const char *_name;
+#ifdef USE_FAST_IO
+    volatile FASTIO_Port_t *_dataPinPort; // Data pin - MUX common, input to AVR
+#endif
+    uint8_t  _dataPin; // Data pin - MUX common, input to AVR
+    uint8_t  _dataPinMask;
+    uint8_t  _flags;
+    uint16_t _lastState;
 
     void poll(bool detect);
     void detectChanges(uint16_t lastState, uint16_t currentState);

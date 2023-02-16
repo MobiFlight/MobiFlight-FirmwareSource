@@ -7,6 +7,9 @@
 #pragma once
 
 #include <Arduino.h>
+#ifdef USE_FAST_IO
+#include "MFFastIO.h"
+#endif
 
 extern "C" {
 typedef void (*MuxDigInEvent)(byte, uint8_t, const char *);
@@ -30,11 +33,14 @@ private:
     enum { MUX_INITED = 0,
     };
 
-    volatile uint8_t *_selPinPort[4]; // Selector pins; 0 is LSb
-    uint8_t           _selPinMask[4];
-    uint8_t           _flags;
-    uint8_t           _channel;
-    uint8_t           _savedChannel;
+#ifdef USE_FAST_IO
+    volatile FASTIO_Port_t *_selPinPort[4]; // Selector pin ports and mask; 0 is LSb
+    FASTIO_Port_t           _selPinMask[4];
+#endif
+    uint8_t _selPin[4]; // Selector pins; 0 is LSb
+    uint8_t _flags;
+    uint8_t _channel;
+    uint8_t _savedChannel;
 };
 
 // MFMuxDriver.h
