@@ -40,8 +40,12 @@ namespace DigInMux
         MFDigInMux::attachHandler(handlerOnDigInMux);
         digInMuxRegistered++;
 
-#ifdef DEBUG2MSG
-        cmdMessenger.sendCmd(kDebug, F("Added digital input MUX"));
+#ifdef DEBUG2CMDMESSENGER
+        cmdMessenger.sendCmdStart(kDebug);
+        cmdMessenger.sendCmdArg(F("Added digital input MUX with "));
+        cmdMessenger.sendCmdArg(sizeof(MFDigInMux));
+        cmdMessenger.sendCmdArg(F(" byte"));
+        cmdMessenger.sendCmdEnd();
 #endif
     }
 
