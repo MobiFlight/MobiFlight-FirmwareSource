@@ -431,18 +431,7 @@ void OnGetConfig()
 
 void OnGetInfo()
 {
-    // read the serial number, was before in ResetBoard()
-    generateSerial(false);
-#if defined(ARDUINO_ARCH_AVR)
-    // On first start up no serial number is marked in the EEPROM for AVR's.
-    // So a serial number has to be generated. Generating a serial number uses random().
-    // To have not always the same starting point for the random generator, millis() are
-    // used as starting point. It is very unlikely that the time between flashing the firmware
-    // and getting the command to send the info's to the connector are always the same.
-    // For Pico's the UniqueID is used and marked in the EEPROM, nothing todo
-    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'S')
-        generateSerial(true);
-#endif
+    generateSerial(false); // read the serial numberand generate if 1st start up, was before in ResetBoard()
     setLastCommandMillis();
     cmdMessenger.sendCmdStart(kInfo);
     cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
@@ -462,6 +451,20 @@ bool getStatusConfig()
 // ************************************************************
 void generateSerial(bool force)
 {
+#if defined(ARDUINO_ARCH_AVR)
+    // On first start up no serial number is marked in the EEPROM for AVR's.
+    // So a serial number has to be generated. Generating a serial number uses random().
+    // To have not always the same starting point for the random generator, millis() are
+    // used as starting point. It is very unlikely that the time between flashing the firmware
+    // and getting the command to send the info's to the connector are always the same.
+    // For Pico's the UniqueID is used and marked in the EEPROM, nothing todo here
+    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'S') {
+        force = true;
+        // Set first byte of config to 0x00 to ensure empty config on 1st start up
+        // Otherwise the complete length of the config will be send with 0xFF (empty EEPROM)
+        MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
+    }
+#endif
     if (force) {
         // A serial number is forced to generate
         // For Pico's it is forced by the user, for AVR's it will be done on first start up
@@ -478,24 +481,22 @@ void generateSerial(bool force)
         MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
     }
-
-    // Read the uniqueID and use it as serial number only for Pico's
-    // For AVR's a second call of this function is done from OnGetInfo()
+#if defined(ARDUINO_ARCH_RP2040)
+    // Read the uniqueID for Pico's and use it as serial number
     sprintf(serial, "SN-");
     for (size_t i = 0; i < UniqueIDsize; i++) {
         sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
     }
 
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'D') {
-        // Coming here it's the first start up of the board and no serial number or UniqueID is available
+        // Coming here it's the first start up of a Pico and no serial number or UniqueID is available
         // mark this in the eeprom that a UniqueID is used on first start up for Pico's
-        // no need to mark it for AVR's, a second call to this function forcing a serial number will be done
-#if defined(ARDUINO_ARCH_RP2040)
         MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
-#endif
         // Set first byte of config to 0x00 to ensure empty config on 1st start up
+        // Otherwise the complete length of the config will be send with 0xFF (empty EEPROM)
         MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
     }
+#endif
 }
 
 void OnGenNewSerial()
