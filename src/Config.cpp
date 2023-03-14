@@ -458,11 +458,15 @@ void generateSerial(bool force)
     // used as starting point. It is very unlikely that the time between flashing the firmware
     // and getting the command to send the info's to the connector are always the same.
     // For Pico's the UniqueID is used and marked in the EEPROM, nothing todo here
-    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'S') {
+    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'S' || MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'N') {
         force = true;
         // Set first byte of config to 0x00 to ensure empty config on 1st start up
         // Otherwise the complete length of the config will be send with 0xFF (empty EEPROM)
-        MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
+        // with version 2.4.0 UnqueID was introduced also for AVR's, but as this UniqueID
+        // is not really unique, this is reverted back with version 2.4.1.
+        // If a UniqueID was used, a new serial number will be generated but the existing config will be kept
+        if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'I' || MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'D')
+            MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
     }
 #endif
     if (force) {
@@ -488,7 +492,7 @@ void generateSerial(bool force)
         sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
     }
 
-    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'D') {
+    if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'I' || MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'D') {
         // Coming here it's the first start up of a Pico and no serial number or UniqueID is available
         // mark this in the eeprom that a UniqueID is used on first start up for Pico's
         MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
