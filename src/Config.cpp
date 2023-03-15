@@ -431,7 +431,11 @@ void OnGetConfig()
 
 void OnGetInfo()
 {
-    generateSerial(false); // read the serial numberand generate if 1st start up, was before in ResetBoard()
+    // read the serial number and generate if 1st start up, was before in ResetBoard()
+    // moved to this position as the time to generate a serial number in ResetBoard() is always the same
+    // OnGetInfo() is called from the connector and the time is very likely always different
+    // Therefore millis() can be used for randomSeed
+    generateSerial(false);
     setLastCommandMillis();
     cmdMessenger.sendCmdStart(kInfo);
     cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
@@ -480,10 +484,6 @@ void generateSerial(bool force)
     }
 
     // A uniqueID is already generated and saved to the eeprom
-    // With version 2.4.0 UnqueID was introduced also for AVR's, but as this UniqueID
-    // is not really unique, this is reverted back with version 2.4.1.
-    // In case of a UniqueID on AVR's which is generated with 2.4.0 this will be kept
-    // until a new serial number is generated
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'D') {
         generateUniqueSerial();
         return;
