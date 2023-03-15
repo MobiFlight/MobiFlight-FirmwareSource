@@ -451,26 +451,6 @@ bool getStatusConfig()
 // ************************************************************
 void generateSerial(bool force)
 {
-    /*
-    #if defined(ARDUINO_ARCH_AVR)
-        // On first start up no serial number is marked in the EEPROM for AVR's.
-        // So a serial number has to be generated. Generating a serial number uses random().
-        // To have not always the same starting point for the random generator, millis() are
-        // used as starting point. It is very unlikely that the time between flashing the firmware
-        // and getting the command to send the info's to the connector are always the same.
-        // For Pico's the UniqueID is used and marked in the EEPROM, nothing todo here
-        // With version 2.4.0 UnqueID was introduced also for AVR's, but as this UniqueID
-        // is not really unique, this is reverted back with version 2.4.1.
-        // In case of a UniqueID on AVR's this will be kept until a new serial number is generated
-        if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'S' || MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'N' ||
-            MFeeprom.read_byte(MEM_OFFSET_SERIAL) != 'I' || MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) != 'D') {
-            force = true;
-            // Set first byte of config to 0x00 to ensure empty config on 1st start up
-            // Otherwise the complete length of the config will be send with 0xFF (empty EEPROM)
-            MFeeprom.write_byte(MEM_OFFSET_CONFIG, 0x00);
-        }
-    #endif
-    */
     if (force) {
         // A serial number is forced to generate
         // generate a serial number acc. the old style also for the Pico
@@ -480,8 +460,8 @@ void generateSerial(bool force)
         return;
     }
 
+    // A serial number according old style is already generated and saved to the eeprom
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'S' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'N') {
-        // A serial number according old style is already generated and saved to the eeprom
         MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
     }
@@ -500,13 +480,11 @@ void generateSerial(bool force)
     }
 
     // Coming here no UniqueID and no serial number is available, so it's the first start up of a board
-    // A serial number has to be generated using random().
-    // To have not always the same starting point for the random generator, millis() are
-    // used as starting point. It is very unlikely that the time between flashing the firmware
-    // and getting the command to send the info's to the connector are always the same.
-
 #if defined(ARDUINO_ARCH_AVR)
     // Generate a serial number for AVR's
+    // To have not always the same starting point for the random generator, millis() are
+    // used as starting point. It is very unlikely that the time between flashing the firmware
+    // and getting the command to send the info's to the connector is always the same.
     randomSeed(millis());
     sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
