@@ -449,14 +449,27 @@ bool getStatusConfig()
 // ************************************************************
 // serial number handling
 // ************************************************************
+void generateRandomSerial()
+{
+    randomSeed(millis());
+    sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
+    MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+}
+
+void generateUniqueSerial()
+{
+    sprintf(serial, "SN-");
+    for (size_t i = 0; i < UniqueIDsize; i++) {
+        sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
+    }
+}
+
 void generateSerial(bool force)
 {
     if (force) {
         // A serial number is forced to generate
         // generate a serial number acc. the old style also for the Pico
-        randomSeed(millis());
-        sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
-        MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
+        generateRandomSerial();
         return;
     }
 
@@ -472,10 +485,7 @@ void generateSerial(bool force)
     // In case of a UniqueID on AVR's which is generated with 2.4.0 this will be kept
     // until a new serial number is generated
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'D') {
-        sprintf(serial, "SN-");
-        for (size_t i = 0; i < UniqueIDsize; i++) {
-            sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
-        }
+        generateUniqueSerial();
         return;
     }
 
@@ -485,17 +495,10 @@ void generateSerial(bool force)
     // To have not always the same starting point for the random generator, millis() are
     // used as starting point. It is very unlikely that the time between flashing the firmware
     // and getting the command to send the info's to the connector is always the same.
-    randomSeed(millis());
-    sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
-    MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-#endif
-
-#if defined(ARDUINO_ARCH_RP2040)
+    generateRandomSerial();
+#elif defined(ARDUINO_ARCH_RP2040)
     // Read the uniqueID for Pico's and use it as serial number
-    sprintf(serial, "SN-");
-    for (size_t i = 0; i < UniqueIDsize; i++) {
-        sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
-    }
+    generateUniqueSerial();
     // mark this in the eeprom that a UniqueID is used on first start up for Pico's
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
 #endif
