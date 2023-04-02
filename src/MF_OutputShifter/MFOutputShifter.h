@@ -19,6 +19,7 @@ public:
     MFOutputShifter();
     void setPin(uint8_t pin, uint8_t value, uint8_t refresh = 1);
     void setPins(char *pins, uint8_t value);
+    void setBuffer(uint8_t module, uint8_t value, uint8_t refresh = 1);
     void attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount);
     void detach();
     void clear();

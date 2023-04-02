@@ -26,6 +26,14 @@ void MFOutputShifter::setPin(uint8_t pin, uint8_t value, uint8_t refresh)
     if (refresh) updateShiftRegister();
 }
 
+void MFOutputShifter::setBuffer(uint8_t module, uint8_t value, uint8_t refresh)
+{
+    if (!_initialized) return;
+
+    _outputBuffer[module] = value;
+    if (refresh) updateShiftRegister();
+}
+
 void MFOutputShifter::setPins(char *pins, uint8_t value)
 {
     if (!_initialized) return;
