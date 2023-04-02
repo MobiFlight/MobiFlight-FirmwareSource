@@ -67,17 +67,18 @@ void MFCustomDevice::set(uint8_t messageID, char *setPoint)
         These three informations have the delimiter "," which must be
         within the string defined in the connector
         ********************************************************************************** */
-        char *params, *p = NULL;
+        {
+            char *params, *p = NULL;
 
-        params    = strtok_r(setPoint, ",", &p);
-        newValue1 = atoi(params);
+            params    = strtok_r(setPoint, ",", &p);
+            newValue1 = atoi(params);
 
-        params    = strtok_r(NULL, ",", &p);
-        newValue2 = atoi(params);
+            params    = strtok_r(NULL, ",", &p);
+            newValue2 = atoi(params);
 
-        params = strtok_r(NULL, ",", &p);
-        break;
-
+            params = strtok_r(NULL, ",", &p);
+            break;
+        }
     case 2:
         /* **********************************************************************************
         or just convert the string to an int value if this messageID has only one value
@@ -95,6 +96,7 @@ void MFCustomDevice::set(uint8_t messageID, char *setPoint)
     ********************************************************************************** */
     newValue1 = newValue2;
     newValue2 = newValue1;
+    newValue1 = newValue3;
 }
 
 void MFCustomDevice::attachHandler(CustomDeviceEvent newHandler)
