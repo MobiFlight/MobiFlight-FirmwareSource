@@ -48,32 +48,53 @@ void MFCustomDevice::update()
     this function gets called when a new value is available.
     It gets called from CustomerDevice::OnSet()
 ********************************************************************************** */
-void MFCustomDevice::set(char *setPoint)
+void MFCustomDevice::set(uint8_t messageID, char *setPoint)
 {
     if (!_initialized) return;
 
     /* **********************************************************************************
-        You can process the string here at this point to get multiple parameters or
-        just transfer it to your custom devive and process it there.
+        If multiple values can be marked within the connector with a messageID
+        If each messageID has it's own value and not combined multiple ones,
+        check for the messageID and define what to do:
+    ********************************************************************************** */
+    int16_t newValue1, newValue2, newValue3;
+
+    switch (messageID) {
+    case 1:
+        /* **********************************************************************************
+        You can process the string here at this point to get multiple parameters.
         In this example two int16_t values and one string is expected from the connector
         These three informations have the delimiter "," which must be
         within the string defined in the connector
-    ********************************************************************************** */
-    char *params, *p = NULL;
+        ********************************************************************************** */
+        char *params, *p = NULL;
 
-    params            = strtok_r(setPoint, ",", &p);
-    int16_t newValue1 = atoi(params);
+        params    = strtok_r(setPoint, ",", &p);
+        newValue1 = atoi(params);
 
-    params            = strtok_r(NULL, ",", &p);
-    int16_t newValue2 = atoi(params);
+        params    = strtok_r(NULL, ",", &p);
+        newValue2 = atoi(params);
 
-    params = strtok_r(NULL, ",", &p);
+        params = strtok_r(NULL, ",", &p);
+        break;
+
+    case 2:
+        /* **********************************************************************************
+        or just convert the string to an int value if this messageID has only one value
+        this would be the preferred way of doing it
+        ********************************************************************************** */
+        newValue3 = atoi(setPoint);
+        break;
+
+    default:
+        break;
+    }
 
     /* **********************************************************************************
         Do something with the parameters
     ********************************************************************************** */
-   newValue1 = newValue2;
-   newValue2 = newValue1;
+    newValue1 = newValue2;
+    newValue2 = newValue1;
 }
 
 void MFCustomDevice::attachHandler(CustomDeviceEvent newHandler)

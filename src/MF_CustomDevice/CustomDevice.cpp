@@ -49,16 +49,16 @@ namespace CustomDevice
         char    *Parameter3, *params, *p = NULL;
         uint16_t Parameter4;
 
-        params    = strtok_r(configuration, ",", &p);
+        params     = strtok_r(configuration, ",", &p);
         Parameter1 = atoi(params);
 
-        params    = strtok_r(NULL, ",", &p);
+        params     = strtok_r(NULL, ",", &p);
         Parameter2 = atoi(params);
 
-        params    = strtok_r(NULL, ",", &p);
+        params     = strtok_r(NULL, ",", &p);
         Parameter3 = params;
 
-        params    = strtok_r(NULL, ",", &p);
+        params     = strtok_r(NULL, ",", &p);
         Parameter4 = atoi(params);
 
         /* **********************************************************************************
@@ -112,8 +112,10 @@ namespace CustomDevice
     /* **********************************************************************************
         If an output for the custom device is defined in the connector,
         this function gets called when a new value is available.
-        In this case the connector sends a string which is not longer than 90 Byte              // check the length of the string!!
-        (limited by the commandMessenger).
+        In this case the connector sends a messageID followed by a string which is not longer
+        than 90 Byte (!!check the length of the string!!) limited by the commandMessenger.
+        The messageID is used to mark the value which has changed. This reduced the serial
+        communication as not all values has to be send in one (big) string (like for the LCD)
         The OnSet() function from every registerd custom device will be called.
     ********************************************************************************** */
     void OnSet()
@@ -121,11 +123,10 @@ namespace CustomDevice
         int device = cmdMessenger.readInt16Arg(); // get the device number
         if (device >= CustomDeviceRegistered)     // and do nothing if this device is not registered
             return;
-
-        char *output = cmdMessenger.readStringArg(); // get the pointer to the new raw string
-        cmdMessenger.unescape(output);               // and unescape the string if escape characters are used
-
-        customDevice[device]->set(output); // send the string to your custom device
+        int   messageID = cmdMessenger.readInt16Arg();  // get the messageID number
+        char *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
+        cmdMessenger.unescape(output);                  // and unescape the string if escape characters are used
+        customDevice[device]->set(messageID, output);              // send the string to your custom device
 
         setLastCommandMillis();
     }

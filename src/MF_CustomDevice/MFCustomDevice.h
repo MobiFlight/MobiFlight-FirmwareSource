@@ -14,7 +14,7 @@ public:
     void        detach();
     static void attachHandler(CustomDeviceEvent handler);
     void        update();
-    void        set(char *setPoint);
+    void        set(uint8_t messageID, char *setPoint);
 
 private:
     static CustomDeviceEvent _handler;
