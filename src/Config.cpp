@@ -219,6 +219,14 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
 void readConfig()
 {
     PfcMatrix::Add(2, 3, 4, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
+    Encoder::Add(34, 35, 2, "Encoder Outer Knob");
+    Encoder::Add(37, 36, 2, "Encoder Inner Knob");
+    Button::Add(40, "RMI Nav1/2");
+    Button::Add(41, "Switch RMT");
+    Button::Add(42, "Switch FREQ");
+    Button::Add(43, "Switch GS/T");
+    Button::Add(44, "Switch N1");
+    Button::Add(45, "Switch N2");
 }
 
 void OnGetConfig()
@@ -227,18 +235,18 @@ void OnGetConfig()
     const char *display1 = "\
 4.2.3.4.15.1.DME Display 1 (3 digits):\
 4.2.3.4.15.1.DME Display 2 (5 digits):\
-3.5.NM Status:\
-3.6.KTS Status:\
-3.7.MHZ Status:\
-3.8.Min Status:\
-1.9.RMI Nav1:\
-1.10.RMI Nav2:\
-1.10.Switch RMT:\
-1.10.Switch FREQ:\
-1.10.Switch GS/T:\
-1.10.Switch N1:\
-1.10.Switch N2:\
-1.10.Switch OFF:\
+3.2.NM Status:\
+3.3.KTS Status:\
+3.4.MHZ Status:\
+3.5.Min Status:\
+1.40.RMI Nav1/2:\
+1.41.Switch RMT:\
+1.42.Switch FREQ:\
+1.43.Switch GS/T:\
+1.44.Switch N1:\
+1.45.Switch N2:\
+8.34.35.2.Encoder Outer Knob:\
+8.36.37.2.Encoder Inner Knob:\
 ";
     setLastCommandMillis();
     cmdMessenger.sendCmdStart(kInfo);

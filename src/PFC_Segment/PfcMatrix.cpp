@@ -9,16 +9,23 @@
 #include "MFOutputShifter.h"
 #include "MFOutput.h"
 #include "MFPfcMatrix.h"
+#include "MFButton.h"
 
 namespace PfcMatrix
 {
     MFPfcMatrix *pfcMatrix;
+    MFButton    *buttons[6];
     char         display1[] = "123";
     char         display2[] = "12345";
     bool         outputNM;
     bool         outputKTS;
     bool         outputMHz;
     bool         outputMin;
+
+    const uint8_t NM  = 2;
+    const uint8_t KTS = 3;
+    const uint8_t MHz = 4;
+    const uint8_t Min = 5;
 
     void Add(int dataPin, int csPin, int clkPin,
              uint8_t digit1, uint8_t digit2, uint8_t digit3, uint8_t digit4,
@@ -35,7 +42,7 @@ namespace PfcMatrix
         pfcMatrix->attach(dataPin, csPin, clkPin, digit1, digit2, digit3, digit4, digit5, digit6, digit7, digit8, digit9, digit10);
 
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kDebug, F("Added Led Segment"));
+        cmdMessenger.sendCmd(kDebug, F("Added PfcMatrix"));
 #endif
     }
 
@@ -43,7 +50,7 @@ namespace PfcMatrix
     {
         pfcMatrix->detach();
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kDebug, F("Cleared segments"));
+        cmdMessenger.sendCmd(kDebug, F("Cleared PfcMatrix"));
 #endif
     }
 
@@ -57,17 +64,17 @@ namespace PfcMatrix
         int module = cmdMessenger.readInt16Arg();
         // we have to read submodule but we don't use it
         cmdMessenger.readInt16Arg();
-        char   *value  = cmdMessenger.readStringArg();
-        uint8_t points = (uint8_t)cmdMessenger.readInt16Arg();
-        uint8_t mask   = (uint8_t)cmdMessenger.readInt16Arg();
+        char    *value  = cmdMessenger.readStringArg();
+        uint8_t  points = (uint8_t)cmdMessenger.readInt16Arg();
+        uint16_t mask   = (uint16_t)cmdMessenger.readInt16Arg();
 
         if (module == 0) {
             // we want to use the first display
-            pfcMatrix->display(0, value, 0, 0b1110000000);
+            pfcMatrix->display(0, value, points, mask);
         }
         if (module == 1) {
             // we want to use the second display
-            pfcMatrix->display(0, value, 0, 0b0001111100);
+            pfcMatrix->display(0, value, points, mask << 3);
         }
 
         setLastCommandMillis();
@@ -78,14 +85,37 @@ namespace PfcMatrix
         // Read led state argument, interpret string as boolean
         int pin   = cmdMessenger.readInt16Arg();
         int state = cmdMessenger.readInt16Arg();
-        // Set led
-        analogWrite(pin, state); // why does the UI sends the pin number and not the x.th output number like other devices?
-                                 //  output[pin]->set(state);      // once this is changed uncomment this
+
+        byte segments = 0;
+        byte digit    = 8;
+
+        if (pin != NM && pin != MHz && pin != KTS && pin != Min)
+            return;
+
+        switch (pin) {
+        case NM:
+        case MHz:
+            segments = 0b00001001;
+            break;
+
+        case KTS:
+        case Min:
+            segments = 0b00100100;
+            break;
+        }
+
+        if (pin == MHz || pin == Min)
+            digit = 9;
+
+        pfcMatrix->setSegment(digit, segments, state);
+
         setLastCommandMillis();
     }
 
     void update()
     {
+        if (pfcMatrix == nullptr) return;
+
         pfcMatrix->update();
     }
 } // namespace

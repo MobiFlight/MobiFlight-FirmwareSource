@@ -33,6 +33,7 @@
 #if MF_DIGIN_MUX_SUPPORT == 1
 #include "DigInMux.h"
 #endif
+#include "PfcMatrix.h"
 
 CmdMessenger  cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
@@ -82,6 +83,9 @@ void attachCommandCallbacks()
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
     cmdMessenger.attach(kSetShiftRegisterPins, OutputShifter::OnSet);
 #endif
+
+    cmdMessenger.attach(kSetModule, PfcMatrix::OnSetDisplay);
+    cmdMessenger.attach(kSetPin, PfcMatrix::OnSet);
 
 #ifdef DEBUG2CMDMESSENGER
     cmdMessenger.sendCmd(kDebug, F("Attached callbacks"));

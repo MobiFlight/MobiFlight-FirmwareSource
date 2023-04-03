@@ -7,32 +7,37 @@
 #include "MFPfcMatrix.h"
 #include "MFOutput.h"
 
-const static byte digitMapping[10] = {
-    //  0         ,1         ,2         ,3         ,4         ,5         ,6         ,7
-    0b01111110, 0b00110000, 0b01101101, 0b01111001, 0b00110011, 0b01011011, 0b01011111, 0b01110000,
-    //  8         ,9
-    0b01111111, 0b01111011};
-
 MFPfcMatrix::MFPfcMatrix()
 {
+    _initialized = false;
 }
 
 void MFPfcMatrix::display(byte module, char *string, byte points, uint16_t mask, bool convertPoints)
 {
-    byte digit = 10;
-    byte pos   = 0;
+    byte pos = 0;
     for (uint8_t i = 0; i < 10; i++) {
-        digit--;
-        if (((1 << digit) & mask) == 0)
+        if (((1 << i) & mask) == 0)
             continue;
-        buffer[digit] = digitMapping[atol(&string[pos])];
-        //, ((1 << digit) & points));
+
+        if (string[pos] == ' ')
+            buffer[i] = 0;
+        else {
+            byte mapping = min((byte)string[pos] - 48, 9);
+            buffer[i]    = digitMapping[mapping];
+        }
+
+        if (((1 << pos) & points) > 0)
+            buffer[i] |= 0b10000000;
         pos++;
     }
 }
 
-void MFPfcMatrix::displaySegment(uint8_t digit, uint8_t segment)
+void MFPfcMatrix::setSegment(uint8_t digit, uint8_t segment, bool state)
 {
+    if (state)
+        buffer[digit] |= segment;
+    else
+        buffer[digit] &= ~segment;
 }
 
 void MFPfcMatrix::setBrightness(byte module, byte value)
@@ -47,7 +52,7 @@ void MFPfcMatrix::attach(int dataPin, int csPin, int clkPin,
 {
     _outputShifter = new (allocateMemory(sizeof(MFOutputShifter))) MFOutputShifter;
     _outputShifter->attach(dataPin, csPin, clkPin, 1); // lc is our object
-    _digits[0] = new MFOutput(digit1);
+    _digits[0] = new MFOutput(digit0);
     _digits[1] = new MFOutput(digit1);
     _digits[2] = new MFOutput(digit2);
     _digits[3] = new MFOutput(digit3);
@@ -57,11 +62,17 @@ void MFPfcMatrix::attach(int dataPin, int csPin, int clkPin,
     _digits[7] = new MFOutput(digit7);
     _digits[8] = new MFOutput(digit8);
     _digits[9] = new MFOutput(digit9);
+
+    for (int i = 0; i < 10; i++)
+        _digits[i]->set(255);
+
+    _initialized = true;
 }
 
 void MFPfcMatrix::detach()
 {
     _outputShifter->detach();
+    _initialized = false;
 }
 
 void MFPfcMatrix::powerSavingMode(bool state)
@@ -76,10 +87,16 @@ void MFPfcMatrix::test()
 
 void MFPfcMatrix::update()
 {
+    if (!_initialized) return;
+
     for (uint8_t i = 0; i < 10; i++) {
-        _digits[(i - 1) % 10]->set(255);
+        if (i > 0)
+            _digits[i - 1]->set(255);
+        else
+            _digits[9]->set(255);
         _outputShifter->setBuffer(0, buffer[i]);
         _digits[i]->set(0);
+        delayMicroseconds(500);
     }
 }
 

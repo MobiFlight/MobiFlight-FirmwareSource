@@ -33,6 +33,8 @@
 #include "DigInMux.h"
 #endif
 
+#include "PfcMatrix.h"
+
 #define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
 #define MF_ENCODER_DEBOUNCE_MS    1  // time between encoder updates
 #define MF_INSHIFTER_POLL_MS      10 // time between input shift reg updates
@@ -141,7 +143,7 @@ void updatePowerSaving()
 void ResetBoard()
 {
     setLastCommandMillis();
-    restoreName();
+    // restoreName();
     loadConfig();
 }
 
@@ -197,6 +199,7 @@ void loop()
         timedUpdate(DigInMux::read, &lastUpdate.DigInMux, MF_INMUX_POLL_MS);
 #endif
         // lcds, outputs, outputshifters, segments do not need update
+        PfcMatrix::update();
     }
 }
 
