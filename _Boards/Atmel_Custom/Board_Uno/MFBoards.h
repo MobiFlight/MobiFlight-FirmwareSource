@@ -56,7 +56,7 @@
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
 #define STEPPER_ACCEL 800
 
-#define MOBIFLIGHT_TYPE         "Custom Mega"     // this must match with "MobiFlightType" within the .json file
+#define MOBIFLIGHT_TYPE         "Custom Uno"      // this must match with "MobiFlightType" within the .json file
 #define MOBIFLIGHT_SERIAL       "1234567890"      // on first start up this gets overwritten
 #define MOBIFLIGHT_NAME         "MobiFlight Mega" // this can be get overwritten from the connector
 #define CUSTOM_FIRMWARE_VERSION "0.0.1"           // define you own firmware version -> ToDo: how to evaluate in get_version.py to set the firmware name

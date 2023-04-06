@@ -56,14 +56,14 @@
 #define STEPPER_SPEED 400 // 300 already worked, 467, too?
 #define STEPPER_ACCEL 800
 
-#define MOBIFLIGHT_TYPE         "Custom Mega"     // this must match with "MobiFlightType" within the .json file
-#define MOBIFLIGHT_SERIAL       "1234567890"      // on first start up this gets overwritten
-#define MOBIFLIGHT_NAME         "MobiFlight Mega" // this can be get overwritten from the connector
-#define CUSTOM_FIRMWARE_VERSION "0.0.1"           // define you own firmware version -> ToDo: how to evaluate in get_version.py to set the firmware name
-#define EEPROM_SIZE             1024              // EEPROMSizeMicro
-#define MEMLEN_CONFIG           440               // max. size for config which wil be stored in EEPROM
-#define MEMLEN_NAMES_BUFFER     350               // max. size for configBuffer, contains only names from inputs
-#define MF_MAX_DEVICEMEM        400               // max. memory size for devices
+#define MOBIFLIGHT_TYPE         "Custom Micro"     // this must match with "MobiFlightType" within the .json file
+#define MOBIFLIGHT_SERIAL       "1234567890"       // on first start up this gets overwritten
+#define MOBIFLIGHT_NAME         "MobiFlight Micro" // this can be get overwritten from the connector
+#define CUSTOM_FIRMWARE_VERSION "0.0.1"            // define you own firmware version -> ToDo: how to evaluate in get_version.py to set the firmware name
+#define EEPROM_SIZE             1024               // EEPROMSizeMicro
+#define MEMLEN_CONFIG           440                // max. size for config which wil be stored in EEPROM
+#define MEMLEN_NAMES_BUFFER     350                // max. size for configBuffer, contains only names from inputs
+#define MF_MAX_DEVICEMEM        400                // max. memory size for devices
 
 #define RANDOM_SEED_INPUT A0
 
