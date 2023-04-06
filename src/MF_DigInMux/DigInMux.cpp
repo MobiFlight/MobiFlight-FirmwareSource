@@ -32,7 +32,7 @@ namespace DigInMux
         if (!FitInMemory(sizeof(MFDigInMux))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("DigInMux does not fit in Memory"));
-            return;
+            return 0xFF;
         }
         dip                          = new (allocateMemory(sizeof(MFDigInMux))) MFDigInMux(&MUX, name);
         digInMux[digInMuxRegistered] = dip;
@@ -42,7 +42,7 @@ namespace DigInMux
 #ifdef DEBUG2MSG
         cmdMessenger.sendCmd(kDebug, F("Added digital input MUX"));
 #endif
-        return 0xFF;
+        return digInMuxRegistered -1;
     }
 
     void Clear()
