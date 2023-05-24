@@ -52,8 +52,7 @@
 #define MOBIFLIGHT_SERIAL   "0987654321"
 #define MOBIFLIGHT_NAME     "MobiFlight Uno"
 #define EEPROM_SIZE         1024 // EEPROMSizeUno
-#define MEMLEN_CONFIG       286  // max. size for config which wil be stored in EEPROM
-#define MEMLEN_NAMES_BUFFER 220  // max. size for configBuffer, contains only names from inputs
+#define MEM_LEN_CONFIG      286  // max. size for config which wil be stored in EEPROM, must be less than (MEM_OFFSET_NAME + EEPROM_SIZE - (MEM_LEN_NAME + MEM_LEN_SERIAL))
 #define MF_MAX_DEVICEMEM    300  // max. memory size for devices
 
 

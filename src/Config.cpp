@@ -49,18 +49,20 @@ MFEEPROM MFeeprom;
 extern MFMuxDriver MUX;
 #endif
 
-const uint8_t MEM_OFFSET_NAME   = 0;
-const uint8_t MEM_LEN_NAME      = 48;
-const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
-const uint8_t MEM_LEN_SERIAL    = 11;
-const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
+#define MEM_OFFSET_NAME   0
+#define MEM_LEN_NAME      48
+#define MEM_OFFSET_SERIAL (MEM_OFFSET_NAME + MEM_LEN_NAME)
+#define MEM_LEN_SERIAL    11
+#define MEM_OFFSET_CONFIG (MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL)
 
-char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
-char      name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG                   = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG]       = "";
-uint16_t  configLength                     = 0;
-boolean   configActivated                  = false;
+#if ((MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL + MEM_LEN_CONFIG)) >= EEPROM_SIZE
+#error EEPROM size is exceeded
+#endif
+
+char     serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
+char     name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
+uint16_t configLength                     = 0;
+boolean  configActivated                  = false;
 
 void resetConfig();
 void readConfig();
@@ -78,7 +80,7 @@ bool readConfigLength()
 
     while (MFeeprom.read_byte(addreeprom++) != 0x00) {
         configLength++;
-        if (addreeprom > length) // abort if EEPROM size will be exceeded
+        if (addreeprom > length)                                       // abort if EEPROM size will be exceeded
         {
             cmdMessenger.sendCmd(kStatus, F("Loading config failed")); // text or "-1" like config upload?
             return false;
@@ -207,21 +209,21 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
         temp = MFeeprom.read_byte((*addreeprom)++);
         if (*addreeprom > length) // abort if EEPROM size will be exceeded
             return false;
-    } while (temp != ':'); // reads until limiter ':'
+    } while (temp != ':');        // reads until limiter ':'
     return true;
 }
 
 void readConfig()
 {
-    if (configLength == 0) // do nothing if no config is available
+    if (configLength == 0)                                   // do nothing if no config is available
         return;
-    uint16_t addreeprom   = MEM_OFFSET_CONFIG; // define first memory location where config is saved in EEPROM
+    uint16_t addreeprom   = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
     char     params[8]    = "";
     uint8_t  command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
-    bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
+    bool     copy_success = true;                            // will be set to false if EEPROM size gets exceeded
                                                              // not required anymore when pins instead of names are transferred to the UI
 
-    if (command == 0) // just to be sure, configLength should also be 0
+    if (command == 0)                                        // just to be sure, configLength should also be 0
         return;
 
     do // go through the EEPROM until it is NULL terminated
