@@ -78,7 +78,7 @@ bool readConfigLength()
 
     while (MFeeprom.read_byte(addreeprom++) != 0x00) {
         configLength++;
-        if (addreeprom > length)                                       // abort if EEPROM size will be exceeded
+        if (addreeprom > length)
         {
             cmdMessenger.sendCmd(kStatus, F("Loading config failed")); // text or "-1" like config upload?
             return false;
