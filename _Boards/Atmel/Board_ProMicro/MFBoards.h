@@ -43,7 +43,7 @@
 #define MAX_STEPPERS        3
 #define MAX_MFSERVOS        3
 #define MAX_MFLCD_I2C       2
-#define MAX_ANALOG_INPUTS   5
+#define MAX_ANALOG_INPUTS   9
 #define MAX_OUTPUT_SHIFTERS 2
 #define MAX_INPUT_SHIFTERS  2
 #define MAX_DIGIN_MUX       3
