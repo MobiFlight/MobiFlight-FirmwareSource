@@ -47,9 +47,9 @@
 #define STEPPER_SPEED       400     // 300 already worked, 467, too?
 #define STEPPER_ACCEL       800
 
-#define MOBIFLIGHT_TYPE         "MobiFlight RaspiPico"
+#define MOBIFLIGHT_TYPE         "Custom RaspiPico"
 #define MOBIFLIGHT_SERIAL       "0987654321"
-#define MOBIFLIGHT_NAME         "Custom RaspiPico"
+#define MOBIFLIGHT_NAME         "MobiFlight RaspiPico"
 #define EEPROM_SIZE             4096    // EEPROMSizeRaspberryPico
 #define MEMLEN_CONFIG           1496    // MUST be less than EEPROM_SIZE!! MEM_OFFSET_CONFIG + MEM_LEN_CONFIG <= EEPROM_SIZE, see: eeprom_write_block (MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #define MEMLEN_NAMES_BUFFER     1000    // max. size for configBuffer, contains only names from inputs
