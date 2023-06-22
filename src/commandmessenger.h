@@ -43,8 +43,8 @@ enum {
     kAnalogChange,         // 28
     kInputShifterChange,   // 29
     kDigInMuxChange,       // 30
-    kSetCustomDevice,      // 31
-    kSetStepperSpeedAccel, // 32
+    kSetStepperSpeedAccel, // 31
+    kSetCustomDevice,      // 32
     kDebug = 0xFF          // 255
 };
 
