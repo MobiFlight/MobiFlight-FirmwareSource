@@ -70,14 +70,27 @@
 #define MAX_DIGIN_MUX       4
 #endif
 
+#ifndef MOBIFLIGHT_TYPE
 #define MOBIFLIGHT_TYPE     "MobiFlight Mega"
+#endif
+#ifndef MOBIFLIGHT_SERIAL
 #define MOBIFLIGHT_SERIAL   "1234567890"
+#endif
+#ifndef MOBIFLIGHT_NAME
 #define MOBIFLIGHT_NAME     "MobiFlight Mega"
+#endif
+#ifndef EEPROM_SIZE
 #define EEPROM_SIZE         4096 // EEPROMSizeMega
+#endif
+#ifndef MEMLEN_CONFIG
 #define MEMLEN_CONFIG       1496 // max. size for config which wil be stored in EEPROM
+#endif
+#ifndef MEMLEN_NAMES_BUFFER
 #define MEMLEN_NAMES_BUFFER 1000 // max. size for configBuffer, contains only names from inputs
+#endif
+#ifndef MF_MAX_DEVICEMEM
 #define MF_MAX_DEVICEMEM    1500 // max. memory size for devices
-
+#endif
 
 #endif
 
