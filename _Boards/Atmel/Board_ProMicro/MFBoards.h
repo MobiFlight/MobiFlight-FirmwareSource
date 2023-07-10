@@ -38,7 +38,7 @@
 
 #define MAX_OUTPUTS         18
 #define MAX_BUTTONS         18
-#define MAX_LEDSEGMENTS     1
+#define MAX_LEDSEGMENTS     3
 #define MAX_ENCODERS        9
 #define MAX_STEPPERS        3
 #define MAX_MFSERVOS        3

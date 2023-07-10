@@ -38,7 +38,7 @@
 
 #define MAX_OUTPUTS         18
 #define MAX_BUTTONS         18
-#define MAX_LEDSEGMENTS     1
+#define MAX_LEDSEGMENTS     3
 #define MAX_ENCODERS        9
 #define MAX_STEPPERS        2
 #define MAX_MFSERVOS        2
@@ -55,7 +55,6 @@
 #define MEMLEN_CONFIG       286  // max. size for config which wil be stored in EEPROM
 #define MEMLEN_NAMES_BUFFER 220  // max. size for configBuffer, contains only names from inputs
 #define MF_MAX_DEVICEMEM    300  // max. memory size for devices
-
 
 #endif
 
