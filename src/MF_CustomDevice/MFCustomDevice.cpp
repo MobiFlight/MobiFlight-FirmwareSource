@@ -1,19 +1,59 @@
 #include "MFCustomDevice.h"
-
-CustomDeviceEvent MFCustomDevice::_handler = NULL;
+#include "commandmessenger.h"
+#include "allocateMem.h"
 
 /* **********************************************************************************
-    The constructor is just an example, change it to your demands of your custom device
-    Adapt also the number of parameters you need here and in the MFCustomDevice.h file
-    Also adapt it in CustomDevice.cpp.
-    It gets called from CustomerDevice::Add()
+    Within the connector up to 6 pins, a device name and a config string can be defined
+    These informations are stored in the EEPROM like for the other devices.
+    While reading the config from the EEPROM this function is called.
+    It is the first function which will be called for the custom device.
+    If it fits into the memory buffer, the constructor for the customer device
+    will be called
 ********************************************************************************** */
-MFCustomDevice::MFCustomDevice(uint8_t init1, uint8_t init2, uint8_t init3, const char *initParameter, uint16_t init4)
+
+MFCustomDevice::MFCustomDevice(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, char *customName, char *configuration)
 {
     _initialized = true;
     /* **********************************************************************************
         Do something which is required to setup your custom device
     ********************************************************************************** */
+
+    /* **********************************************************************************
+        Read the configuration parameters from the string stored in the eeprom
+        This is just an example how to process the init string. Do NOT use
+        "," or ";" as delimiter for multiple parameters but e.g. "|"
+        For most customer devices it is not required.
+        In this case just delete the following
+    ********************************************************************************** */
+    uint8_t  Parameter1, Parameter2;
+    char    *Parameter3, *params, *p = NULL;
+    uint16_t Parameter4;
+
+    params     = strtok_r(configuration, "|", &p);
+    Parameter1 = atoi(params);
+
+    params     = strtok_r(NULL, "|", &p);
+    Parameter2 = atoi(params);
+
+    params     = strtok_r(NULL, "|", &p);
+    Parameter3 = params;
+
+    params     = strtok_r(NULL, "|", &p);
+    Parameter4 = atoi(params);
+    /* **********************************************************************************
+    ********************************************************************************** */
+
+    /* **********************************************************************************
+        Next call the constructor of your custom device
+        adapt it to the needs of your constructor
+    ********************************************************************************** */
+    if (!FitInMemory(sizeof(MyCustomDevice))) {
+        // Error Message to Connector
+        cmdMessenger.sendCmd(kStatus, F("FCU LCD does not fit in Memory"));
+        return;
+    }
+    _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(Parameter1, Parameter2);
+    _mydevice->attach(Parameter3, Parameter4);
 }
 
 /* **********************************************************************************
@@ -24,6 +64,7 @@ MFCustomDevice::MFCustomDevice(uint8_t init1, uint8_t init2, uint8_t init3, cons
 void MFCustomDevice::detach()
 {
     _initialized = false;
+    _mydevice->detach();
 }
 
 /* **********************************************************************************
@@ -52,54 +93,5 @@ void MFCustomDevice::set(uint8_t messageID, char *setPoint)
 {
     if (!_initialized) return;
 
-    /* **********************************************************************************
-        If multiple values can be marked within the connector with a messageID
-        If each messageID has it's own value and not combined multiple ones,
-        check for the messageID and define what to do:
-    ********************************************************************************** */
-    int16_t newValue1, newValue2, newValue3;
-
-    switch (messageID) {
-    case 1:
-        /* **********************************************************************************
-        You can process the string here at this point to get multiple parameters.
-        In this example two int16_t values and one string is expected from the connector
-        These three informations have the delimiter "," which must be
-        within the string defined in the connector
-        ********************************************************************************** */
-        {
-            char *params, *p = NULL;
-
-            params    = strtok_r(setPoint, ",", &p);
-            newValue1 = atoi(params);
-
-            params    = strtok_r(NULL, ",", &p);
-            newValue2 = atoi(params);
-
-            params = strtok_r(NULL, ",", &p);
-            break;
-        }
-    case 2:
-        /* **********************************************************************************
-        or just convert the string to an int value if this messageID has only one value
-        this would be the preferred way of doing it
-        ********************************************************************************** */
-        newValue3 = atoi(setPoint);
-        break;
-
-    default:
-        break;
-    }
-
-    /* **********************************************************************************
-        Do something with the parameters
-    ********************************************************************************** */
-    newValue1 = newValue2;
-    newValue2 = newValue1;
-    newValue1 = newValue3;
-}
-
-void MFCustomDevice::attachHandler(CustomDeviceEvent newHandler)
-{
-    _handler = newHandler;
+    _mydevice->set(messageID, setPoint);
 }

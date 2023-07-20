@@ -48,7 +48,7 @@
 #ifdef CUSTOM_FIRMWARE_VERSION
 #define VERSION CUSTOM_FIRMWARE_VERSION
 #else
-#define VERSION         STR_VALUE(BUILD_VERSION)
+#define VERSION STR_VALUE(BUILD_VERSION)
 #endif
 MFEEPROM MFeeprom;
 
@@ -85,8 +85,7 @@ bool readConfigLength()
 
     while (MFeeprom.read_byte(addreeprom++) != 0x00) {
         configLength++;
-        if (addreeprom > length)
-        {
+        if (addreeprom > length) {
             cmdMessenger.sendCmd(kStatus, F("Loading config failed")); // text or "-1" like config upload?
             return false;
         }
@@ -240,8 +239,8 @@ bool readStringFromEEPROM(uint16_t *addreeprom, char *buffer)
         if (counter >= MEMLEN_STRING_BUFFER) {                   // nameBuffer will be exceeded
             return false;                                        // abort copying to buffer
         }
-    } while (temp != ',');      // reads until limiter ':' and locates the next free buffer position
-    buffer[counter - 1] = 0x00; // replace ':' by NULL, terminates the string
+    } while (temp != ',');                                       // reads until limiter ':' and locates the next free buffer position
+    buffer[counter - 1] = 0x00;                                  // replace ':' by NULL, terminates the string
     return true;
 }
 
@@ -446,8 +445,13 @@ void readConfig()
 
             char initBuffer[MEMLEN_STRING_BUFFER];
             copy_success = readStringFromEEPROM(&addreeprom, initBuffer);
+            if (!copy_success)
+                break;
+
+            char nameBuffer[MEMLEN_STRING_BUFFER];
+            copy_success = readStringFromEEPROM(&addreeprom, initBuffer);
             if (!copy_success) {
-                CustomDevice::Add(params[0], params[1], params[2], params[3], params[4], params[5], initBuffer);
+                CustomDevice::Add(params[0], params[1], params[2], params[3], params[4], params[5], nameBuffer, initBuffer);
                 copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
             }
             // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
