@@ -224,11 +224,9 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
     return true;
 }
 
-// reads a string from EEPROM at given address which is ',' terminated and saves it in the buffer
+// reads a string from EEPROM at given address which is '.' terminated and saves it in the buffer
 // it is still required even if the above function is not required anymore
-// it reads in an init string for the custom device. If it is decided not to use an init string
-// this function is not required
-#define MEMLEN_STRING_BUFFER 96 // this is a huge memory consumption for Uno/ProMicro which is required, is there another way?
+#define MEMLEN_STRING_BUFFER 40 // this is a huge memory consumption for Nano/Uno/ProMicro which is required, is there another way? Maybe only transferring the EEPROM address?
 bool readStringFromEEPROM(uint16_t *addreeprom, char *buffer)
 {
     char    temp    = 0;
@@ -239,8 +237,8 @@ bool readStringFromEEPROM(uint16_t *addreeprom, char *buffer)
         if (counter >= MEMLEN_STRING_BUFFER) {                   // nameBuffer will be exceeded
             return false;                                        // abort copying to buffer
         }
-    } while (temp != ',');                                       // reads until limiter ':' and locates the next free buffer position
-    buffer[counter - 1] = 0x00;                                  // replace ':' by NULL, terminates the string
+    } while (temp != '.');                                       // reads until limiter '.' and locates the next free buffer position
+    buffer[counter - 1] = 0x00;                                  // replace '.' by NULL, terminates the string
     return true;
 }
 
@@ -436,24 +434,23 @@ void readConfig()
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
         case kTypeCustomDevice:
-            params[0] = readUintFromEEPROM(&addreeprom);
-            params[1] = readUintFromEEPROM(&addreeprom);
-            params[2] = readUintFromEEPROM(&addreeprom);
-            params[3] = readUintFromEEPROM(&addreeprom);
-            params[4] = readUintFromEEPROM(&addreeprom);
-            params[5] = readUintFromEEPROM(&addreeprom);
-
-            char initBuffer[MEMLEN_STRING_BUFFER];
-            copy_success = readStringFromEEPROM(&addreeprom, initBuffer);
+            char pinBuffer[MEMLEN_STRING_BUFFER];
+            char typeBuffer[MEMLEN_STRING_BUFFER];
+            char configBuffer[MEMLEN_STRING_BUFFER];
+            // Hmhm, these are at least 120bytes which are required, a lot for Nano/Uno/ProMicro
+            // Maybe it makes sense only transferring the EEPROM adress to the ::Add function
+            copy_success = readStringFromEEPROM(&addreeprom, typeBuffer);
             if (!copy_success)
                 break;
-
-            char nameBuffer[MEMLEN_STRING_BUFFER];
-            copy_success = readStringFromEEPROM(&addreeprom, initBuffer);
-            if (!copy_success) {
-                CustomDevice::Add(params[0], params[1], params[2], params[3], params[4], params[5], nameBuffer, initBuffer);
+            copy_success = readStringFromEEPROM(&addreeprom, pinBuffer);
+            if (!copy_success)
+                break;
+            copy_success = readStringFromEEPROM(&addreeprom, configBuffer);
+            if (copy_success) {
+                CustomDevice::Add(pinBuffer, typeBuffer, configBuffer);
                 copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
             }
+            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
             break;
 #endif

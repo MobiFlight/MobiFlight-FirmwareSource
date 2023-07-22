@@ -13,7 +13,7 @@ namespace CustomDevice
     /* **********************************************************************************
         Normally nothing has to be changed below this part
     ********************************************************************************** */
-    void Add(uint8_t Pin1, uint8_t Pin2, uint8_t Pin3, uint8_t Pin4, uint8_t Pin5, uint8_t Pin6, char *customName, char *configuration)
+    void Add(char *customPins, char *customType, char *configuration)
     {
         if (CustomDeviceRegistered == MAX_CUSTOM_DEVICES)
             return;
@@ -22,7 +22,7 @@ namespace CustomDevice
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
         }
-        customDevice[CustomDeviceRegistered] = new (allocateMemory(sizeof(MFCustomDevice))) MFCustomDevice(Pin1, Pin2, Pin3, Pin4, Pin5, Pin6, customName, configuration);
+        customDevice[CustomDeviceRegistered] = new (allocateMemory(sizeof(MFCustomDevice))) MFCustomDevice(customPins, customType, configuration);
         CustomDeviceRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kStatus, F("Added Stepper Setpoint"));

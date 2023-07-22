@@ -11,12 +11,26 @@
     will be called
 ********************************************************************************** */
 
-MFCustomDevice::MFCustomDevice(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, char *customName, char *configuration)
+MFCustomDevice::MFCustomDevice(char *customPins, char *customType, char *configuration)
 {
     _initialized = true;
     /* **********************************************************************************
         Do something which is required to setup your custom device
     ********************************************************************************** */
+
+    char *params, *p = NULL;
+    /* **********************************************************************************
+        Read the pins from the string stored in the eeprom
+        This is just an example how to process the string.
+        Number of Pins could be more or less, it's depending what you have defined
+        in the device.json file
+    ********************************************************************************** */
+    params = strtok_r(customPins, "|", &p);
+    _pin1  = atoi(params);
+    params = strtok_r(NULL, "|", &p);
+    _pin2  = atoi(params);
+    params = strtok_r(NULL, "|", &p);
+    _pin3  = atoi(params);
 
     /* **********************************************************************************
         Read the configuration parameters from the string stored in the eeprom
@@ -26,22 +40,18 @@ MFCustomDevice::MFCustomDevice(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t
         In this case just delete the following
     ********************************************************************************** */
     uint8_t  Parameter1, Parameter2;
-    char    *Parameter3, *params, *p = NULL;
+    char    *Parameter3;
     uint16_t Parameter4;
 
     params     = strtok_r(configuration, "|", &p);
     Parameter1 = atoi(params);
-
     params     = strtok_r(NULL, "|", &p);
     Parameter2 = atoi(params);
-
     params     = strtok_r(NULL, "|", &p);
     Parameter3 = params;
-
     params     = strtok_r(NULL, "|", &p);
     Parameter4 = atoi(params);
-    /* **********************************************************************************
-    ********************************************************************************** */
+    /* ******************************************************************************* */
 
     /* **********************************************************************************
         Next call the constructor of your custom device
@@ -49,7 +59,7 @@ MFCustomDevice::MFCustomDevice(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t
     ********************************************************************************** */
     if (!FitInMemory(sizeof(MyCustomDevice))) {
         // Error Message to Connector
-        cmdMessenger.sendCmd(kStatus, F("FCU LCD does not fit in Memory"));
+        cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
         return;
     }
     _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(Parameter1, Parameter2);
