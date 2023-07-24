@@ -66,18 +66,19 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     _pin3  = atoi(params);
 
     /* **********************************************************************************************
-        read the Type from the EEPROM, copy them into a buffer and evaluate it
+        read the Type from the EEPROM, copy it into a buffer and evaluate it
         it's only required if your custom device handles multiple devices with different contructors
     ********************************************************************************************** */
     getStringFromEEPROM(adrType, parameter);
 
     /* **********************************************************************************
-        Read the configuration parameters from the string stored in the eeprom
+        read the configuration from the EEPROM, copy it into a buffer and evaluate it.
         This is just an example how to process the init string. Do NOT use
         "," or ";" as delimiter for multiple parameters but e.g. "|"
         For most customer devices it is not required.
         In this case just delete the following
     ********************************************************************************** */
+    getStringFromEEPROM(adrConfig, parameter);
     uint16_t Parameter1;
     char    *Parameter2;
     params     = strtok_r(parameter, "|", &p);
