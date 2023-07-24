@@ -5,15 +5,16 @@
 #include "MFBoards.h"
 #include "allocateMem.h"
 
+/* **********************************************************************************
+        Normally nothing has to be changed in this file
+        It handles one or multiple custom devices
+********************************************************************************** */
 namespace CustomDevice
 {
     uint8_t         CustomDeviceRegistered = 0;
     MFCustomDevice *customDevice[MAX_CUSTOM_DEVICES];
 
-    /* **********************************************************************************
-        Normally nothing has to be changed below this part
-    ********************************************************************************** */
-    void Add(char *customPins, char *customType, char *configuration)
+    void Add(uint16_t adrPin, uint16_t adrType, uint16_t adrConfig)
     {
         if (CustomDeviceRegistered == MAX_CUSTOM_DEVICES)
             return;
@@ -22,7 +23,7 @@ namespace CustomDevice
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
         }
-        customDevice[CustomDeviceRegistered] = new (allocateMemory(sizeof(MFCustomDevice))) MFCustomDevice(customPins, customType, configuration);
+        customDevice[CustomDeviceRegistered] = new (allocateMemory(sizeof(MFCustomDevice))) MFCustomDevice(adrPin, adrType, adrConfig);
         CustomDeviceRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kStatus, F("Added Stepper Setpoint"));

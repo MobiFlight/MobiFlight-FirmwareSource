@@ -8,7 +8,7 @@ class MyCustomDevice
 public:
     MyCustomDevice(uint8_t Pin1, uint8_t Pin2);
     void begin();
-    void attach(char *init, uint16_t Pin3);
+    void attach(uint16_t Pin3, char *init);
     void detach();
     void set(uint8_t messageID, char *setPoint);
 

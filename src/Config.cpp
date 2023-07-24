@@ -224,26 +224,10 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
     return true;
 }
 
-// reads a string from EEPROM at given address which is '.' terminated and saves it in the buffer
-// it is still required even if the above function is not required anymore
-#define MEMLEN_STRING_BUFFER 40 // this is a huge memory consumption for Nano/Uno/ProMicro which is required, is there another way? Maybe only transferring the EEPROM address?
-bool readStringFromEEPROM(uint16_t *addreeprom, char *buffer)
-{
-    char    temp    = 0;
-    uint8_t counter = 0;
-    do {
-        temp              = MFeeprom.read_byte((*addreeprom)++); // read the first character
-        buffer[counter++] = temp;                                // save character and locate next buffer position
-        if (counter >= MEMLEN_STRING_BUFFER) {                   // nameBuffer will be exceeded
-            return false;                                        // abort copying to buffer
-        }
-    } while (temp != '.');                                       // reads until limiter '.' and locates the next free buffer position
-    buffer[counter - 1] = 0x00;                                  // replace '.' by NULL, terminates the string
-    return true;
-}
-
-// reads the EEPRROM until end of command which ':' terminated
-bool readEndCommandFromEEPROM(uint16_t *addreeprom)
+// steps thru the EEPRROM until the delimiter is detected
+// it could be ":" for end of one device config
+// or "." for end of type/pin/config entry for custom device
+bool readEndCommandFromEEPROM(uint16_t *addreeprom, uint8_t delimiter)
 {
     char     temp   = 0;
     uint16_t length = MFeeprom.get_length();
@@ -251,7 +235,23 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
         temp = MFeeprom.read_byte((*addreeprom)++);
         if (*addreeprom > length) // abort if EEPROM size will be exceeded
             return false;
-    } while (temp != ':');        // reads until limiter ':'
+    } while (temp != delimiter);        // reads until delimiter
+    return true;
+}
+
+// steps thru the EEPRROM until end of parameter which is '.' terminated
+// this function is needed for the custom device as only the EEPROM
+// addresses are transferred to the custom device to avoid "big" char buffers
+// pins, type and config is read from the eeprom and evaluated within the custom device
+bool readEndParameterFromEEPROM(uint16_t *addreeprom)
+{
+    char     temp   = 0;
+    uint16_t length = MFeeprom.get_length();
+    do {
+        temp = MFeeprom.read_byte((*addreeprom)++);
+        if (*addreeprom > length) // abort if EEPROM size will be exceeded
+            return false;
+    } while (temp != '.');        // reads until limiter '.'
     return true;
 }
 
@@ -265,8 +265,13 @@ void readConfig()
     char     command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+    uint16_t adrPin    = 0;                                  // at this position in the EEPROM the custom device pins are stored
+    uint16_t adrType   = 0;                                  // at this position in the EEPROM the custom device type is stored
+    uint16_t adrConfig = 0;                                  // at this position in the EEPROM the custom device config is stored
+#endif
 
-    if (command == 0)                                        // just to be sure, configLength should also be 0
+    if (command == 0) // just to be sure, configLength should also be 0
         return;
 
     do // go through the EEPROM until it is NULL terminated
@@ -281,7 +286,7 @@ void readConfig()
         case kTypeOutput:
             params[0] = readUintFromEEPROM(&addreeprom);          // Pin number
             Output::Add(params[0]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 
 #if MF_SEGMENT_SUPPORT == 1
@@ -292,7 +297,7 @@ void readConfig()
             params[3] = readUintFromEEPROM(&addreeprom);          // brightness
             params[4] = readUintFromEEPROM(&addreeprom);          // number of modules
             LedSegment::Add(params[0], params[1], params[2], params[4], params[3]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -305,7 +310,7 @@ void readConfig()
             params[3] = readUintFromEEPROM(&addreeprom);          // Pin4 number
             params[4] = readUintFromEEPROM(&addreeprom);          // Button number
             Stepper::Add(params[0], params[1], params[2], params[3], 0);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 
         case kTypeStepperDeprecated2:
@@ -315,7 +320,7 @@ void readConfig()
             params[3] = readUintFromEEPROM(&addreeprom);          // Pin4 number
             params[4] = readUintFromEEPROM(&addreeprom);          // Button number
             Stepper::Add(params[0], params[1], params[2], params[3], params[4]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 
         case kTypeStepper:
@@ -330,7 +335,7 @@ void readConfig()
             // there is an additional 9th parameter stored in the config (profileID) which is not needed in the firmware
             // and therefor not read in, it is just skipped like the name with reading until end of command
             Stepper::Add(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -338,7 +343,7 @@ void readConfig()
         case kTypeServo:
             params[0] = readUintFromEEPROM(&addreeprom);          // Pin number
             Servos::Add(params[0]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -347,7 +352,7 @@ void readConfig()
             params[1] = readUintFromEEPROM(&addreeprom);                             // Pin2 number
             Encoder::Add(params[0], params[1], 0, &nameBuffer[addrbuffer]);          // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom, ':');       // once the nameBuffer is not required anymore uncomment this line and delete the line before
             break;
 
         case kTypeEncoder:
@@ -356,7 +361,7 @@ void readConfig()
             params[2] = readUintFromEEPROM(&addreeprom);                             // type
             Encoder::Add(params[0], params[1], params[2], &nameBuffer[addrbuffer]);  // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom, ':');       // once the nameBuffer is not required anymore uncomment this line and delete the line before
             break;
 
 #if MF_LCD_SUPPORT == 1
@@ -365,7 +370,7 @@ void readConfig()
             params[1] = readUintFromEEPROM(&addreeprom);          // columns
             params[2] = readUintFromEEPROM(&addreeprom);          // lines
             LCDDisplay::Add(params[0], params[1], params[2]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -375,7 +380,7 @@ void readConfig()
             params[1] = readUintFromEEPROM(&addreeprom);                             // sensitivity
             Analog::Add(params[0], &nameBuffer[addrbuffer], params[1]);              // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom, ':');       // once the nameBuffer is not required anymore uncomment this line and delete the line before
             break;
 #endif
 
@@ -386,7 +391,7 @@ void readConfig()
             params[2] = readUintFromEEPROM(&addreeprom);          // data Pin
             params[3] = readUintFromEEPROM(&addreeprom);          // number of daisy chained modules
             OutputShifter::Add(params[0], params[1], params[2], params[3]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -398,7 +403,7 @@ void readConfig()
             params[3] = readUintFromEEPROM(&addreeprom);                             // number of daisy chained modules
             InputShifter::Add(params[0], params[1], params[2], params[3], &nameBuffer[addrbuffer]);
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom, ':');       // once the nameBuffer is not required anymore uncomment this line and delete the line before
             break;
 #endif
 
@@ -434,29 +439,28 @@ void readConfig()
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
         case kTypeCustomDevice:
-            char pinBuffer[MEMLEN_STRING_BUFFER];
-            char typeBuffer[MEMLEN_STRING_BUFFER];
-            char configBuffer[MEMLEN_STRING_BUFFER];
-            // Hmhm, these are at least 120bytes which are required, a lot for Nano/Uno/ProMicro
-            // Maybe it makes sense only transferring the EEPROM adress to the ::Add function
-            copy_success = readStringFromEEPROM(&addreeprom, typeBuffer);
+            adrType      = addreeprom; // first location of custom Type in EEPROM
+            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
-            copy_success = readStringFromEEPROM(&addreeprom, pinBuffer);
+
+            adrPin       = addreeprom; // first location of custom pins in EEPROM
+            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
-            copy_success = readStringFromEEPROM(&addreeprom, configBuffer);
+
+            adrConfig    = addreeprom; // first location of custom config in EEPROM
+            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
             if (copy_success) {
-                copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-                CustomDevice::Add(pinBuffer, typeBuffer, configBuffer);
+                CustomDevice::Add(adrPin, adrType, adrConfig);
+                copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of command
             }
-            
             // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
             break;
 #endif
 
         default:
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
         }
         command = readUintFromEEPROM(&addreeprom);
     } while (command && copy_success);
