@@ -447,10 +447,10 @@ void readConfig()
                 break;
             copy_success = readStringFromEEPROM(&addreeprom, configBuffer);
             if (copy_success) {
+                copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
                 CustomDevice::Add(pinBuffer, typeBuffer, configBuffer);
-                copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer);
             }
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            
             // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
             break;
 #endif
