@@ -239,22 +239,6 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom, uint8_t delimiter)
     return true;
 }
 
-// steps thru the EEPRROM until end of parameter which is '.' terminated
-// this function is needed for the custom device as only the EEPROM
-// addresses are transferred to the custom device to avoid "big" char buffers
-// pins, type and config is read from the eeprom and evaluated within the custom device
-bool readEndParameterFromEEPROM(uint16_t *addreeprom)
-{
-    char     temp   = 0;
-    uint16_t length = MFeeprom.get_length();
-    do {
-        temp = MFeeprom.read_byte((*addreeprom)++);
-        if (*addreeprom > length) // abort if EEPROM size will be exceeded
-            return false;
-    } while (temp != '.');        // reads until limiter '.'
-    return true;
-}
-
 void readConfig()
 {
     if (configLength == 0)                                   // do nothing if no config is available
