@@ -85,15 +85,14 @@ namespace CustomDevice
 
     /* **********************************************************************************
         This function reports back the types of all custom devices.
-        Multiple custom devices are delimited by '|'
+        Multiple custom devices are delimited by ','
         Only custom devices which match this type can be added within the UI
     ********************************************************************************** */
     void OnGetType()
     {
-        cmdMessenger.sendCmdStart(kInfo);
+        cmdMessenger.sendCmdStart(kGetCustomType);
         for (int i = 0; i != CustomDeviceRegistered; i++) {
             cmdMessenger.sendCmdArg(customDevice[i]->getType());
-            cmdMessenger.sendCmdArg("|");
         }
         cmdMessenger.sendCmdEnd();
     }
