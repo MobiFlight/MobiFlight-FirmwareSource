@@ -6,8 +6,8 @@
 #include "allocateMem.h"
 
 /* **********************************************************************************
-        Normally nothing has to be changed in this file
-        It handles one or multiple custom devices
+    Normally nothing has to be changed in this file
+    It handles one or multiple custom devices
 ********************************************************************************** */
 namespace CustomDevice
 {
@@ -85,15 +85,12 @@ namespace CustomDevice
 
     /* **********************************************************************************
         This function reports back the types of all custom devices.
-        Multiple custom devices are delimited by ','
+        Multiple custom devices must be delimited by '|'
         Only custom devices which match this type can be added within the UI
     ********************************************************************************** */
     void OnGetType()
     {
-        cmdMessenger.sendCmdStart(kGetCustomType);
-        for (int i = 0; i != CustomDeviceRegistered; i++) {
-            cmdMessenger.sendCmdArg(customDevice[i]->getType());
-        }
-        cmdMessenger.sendCmdEnd();
+        cmdMessenger.sendCmd(kGetCustomType, MY_CUSTOM_TYPE);
     }
+
 } // end of namespace

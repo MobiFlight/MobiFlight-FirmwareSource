@@ -5,11 +5,13 @@
 
 /* **********************************************************************************
     This define will be reported back to the UI
-    If a custom devive will be added within the UI, only these devices
-    will be listed which match this definition.
+    Multiple custom devices must be delimited by '|'
+    Only custom devices which match this type can be added within the UI
 ********************************************************************************** */
-#define MY_CUSTOM_TYPE_1  "MyCustomType1"
-#define MY_CUSTOM_TYPE_2  "MyCustomType2"
+#define MY_CUSTOM_TYPE   "MyCustomType1|MyCustomType2"
+
+#define MY_CUSTOM_TYPE_1 "MyCustomType1"
+#define MY_CUSTOM_TYPE_2 "MyCustomType2"
 class MyCustomDevice
 {
 public:

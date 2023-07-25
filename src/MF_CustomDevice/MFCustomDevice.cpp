@@ -151,15 +151,3 @@ void MFCustomDevice::set(uint8_t messageID, char *setPoint)
 
     _mydevice->set(messageID, setPoint);
 }
-
-/* **********************************************************************************
-    This function reports back the type of the custom device.
-    Only custom devices which match this type can be added within the UI
-********************************************************************************** */
-char *MFCustomDevice::getType()
-{
-    if (_customType == MY_CUSTOM_DEVICE_1)
-        return MY_CUSTOM_TYPE_1;
-    if (_customType == MY_CUSTOM_DEVICE_2)
-        return MY_CUSTOM_TYPE_2;
-}
