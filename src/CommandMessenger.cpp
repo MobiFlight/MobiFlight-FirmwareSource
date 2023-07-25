@@ -88,6 +88,7 @@ void attachCommandCallbacks()
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
     cmdMessenger.attach(kSetCustomDevice, CustomDevice::OnSet);
+    cmdMessenger.attach(kGetCustomType, CustomDevice::OnGetType);
 #endif
 
 #ifdef DEBUG2CMDMESSENGER

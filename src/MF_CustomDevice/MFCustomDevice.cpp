@@ -76,10 +76,10 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         is used to store the type
     ********************************************************************************** */
     getStringFromEEPROM(adrType, parameter);
-    if (strcmp(parameter, "CustomDevice1") == MY_CUSTOM_DEVICE_1)
-        _customType = 1;
-    if (strcmp(parameter, "CustomDevice2") == MY_CUSTOM_DEVICE_2)
-        _customType = 2;
+    if (strcmp(parameter, MY_CUSTOM_TYPE_1) == 0)
+        _customType = MY_CUSTOM_DEVICE_1;
+    if (strcmp(parameter, MY_CUSTOM_TYPE_2) == 0)
+        _customType = MY_CUSTOM_DEVICE_2;
     /* ******************************************************************************* */
 
     /* **********************************************************************************
@@ -150,4 +150,16 @@ void MFCustomDevice::set(uint8_t messageID, char *setPoint)
     if (!_initialized) return;
 
     _mydevice->set(messageID, setPoint);
+}
+
+/* **********************************************************************************
+    This function reports back the type of the custom device.
+    Only custom devices which match this type can be added within the UI
+********************************************************************************** */
+char *MFCustomDevice::getType()
+{
+    if (_customType == MY_CUSTOM_DEVICE_1)
+        return MY_CUSTOM_TYPE_1;
+    if (_customType == MY_CUSTOM_DEVICE_2)
+        return MY_CUSTOM_TYPE_2;
 }

@@ -14,6 +14,7 @@ public:
     void detach();
     void update();
     void set(uint8_t messageID, char *setPoint);
+    char* getType();
 
 private:
     bool            getStringFromEEPROM(uint16_t addreeprom, char *buffer);
