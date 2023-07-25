@@ -1,5 +1,12 @@
 #include "MyCustomDevice.h"
 
+/* **********************************************************************************
+    This is just the basic code to set up your custom device.
+    Change/add your code as needed.
+    If you have no class and/or only less code you could also put it
+    into MFCustomDevice.cpp and delete this file and MyCustomDevice.h
+********************************************************************************** */
+
 MyCustomDevice::MyCustomDevice(uint8_t Pin1, uint8_t Pin2)
 {
     _pin1 = Pin1;

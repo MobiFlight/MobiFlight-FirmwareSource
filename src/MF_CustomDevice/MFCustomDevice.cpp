@@ -1,6 +1,7 @@
 #include "MFCustomDevice.h"
 #include "commandmessenger.h"
 #include "allocateMem.h"
+#include "MyCustomDevice.h"
 #include "MFEEPROM.h"
 extern MFEEPROM MFeeprom;
 
@@ -12,6 +13,7 @@ extern MFEEPROM MFeeprom;
     so do it step by step.
     The max size of the buffer is defined here. It must be the size of the
     expected max length of these strings.
+
     E.g. 6 pins are required, each pin could have two characters (two digits),
     each pins are delimited by "|" and the string is NULL terminated.
     -> (6 * 2) + 5 + 1 = 18 bytes is the maximum.
@@ -36,8 +38,9 @@ bool MFCustomDevice::getStringFromEEPROM(uint16_t addreeprom, char *buffer)
     buffer[counter - 1] = 0x00;                                 // replace '.' by NULL, terminates the string
     return true;
 }
+
 /* **********************************************************************************
-    Within the connector up to 6 pins, a device name and a config string can be defined
+    Within the connector pins, a device name and a config string can be defined
     These informations are stored in the EEPROM like for the other devices.
     While reading the config from the EEPROM this function is called.
     It is the first function which will be called for the custom device.
@@ -65,11 +68,19 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     params = strtok_r(NULL, "|", &p);
     _pin3  = atoi(params);
 
-    /* **********************************************************************************************
+    /* **********************************************************************************
         read the Type from the EEPROM, copy it into a buffer and evaluate it
-        it's only required if your custom device handles multiple devices with different contructors
-    ********************************************************************************************** */
+        it's only required if your custom device handles multiple devices with
+        different contructors
+        the string get's NOT stored as this would need a lot of RAM, instead a variable
+        is used to store the type
+    ********************************************************************************** */
     getStringFromEEPROM(adrType, parameter);
+    if (strcmp(parameter, "CustomDevice1") == MY_CUSTOM_DEVICE_1)
+        _customType = 1;
+    if (strcmp(parameter, "CustomDevice2") == MY_CUSTOM_DEVICE_2)
+        _customType = 2;
+    /* ******************************************************************************* */
 
     /* **********************************************************************************
         read the configuration from the EEPROM, copy it into a buffer and evaluate it.
@@ -85,7 +96,6 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     Parameter1 = atoi(params);
     params     = strtok_r(NULL, "|", &p);
     Parameter2 = params;
-
     /* ******************************************************************************* */
 
     /* **********************************************************************************
@@ -99,6 +109,7 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     }
     _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
     _mydevice->attach(Parameter1, Parameter2);
+    /* ******************************************************************************* */
 }
 
 /* **********************************************************************************

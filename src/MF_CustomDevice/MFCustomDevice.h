@@ -3,11 +3,10 @@
 #include <Arduino.h>
 #include "MyCustomDevice.h"
 
-extern "C" {
-// callback functions
-typedef void (*CustomDeviceEvent)(uint8_t, const char *);
+enum {
+    MY_CUSTOM_DEVICE_1 = 0,
+    MY_CUSTOM_DEVICE_2
 };
-
 class MFCustomDevice
 {
 public:
@@ -21,4 +20,5 @@ private:
     bool            _initialized = false;
     MyCustomDevice *_mydevice;
     uint8_t         _pin1, _pin2, _pin3;
+    uint8_t         _customType;
 };
