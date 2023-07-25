@@ -32,13 +32,18 @@ void MyCustomDevice::set(uint8_t messageID, char *setPoint)
 {
     /* **********************************************************************************
         Each messageID has it's own value
-        check for the messageID and define what to do:
+        check for the messageID and define what to do.
+        Important Remark!
+        MessageID == 0 will be send from the connector when Mobiflight is closed
+        Put in your code to shut down your custom device (e.g. clear a display)
     ********************************************************************************** */
     int32_t  data = atoi(setPoint);
     uint16_t output;
 
     // do something according your messageID
     switch (messageID) {
+    case 0:
+        // tbd.
     case 1:
         output = (uint16_t)data;
         data   = output;
