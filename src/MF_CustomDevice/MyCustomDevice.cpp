@@ -27,30 +27,35 @@ void MyCustomDevice::detach()
     _initialised = false;
 }
 
-void MyCustomDevice::set(uint8_t messageID, char *setPoint)
+void MyCustomDevice::set(int8_t messageID, char *setPoint)
 {
     /* **********************************************************************************
         Each messageID has it's own value
         check for the messageID and define what to do.
         Important Remark!
-        MessageID == 0 will be send from the connector when Mobiflight is closed
+        MessageID == -1 will be send from the connector when Mobiflight is closed
         Put in your code to shut down your custom device (e.g. clear a display)
+        MessageID == -2 will be send from the connector when PowerSavingMode is entered
+        Put in your code to enter this mode (e.g. clear a display)
+
     ********************************************************************************** */
     int32_t  data = atoi(setPoint);
     uint16_t output;
 
     // do something according your messageID
     switch (messageID) {
+    case -1:
+        // tbd., get's called when Mobiflight shuts down
+    case -2:
+        // tbd., get's called when PowerSavingMode is entered
     case 0:
-        // tbd.
-    case 1:
         output = (uint16_t)data;
         data   = output;
         break;
-    case 2:
+    case 1:
         /* code */
         break;
-    case 3:
+    case 2:
         /* code */
         break;
     default:

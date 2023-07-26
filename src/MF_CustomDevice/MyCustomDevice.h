@@ -2,7 +2,6 @@
 
 #include "Arduino.h"
 
-
 /* **********************************************************************************
     These defines are required to differ between multiple classes within
     MFCustomDevice.cpp (see example in this file)
@@ -19,8 +18,9 @@ public:
     void begin();
     void attach(uint16_t Pin3, char *init);
     void detach();
-    void set(uint8_t messageID, char *setPoint);
+    void set(int8_t messageID, char *setPoint);
 
 private:
-    bool     _initialised;
+    bool    _initialised;
+    uint8_t _pin1, _pin2, _pin3;
 };

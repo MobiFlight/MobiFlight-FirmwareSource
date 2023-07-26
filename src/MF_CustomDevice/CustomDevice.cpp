@@ -72,13 +72,13 @@ namespace CustomDevice
     ********************************************************************************** */
     void OnSet()
     {
-        int device = cmdMessenger.readInt16Arg();       // get the device number
-        if (device >= CustomDeviceRegistered)           // and do nothing if this device is not registered
+        int16_t device = cmdMessenger.readInt16Arg();     // get the device number
+        if (device >= CustomDeviceRegistered)             // and do nothing if this device is not registered
             return;
-        int   messageID = cmdMessenger.readInt16Arg();  // get the messageID number
-        char *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
-        cmdMessenger.unescape(output);                  // and unescape the string if escape characters are used
-        customDevice[device]->set(messageID, output);   // send the string to your custom device
+        int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
+        char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
+        cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
+        customDevice[device]->set(messageID, output);     // send the string to your custom device
 
         setLastCommandMillis();
     }
@@ -90,7 +90,7 @@ namespace CustomDevice
     ********************************************************************************** */
     void OnGetType()
     {
-        cmdMessenger.sendCmd(kGetCustomType, F(MY_CUSTOM_TYPE);
+        cmdMessenger.sendCmd(kGetCustomType, F(MY_CUSTOM_TYPE));
     }
 
 } // end of namespace

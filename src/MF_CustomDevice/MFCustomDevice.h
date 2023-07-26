@@ -22,7 +22,7 @@ public:
     MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrConfig);
     void detach();
     void update();
-    void set(uint8_t messageID, char *setPoint);
+    void set(int8_t messageID, char *setPoint);
 
 private:
     bool            getStringFromEEPROM(uint16_t addreeprom, char *buffer);
