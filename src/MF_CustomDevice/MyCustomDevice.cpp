@@ -19,7 +19,6 @@ void MyCustomDevice::begin()
 void MyCustomDevice::attach(uint16_t Pin3, char *init)
 {
     _pin3 = Pin3;
-    begin();
 }
 void MyCustomDevice::detach()
 {

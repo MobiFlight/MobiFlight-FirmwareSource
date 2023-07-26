@@ -1,16 +1,16 @@
 #pragma once
 
 #include "Arduino.h"
-#include "MyCustomDevice.h"
+
 
 /* **********************************************************************************
-    This define will be reported back to the UI
-    Multiple custom devices must be delimited by '|'
-    Only custom devices which match this type can be added within the UI
+    These defines are required to differ between multiple classes within
+    MFCustomDevice.cpp (see example in this file)
+    If you have only one class, these defines are not required as you have
+    not to differ.
 ********************************************************************************** */
-#define MY_CUSTOM_TYPE   "MyCustomType1|MyCustomType2"
-
 #define MY_CUSTOM_TYPE_1 "MyCustomType1"
+// This define should be in the second class, it's only here to show how to handle it
 #define MY_CUSTOM_TYPE_2 "MyCustomType2"
 class MyCustomDevice
 {
@@ -23,7 +23,4 @@ public:
 
 private:
     bool     _initialised;
-    uint8_t  _pin1;
-    uint8_t  _pin2;
-    uint16_t _pin3;
 };

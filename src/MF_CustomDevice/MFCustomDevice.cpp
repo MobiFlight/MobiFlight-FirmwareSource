@@ -57,8 +57,9 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
 
     char *params, *p = NULL;
     char  parameter[MEMLEN_STRING_BUFFER];
+    uint8_t  _pin1, _pin2, _pin3;
     /* **********************************************************************************************
-        read the pins from the EEPROM, copy them into a buffer and split them up die single pins
+        read the pins from the EEPROM, copy them into a buffer and split them up into single pins
     ********************************************************************************************** */
     getStringFromEEPROM(adrPin, parameter);
     params = strtok_r(parameter, "|", &p);
@@ -101,14 +102,21 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     /* **********************************************************************************
         Next call the constructor of your custom device
         adapt it to the needs of your constructor
+        if you have multiple classes, check for _customType which constructor
+        has to be called (e.g. if (_customType == MY_CUSTOM_DEVICE_1) ....)
     ********************************************************************************** */
     if (!FitInMemory(sizeof(MyCustomDevice))) {
         // Error Message to Connector
         cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
         return;
     }
+    // In most cases you need only one of the following functions
+    // depending on if the constuctor takes the variables or a separate function is required
     _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
     _mydevice->attach(Parameter1, Parameter2);
+    // if your custom device does not need a separate begin() function, delete the following
+    // or this function could be called from the custom constructor or attach() function
+    _mydevice->begin();
     /* ******************************************************************************* */
 }
 

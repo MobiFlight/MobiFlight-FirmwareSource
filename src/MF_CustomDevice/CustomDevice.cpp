@@ -90,7 +90,7 @@ namespace CustomDevice
     ********************************************************************************** */
     void OnGetType()
     {
-        cmdMessenger.sendCmd(kGetCustomType, MY_CUSTOM_TYPE);
+        cmdMessenger.sendCmd(kGetCustomType, F(MY_CUSTOM_TYPE);
     }
 
 } // end of namespace
