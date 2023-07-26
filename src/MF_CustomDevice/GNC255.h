@@ -24,7 +24,8 @@ struct Layout {
     Label Value;
     Label ValueLabel;
     Label Station;
-    Label Mode;
+    Label ModeComLabel;
+    Label ModeNavLabel;
 };
 class GNC255
 {

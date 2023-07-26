@@ -3,11 +3,22 @@
 #include "allocateMem.h"
 #include "commandmessenger.h"
 
+/*
+struct Layout {
+    Label Value;
+    Label ValueLabel;
+    Label Station;
+    Label ModeComLabel;
+    Label ModeNavLabel;
+};
+*/
 Layout ComLayout = {
     {u8g2_font_logisoso22_tn, 22, {10, 32}},
     {u8g2_font_profont10_mr, 10, {0, 32}},
-    {u8g2_font_profont12_mr, 12, {36, 45}},
-    {u8g2_font_profont12_mr, 12, {107, 18}}};
+    {u8g2_font_profont12_mr, 13, {18, 45}},
+    {u8g2_font_profont12_mr, 12, {107, 18}},
+    {u8g2_font_profont12_mr, 12, {120, 18}},
+};
 
 Position OffsetActive = {
     0,
@@ -98,7 +109,7 @@ void GNC255::set(uint8_t messageID, const char *data)
         updateActiveLabel(data);
         break;
     case 4:
-        updateStandbyFreq(data);
+        updateStandbyLabel(data);
         break;
     case 5:
         setMode(strcmp(data, "0") == 0);
@@ -111,10 +122,15 @@ void GNC255::set(uint8_t messageID, const char *data)
 
 void GNC255::setMode(bool isCom)
 {
-    if (isCom)
-        _renderLabel("COM", ComLayout.Mode, OffsetActive, true);
-    else
-        _renderLabel("NAV", ComLayout.Mode, OffsetActive, true);
+    if (isCom) {
+        _renderLabel("   ", ComLayout.ModeNavLabel, OffsetActive, true);
+        _renderLabel("COM", ComLayout.ModeComLabel, OffsetActive, true);
+    }
+
+    else {
+        _renderLabel("   ", ComLayout.ModeComLabel, OffsetActive, true);
+        _renderLabel("NAV", ComLayout.ModeNavLabel, OffsetActive, true);
+    }
 }
 
 void GNC255::updateActiveFreq(const char *frequency)
@@ -126,7 +142,7 @@ void GNC255::updateActiveFreq(const char *frequency)
 void GNC255::updateStandbyFreq(const char *frequency)
 {
     _renderLabel(frequency, ComLayout.Value, OffsetStandby);
-    _renderLabel("SBY", ComLayout.ValueLabel, OffsetStandby);
+    _renderLabel("STB", ComLayout.ValueLabel, OffsetStandby);
 }
 
 void GNC255::updateActiveLabel(const char *frequency)
