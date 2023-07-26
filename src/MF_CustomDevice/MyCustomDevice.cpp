@@ -1,5 +1,9 @@
 #include "MyCustomDevice.h"
 
+MyCustomDevice::MyCustomDevice()
+{
+}
+
 MyCustomDevice::MyCustomDevice(uint8_t Pin1, uint8_t Pin2)
 {
     _pin1 = Pin1;

@@ -2,6 +2,7 @@
 #include "commandmessenger.h"
 #include "allocateMem.h"
 #include "MFEEPROM.h"
+#include "GNC255.h"
 extern MFEEPROM MFeeprom;
 
 /* **********************************************************************************
@@ -47,7 +48,6 @@ bool MFCustomDevice::getStringFromEEPROM(uint16_t addreeprom, char *buffer)
 
 MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrConfig)
 {
-    _initialized = true;
     /* **********************************************************************************
         Do something which is required to setup your custom device
     ********************************************************************************** */
@@ -59,11 +59,15 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     ********************************************************************************************** */
     getStringFromEEPROM(adrPin, parameter);
     params = strtok_r(parameter, "|", &p);
-    _pin1  = atoi(params);
+    _clk   = atoi(params);
     params = strtok_r(NULL, "|", &p);
-    _pin2  = atoi(params);
+    _data  = atoi(params);
     params = strtok_r(NULL, "|", &p);
-    _pin3  = atoi(params);
+    _cs    = atoi(params);
+    params = strtok_r(NULL, "|", &p);
+    _dc    = atoi(params);
+    params = strtok_r(NULL, "|", &p);
+    _reset = atoi(params);
 
     /* **********************************************************************************************
         read the Type from the EEPROM, copy it into a buffer and evaluate it
@@ -78,13 +82,13 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         For most customer devices it is not required.
         In this case just delete the following
     ********************************************************************************** */
-    getStringFromEEPROM(adrConfig, parameter);
-    uint16_t Parameter1;
-    char    *Parameter2;
-    params     = strtok_r(parameter, "|", &p);
-    Parameter1 = atoi(params);
-    params     = strtok_r(NULL, "|", &p);
-    Parameter2 = params;
+    // getStringFromEEPROM(adrConfig, parameter);
+    // uint16_t Parameter1;
+    // char    *Parameter2;
+    // params     = strtok_r(parameter, "|", &p);
+    // Parameter1 = atoi(params);
+    // params     = strtok_r(NULL, "|", &p);
+    // Parameter2 = params;
 
     /* ******************************************************************************* */
 
@@ -92,13 +96,15 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         Next call the constructor of your custom device
         adapt it to the needs of your constructor
     ********************************************************************************** */
-    if (!FitInMemory(sizeof(MyCustomDevice))) {
+    if (!FitInMemory(sizeof(GNC255))) {
         // Error Message to Connector
         cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
         return;
     }
-    _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
-    _mydevice->attach(Parameter1, Parameter2);
+    _mydevice = new (allocateMemory(sizeof(GNC255))) GNC255(_clk, _data, _cs, _dc, _reset);
+    _mydevice->attach();
+
+    _initialized = true;
 }
 
 /* **********************************************************************************

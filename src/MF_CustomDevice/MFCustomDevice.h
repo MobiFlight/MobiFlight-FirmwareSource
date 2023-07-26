@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "MyCustomDevice.h"
+#include "GNC255.h"
 
 extern "C" {
 // callback functions
@@ -17,8 +18,8 @@ public:
     void set(uint8_t messageID, char *setPoint);
 
 private:
-    bool            getStringFromEEPROM(uint16_t addreeprom, char *buffer);
-    bool            _initialized = false;
-    MyCustomDevice *_mydevice;
-    uint8_t         _pin1, _pin2, _pin3;
+    bool    getStringFromEEPROM(uint16_t addreeprom, char *buffer);
+    bool    _initialized = false;
+    GNC255 *_mydevice;
+    uint8_t _clk, _data, _cs, _dc, _reset;
 };

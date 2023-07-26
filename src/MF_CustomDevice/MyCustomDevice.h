@@ -6,6 +6,7 @@
 class MyCustomDevice
 {
 public:
+    MyCustomDevice();
     MyCustomDevice(uint8_t Pin1, uint8_t Pin2);
     void begin();
     void attach(uint16_t Pin3, char *init);
