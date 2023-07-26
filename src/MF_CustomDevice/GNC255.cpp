@@ -3,6 +3,20 @@
 #include "allocateMem.h"
 #include "commandmessenger.h"
 
+Layout ComLayout = {
+    {u8g2_font_logisoso22_tn, 22, {10, 32}},
+    {u8g2_font_profont10_mr, 10, {0, 32}},
+    {u8g2_font_profont12_mr, 12, {36, 45}},
+    {u8g2_font_profont12_mr, 12, {107, 18}}};
+
+Position OffsetActive = {
+    0,
+    0};
+
+Position OffsetStandby = {
+    140,
+    0};
+
 GNC255::GNC255(uint8_t clk, uint8_t data, uint8_t cs, uint8_t dc, uint8_t reset)
 {
     _clk   = clk;
@@ -24,7 +38,8 @@ void GNC255::attach()
         return;
     }
 
-    _oledDisplay = new (allocateMemory(sizeof(U8G2_SSD1322_NHD_256X64_F_4W_SW_SPI))) U8G2_SSD1322_NHD_256X64_F_4W_SW_SPI(U8G2_R0, _clk, _data, _cs, _dc, _reset);
+    _oledDisplay = new (allocateMemory(sizeof(U8G2_SSD1322_NHD_256X64_F_4W_SW_SPI))) U8G2_SSD1322_NHD_256X64_F_4W_SW_SPI(U8G2_R0, _clk, _data, _cs, _dc);
+    //_oledDisplay = new (allocateMemory(sizeof(U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI))) U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI(U8G2_R0, 53, _dc, _reset);
     begin();
 }
 
@@ -39,10 +54,11 @@ void GNC255::begin()
 void GNC255::_update()
 {
     // This problem applies only to full buffer mode
-    updateActiveFreq("121.500");
-    updateActiveLabel("EMERGENCY");
-    updateStandbyFreq("121.700");
-    updateStandbyLabel("KPWK GND");
+    updateActiveFreq("188.888");
+    updateActiveLabel("MobiFlight");
+    updateStandbyFreq("188.888");
+    updateStandbyLabel("rocks!");
+    setMode(true);
 }
 
 void GNC255::detach()
@@ -58,15 +74,12 @@ void GNC255::_stop()
     _oledDisplay->sendBuffer();
 }
 
-void GNC255::set(uint8_t messageID, char *setPoint)
+void GNC255::set(uint8_t messageID, const char *data)
 {
     /* **********************************************************************************
         Each messageID has it's own value
         check for the messageID and define what to do:
     ********************************************************************************** */
-    const char *data = setPoint;
-    uint16_t    output;
-
     // do something according your messageID
     switch (messageID) {
     case 0:
@@ -75,79 +88,68 @@ void GNC255::set(uint8_t messageID, char *setPoint)
 
     // set Active Frequency
     case 1:
-        updateActiveFreq(setPoint);
+        updateActiveFreq(data);
         break;
-
     // set Standby Frequency
     case 2:
-        updateStandbyFreq(setPoint);
+        updateStandbyFreq(data);
         break;
     case 3:
-        updateActiveLabel(setPoint);
+        updateActiveLabel(data);
         break;
     case 4:
-        updateStandbyFreq(setPoint);
+        updateStandbyFreq(data);
+        break;
+    case 5:
+        setMode(strcmp(data, "0") == 0);
         break;
     default:
         break;
     }
-}
-
-void GNC255::updateActiveFreq(char *frequency)
-{
-    _updateFrequency(frequency, 10, 32);
-}
-
-void GNC255::updateStandbyFreq(char *frequency)
-{
-    _updateFrequency(frequency, 140, 32);
-}
-
-void GNC255::updateActiveLabel(char *frequency)
-{
-    _updateLabel(frequency, 36, 45);
-}
-
-void GNC255::updateStandbyLabel(char *frequency)
-{
-    _updateLabel(frequency, 165, 45);
-}
-
-void GNC255::_updateFrequency(char *frequency, uint8_t x, uint8_t y)
-{
-    _oledDisplay->setDrawColor(0);
-    _oledDisplay->drawBox(x + 5, y - 50, 90, 50);
-    _oledDisplay->setDrawColor(1);
-    _oledDisplay->setFontMode(0);
-    _oledDisplay->setCursor(x, y);
-    _oledDisplay->setFont(u8g2_font_logisoso22_tn);
-    _oledDisplay->print(frequency);
-    _staticLabels("COM", 105, 18);
-    _staticLabels("ACT", 0, 32);
-    _staticLabels("STB", 130, 32);
     _oledDisplay->sendBuffer();
 }
 
-void GNC255::_updateLabel(char *frequency, uint8_t x, uint8_t y)
+void GNC255::setMode(bool isCom)
 {
-    _oledDisplay->setDrawColor(0);
-    _oledDisplay->drawBox(x - 20, y - 12, 85, 15);
-    _oledDisplay->setDrawColor(1);
-    _oledDisplay->setFontMode(0);
-    _oledDisplay->setCursor(x, y);
-    _oledDisplay->setFont(u8g2_font_profont12_mr);
-    _oledDisplay->print(frequency);
-    _oledDisplay->sendBuffer();
+    if (isCom)
+        _renderLabel("COM", ComLayout.Mode, OffsetActive, true);
+    else
+        _renderLabel("NAV", ComLayout.Mode, OffsetActive, true);
 }
 
-void GNC255::_staticLabels(char *label, uint8_t x, uint8_t y)
+void GNC255::updateActiveFreq(const char *frequency)
 {
+    _renderLabel(frequency, ComLayout.Value, OffsetActive);
+    _renderLabel("ACT", ComLayout.ValueLabel, OffsetActive);
+}
+
+void GNC255::updateStandbyFreq(const char *frequency)
+{
+    _renderLabel(frequency, ComLayout.Value, OffsetStandby);
+    _renderLabel("SBY", ComLayout.ValueLabel, OffsetStandby);
+}
+
+void GNC255::updateActiveLabel(const char *frequency)
+{
+    _renderLabel(frequency, ComLayout.Station, OffsetActive);
+}
+
+void GNC255::updateStandbyLabel(const char *frequency)
+{
+    _renderLabel(frequency, ComLayout.Station, OffsetStandby);
+}
+
+void GNC255::_renderLabel(const char *text, Label label, Position offset, bool update)
+{
+    _oledDisplay->setFont(label.Font);
+    u8g2_int_t w = _oledDisplay->getStrWidth(text);
+    u8g2_int_t h = label.FontSize;
     _oledDisplay->setDrawColor(0);
-    _oledDisplay->drawBox(x, y - 7, 15, 7);
+    _oledDisplay->drawBox(offset.x + label.Pos.x, offset.y + label.Pos.y - h, w, h);
     _oledDisplay->setDrawColor(1);
     _oledDisplay->setFontMode(0);
-    _oledDisplay->setCursor(x, y);
-    _oledDisplay->setFont(u8g2_font_profont10_mr);
-    _oledDisplay->print(label);
-    //_oledDisplay->sendBuffer();
+    _oledDisplay->setCursor(offset.x + label.Pos.x, offset.y + label.Pos.y);
+
+    _oledDisplay->print(text);
+    if (update) _oledDisplay->sendBuffer();
 }

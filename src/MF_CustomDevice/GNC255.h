@@ -10,6 +10,22 @@
 #include <Wire.h>
 #endif
 
+struct Position {
+    uint8_t x;
+    uint8_t y;
+};
+struct Label {
+    const uint8_t *Font;
+    const uint8_t  FontSize;
+    const Position Pos;
+};
+
+struct Layout {
+    Label Value;
+    Label ValueLabel;
+    Label Station;
+    Label Mode;
+};
 class GNC255
 {
 public:
@@ -17,20 +33,23 @@ public:
     void begin();
     void attach();
     void detach();
-    void set(uint8_t messageID, char *setPoint);
+    void set(uint8_t messageID, const char *setPoint);
 
 private:
     U8G2_SSD1322_NHD_256X64_F_4W_SW_SPI *_oledDisplay;
-    bool                                 _initialised;
-    uint8_t                              _clk, _data, _cs, _dc, _reset;
+    // U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI *_oledDisplay;
+    bool    _initialised;
+    uint8_t _clk, _data, _cs, _dc, _reset;
+    bool    _hasChanged;
+    char    activeFrequency[8]  = "123.456";
+    char    standbyFrequency[8] = "123.456";
 
     void _update();
     void _stop();
-    void updateActiveFreq(char *frequency);
-    void updateStandbyFreq(char *frequency);
-    void updateActiveLabel(char *frequency);
-    void updateStandbyLabel(char *frequency);
-    void _updateFrequency(char *label, uint8_t x, uint8_t y);
-    void _updateLabel(char *label, uint8_t x, uint8_t y);
-    void _staticLabels(char *label, uint8_t x, uint8_t y);
+    void setMode(bool isCom);
+    void updateActiveFreq(const char *frequency);
+    void updateStandbyFreq(const char *frequency);
+    void updateActiveLabel(const char *frequency);
+    void updateStandbyLabel(const char *frequency);
+    void _renderLabel(const char *text, Label label, Position offset, bool update = false);
 };
