@@ -45,11 +45,8 @@
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg)  STRINGIZER(arg)
-#ifdef CUSTOM_FIRMWARE_VERSION
-#define VERSION CUSTOM_FIRMWARE_VERSION
-#else
 #define VERSION STR_VALUE(BUILD_VERSION)
-#endif
+
 MFEEPROM MFeeprom;
 
 #if MF_MUX_SUPPORT == 1
