@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "MyCustomDevice.h"
-#include "GNC255.h"
+#include "GNC255/GNC255.h"
 
 extern "C" {
 // callback functions

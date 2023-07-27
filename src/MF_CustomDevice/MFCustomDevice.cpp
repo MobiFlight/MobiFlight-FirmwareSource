@@ -2,7 +2,7 @@
 #include "commandmessenger.h"
 #include "allocateMem.h"
 #include "MFEEPROM.h"
-#include "GNC255.h"
+#include "GNC255/GNC255.h"
 extern MFEEPROM MFeeprom;
 
 /* **********************************************************************************

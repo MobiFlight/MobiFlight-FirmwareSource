@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Arduino.h"
-#include "MyCustomDevice.h"
 #include <U8g2lib.h>
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
