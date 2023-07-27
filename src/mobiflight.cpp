@@ -43,7 +43,6 @@
 #define MF_SERVO_DELAY_MS         5  // time between servo updates
 #define MF_ANALOGAVERAGE_DELAY_MS 10 // time between updating the analog average calculation
 #define MF_ANALOGREAD_DELAY_MS    50 // time between sending analog values
-#define MF_CUSTOMDEVICE_POLL_MS   10 // time between updating custom device
 
 bool                powerSavingMode   = false;
 const unsigned long POWER_SAVING_TIME = 60 * 15; // in seconds
@@ -205,14 +204,11 @@ void loop()
 #endif
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
-        /* **********************************************************************************
-            undef the following function if update() should be every MF_CUSTOMDEVICE_POLL_MS
-        ********************************************************************************** */
-        // timedUpdate(CustomDevice::update, &lastUpdate.CustomDevice, MF_CUSTOMDEVICE_POLL_MS);
-        /* **********************************************************************************
-            undef the following function if custom update should be as fast as possible
-        ********************************************************************************** */
-        // CustomDevice::update();
+#ifdef MF_CUSTOMDEVICE_POLL_MS
+        timedUpdate(CustomDevice::update, &lastUpdate.CustomDevice, MF_CUSTOMDEVICE_POLL_MS);
+#else
+        CustomDevice::update();
+#endif
 #endif
 
         // lcds, outputs, outputshifters, segments do not need update
