@@ -52,7 +52,6 @@
 #define MAX_DIGIN_MUX       4
 #define MAX_CUSTOM_DEVICES  5
 
-//#define MOBIFLIGHT_TYPE     "MobiFlight Mega"
 #define MOBIFLIGHT_SERIAL   "1234567890"
 #define MOBIFLIGHT_NAME     "MobiFlight Mega"
 #define EEPROM_SIZE         4096 // EEPROMSizeMega

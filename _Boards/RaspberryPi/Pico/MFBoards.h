@@ -47,7 +47,6 @@
 #define STEPPER_SPEED       400     // 300 already worked, 467, too?
 #define STEPPER_ACCEL       800
 
-//#define MOBIFLIGHT_TYPE         "MobiFlight RaspiPico"
 #define MOBIFLIGHT_SERIAL       "0987654321"
 #define MOBIFLIGHT_NAME         "MobiFlight RaspiPico"
 #define EEPROM_SIZE             4096    // EEPROMSizeRaspberryPico
