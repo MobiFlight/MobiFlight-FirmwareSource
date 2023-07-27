@@ -41,13 +41,13 @@
 #define MAX_OUTPUT_SHIFTERS 4
 #define MAX_INPUT_SHIFTERS  4
 #define MAX_DIGIN_MUX       4
-#define MAX_CUSTOM_DEVICES  2
+#define MAX_CUSTOM_DEVICES  5
 
 #define STEPS               64
 #define STEPPER_SPEED       400     // 300 already worked, 467, too?
 #define STEPPER_ACCEL       800
 
-#define MOBIFLIGHT_TYPE         "MobiFlight RaspiPico"
+//#define MOBIFLIGHT_TYPE         "MobiFlight RaspiPico"
 #define MOBIFLIGHT_SERIAL       "0987654321"
 #define MOBIFLIGHT_NAME         "MobiFlight RaspiPico"
 #define EEPROM_SIZE             4096    // EEPROMSizeRaspberryPico

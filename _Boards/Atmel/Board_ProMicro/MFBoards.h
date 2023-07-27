@@ -52,7 +52,7 @@
 #define MAX_DIGIN_MUX       3
 #define MAX_CUSTOM_DEVICES  2
 
-#define MOBIFLIGHT_TYPE     "MobiFlight Micro"
+//#define MOBIFLIGHT_TYPE     "MobiFlight Micro"
 #define MOBIFLIGHT_SERIAL   "0987654321"
 #define MOBIFLIGHT_NAME     "MobiFlight Micro"
 #define EEPROM_SIZE         1024 // EEPROMSizeMicro
