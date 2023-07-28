@@ -3,14 +3,6 @@
 #include <Arduino.h>
 #include "MyCustomDevice.h"
 
-/* **********************************************************************************
-    This define will be reported back to the UI
-    Multiple custom devices must be delimited by '|'
-    Only custom devices which match this type can be added within the UI
-********************************************************************************** */
-#define MY_CUSTOM_TYPE "MyCustomType" // if you have only one custom device
-// #define MY_CUSTOM_TYPE   "MyCustomType1|MyCustomType2"  // if you have more than one custom device
-
 // only required if you have more than one custom device
 enum {
     MY_CUSTOM_DEVICE_1 = 0,
