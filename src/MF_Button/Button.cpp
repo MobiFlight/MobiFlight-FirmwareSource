@@ -10,7 +10,9 @@
 
 namespace Button
 {
-    MFButton *buttons[MAX_BUTTONS];
+    //MFButton *buttons[MAX_BUTTONS];
+    MFButton *buttons;
+
     uint8_t   buttonsRegistered = 0;
 
     void      handlerOnButton(uint8_t eventId, uint8_t pin, const char *name)
@@ -20,6 +22,11 @@ namespace Button
         cmdMessenger.sendCmdArg(eventId);
         cmdMessenger.sendCmdEnd();
     };
+
+    void setupArray(uint16_t count) {
+        //buttons = new (allocateMemory(sizeof(MFButton) * MAX_BUTTONS)) MFButton[MAX_BUTTONS];
+        buttons = new MFButton[MAX_BUTTONS];
+    }
 
     void Add(uint8_t pin, char const *name)
     {
@@ -31,7 +38,8 @@ namespace Button
             cmdMessenger.sendCmd(kStatus, F("Button does not fit in Memory"));
             return;
         }
-        buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
+        //buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
+        //buttons[buttonsRegistered] = new MFButton(pin, name);
         MFButton::attachHandler(handlerOnButton);
         buttonsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
@@ -50,7 +58,7 @@ namespace Button
     void read(void)
     {
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
-            buttons[i]->update();
+            buttons[i].update();
         }
     }
 
@@ -58,11 +66,11 @@ namespace Button
     {
         // Trigger all button release events first...
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
-            buttons[i]->triggerOnRelease();
+            buttons[i].triggerOnRelease();
         }
         // ... then trigger all the press events
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
-            buttons[i]->triggerOnPress();
+            buttons[i].triggerOnPress();
         }
     }
 } // namespace button
