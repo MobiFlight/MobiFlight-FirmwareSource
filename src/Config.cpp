@@ -241,8 +241,8 @@ void readConfig()
     if (command == 0)                                        // just to be sure, configLength should also be 0
         return;
 
-    // go through the EEPROM and calculate the number of devices of each type
-    // the call the function to dynamically set up the required arrays of each type
+    // go through the EEPROM and calculate the number of devices for each type
+    // then call the function to dynamically set up the required arrays of each type
     Button::setupArray(5);      // 5 is just an example and must be replaced with the calculated number of devices
 
     do // go through the EEPROM until it is NULL terminated
