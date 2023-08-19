@@ -24,8 +24,8 @@ namespace Button
     };
 
     void setupArray(uint16_t count) {
-        //buttons = new (allocateMemory(sizeof(MFButton) * MAX_BUTTONS)) MFButton[MAX_BUTTONS];
-        buttons = new MFButton[MAX_BUTTONS];
+        //buttons = new (allocateMemory(sizeof(MFButton) * count)) MFButton[count]; // Hmhm, why does this not compile to get it into a defined memory area??
+        buttons = new MFButton[count];
     }
 
     void Add(uint8_t pin, char const *name)
@@ -39,7 +39,7 @@ namespace Button
             return;
         }
         //buttons[buttonsRegistered] = new (allocateMemory(sizeof(MFButton))) MFButton(pin, name);
-        //buttons[buttonsRegistered] = new MFButton(pin, name);
+        buttons[buttonsRegistered] = MFButton(pin, name);
         MFButton::attachHandler(handlerOnButton);
         buttonsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
@@ -58,6 +58,7 @@ namespace Button
     void read(void)
     {
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
+            //buttons[i]->update();
             buttons[i].update();
         }
     }
@@ -66,10 +67,12 @@ namespace Button
     {
         // Trigger all button release events first...
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
+            //buttons[i]->triggerOnRelease();
             buttons[i].triggerOnRelease();
         }
         // ... then trigger all the press events
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
+            //buttons[i]->triggerOnPress();
             buttons[i].triggerOnPress();
         }
     }
