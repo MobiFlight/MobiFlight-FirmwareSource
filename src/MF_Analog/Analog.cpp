@@ -11,7 +11,7 @@
 #if MF_ANALOG_SUPPORT == 1
 namespace Analog
 {
-    MFAnalog *analog[MAX_ANALOG_INPUTS];
+    MFAnalog *analog;
     uint8_t   analogRegistered = 0;
 
     void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
@@ -21,6 +21,12 @@ namespace Analog
         cmdMessenger.sendCmdArg(value);
         cmdMessenger.sendCmdEnd();
     };
+
+    void setupArray(uint16_t count) {
+        if (count)
+            analog = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
+            //analog = new MFAnalog[count];
+    }
 
     void Add(uint8_t pin, char const *name, uint8_t sensitivity)
     {
@@ -32,7 +38,7 @@ namespace Analog
             cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
             return;
         }
-        analog[analogRegistered] = new (allocateMemory(sizeof(MFAnalog))) MFAnalog(pin, name, sensitivity);
+        analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;
 #ifdef DEBUG2CMDMESSENGER
@@ -51,14 +57,14 @@ namespace Analog
     void read(void)
     {
         for (uint8_t i = 0; i < analogRegistered; i++) {
-            analog[i]->update();
+            analog[i].update();
         }
     }
 
     void readAverage(void)
     {
         for (uint8_t i = 0; i < analogRegistered; i++) {
-            analog[i]->readBuffer();
+            analog[i].readBuffer();
         }
     }
 
@@ -66,7 +72,7 @@ namespace Analog
     {
         // Scan and transit current values
         for (uint8_t i = 0; i < analogRegistered; i++) {
-            analog[i]->retrigger();
+            analog[i].retrigger();
         }
     }
 

@@ -24,8 +24,9 @@ namespace Button
     };
 
     void setupArray(uint16_t count) {
-        //buttons = new (allocateMemory(sizeof(MFButton) * count)) MFButton[count]; // Hmhm, why does this not compile to get it into a defined memory area??
-        buttons = new MFButton[count];
+        if (count)
+            buttons = new (allocateMemory(sizeof(MFButton) * count)) MFButton;
+            //buttons = new MFButton[count];
     }
 
     void Add(uint8_t pin, char const *name)

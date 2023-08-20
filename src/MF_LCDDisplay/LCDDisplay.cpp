@@ -10,8 +10,14 @@
 
 namespace LCDDisplay
 {
-    MFLCDDisplay *lcd_I2C[MAX_MFLCD_I2C];
+    MFLCDDisplay *lcd_I2C;
     uint8_t       lcd_12cRegistered = 0;
+
+    void setupArray(uint16_t count) {
+        if (count)
+            lcd_I2C = new (allocateMemory(sizeof(MFLCDDisplay) * count)) MFLCDDisplay;
+            //lcd_I2C = new MFLCDDisplay[count];
+    }
 
     void Add(uint8_t address, uint8_t cols, uint8_t lines)
     {
@@ -23,8 +29,8 @@ namespace LCDDisplay
             cmdMessenger.sendCmd(kStatus, F("LCD does not fit in Memory!"));
             return;
         }
-        lcd_I2C[lcd_12cRegistered] = new (allocateMemory(sizeof(MFLCDDisplay))) MFLCDDisplay;
-        lcd_I2C[lcd_12cRegistered]->attach(address, cols, lines);
+        lcd_I2C[lcd_12cRegistered] = MFLCDDisplay();
+        lcd_I2C[lcd_12cRegistered].attach(address, cols, lines);
         lcd_12cRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added lcdDisplay"));
@@ -34,7 +40,7 @@ namespace LCDDisplay
     void Clear()
     {
         for (uint8_t i = 0; i < lcd_12cRegistered; i++) {
-            lcd_I2C[i]->detach();
+            lcd_I2C[i].detach();
         }
         lcd_12cRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
@@ -47,7 +53,7 @@ namespace LCDDisplay
         int   address = cmdMessenger.readInt16Arg();
         char *output  = cmdMessenger.readStringArg();
         cmdMessenger.unescape(output);
-        lcd_I2C[address]->display(output);
+        lcd_I2C[address].display(output);
         setLastCommandMillis();
     }
 } // namespace

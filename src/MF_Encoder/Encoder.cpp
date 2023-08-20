@@ -10,7 +10,7 @@
 
 namespace Encoder
 {
-    MFEncoder *encoders[MAX_ENCODERS];
+    MFEncoder *encoders;
     uint8_t    encodersRegistered = 0;
 
     void       handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
@@ -20,6 +20,12 @@ namespace Encoder
         cmdMessenger.sendCmdArg(eventId);
         cmdMessenger.sendCmdEnd();
     };
+
+    void setupArray(uint16_t count) {
+        if (count)
+            encoders = new (allocateMemory(sizeof(MFEncoder) * count)) MFEncoder;
+            //buttons = new MFEncoder[count];
+    }
 
     void Add(uint8_t pin1, uint8_t pin2, uint8_t encoder_type, char const *name)
     {
@@ -31,8 +37,8 @@ namespace Encoder
             cmdMessenger.sendCmd(kStatus, F("Encoders does not fit in Memory"));
             return;
         }
-        encoders[encodersRegistered] = new (allocateMemory(sizeof(MFEncoder))) MFEncoder;
-        encoders[encodersRegistered]->attach(pin1, pin2, encoder_type, name);
+        encoders[encodersRegistered] = MFEncoder();
+        encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
         MFEncoder::attachHandler(handlerOnEncoder);
         encodersRegistered++;
 #ifdef DEBUG2CMDMESSENGER
@@ -51,7 +57,7 @@ namespace Encoder
     void read()
     {
         for (uint8_t i = 0; i < encodersRegistered; i++) {
-            encoders[i]->update();
+            encoders[i].update();
         }
     }
 } // namespace encoder

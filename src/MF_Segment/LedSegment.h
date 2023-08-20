@@ -8,6 +8,7 @@
 
 namespace LedSegment
 {
+    void setupArray(uint16_t count);
     void Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness);
     void Clear();
     void PowerSave(bool state);

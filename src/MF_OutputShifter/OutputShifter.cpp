@@ -10,8 +10,14 @@
 
 namespace OutputShifter
 {
-    MFOutputShifter *outputShifters[MAX_OUTPUT_SHIFTERS];
+    MFOutputShifter *outputShifters;
     uint8_t          outputShifterRegistered = 0;
+
+    void setupArray(uint16_t count) {
+        if (count)
+            outputShifters = new (allocateMemory(sizeof(MFOutputShifter) * count)) MFOutputShifter;
+            //outputShifters = new MFButton[count];
+    }
 
     void             Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
     {
@@ -22,9 +28,9 @@ namespace OutputShifter
             cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
             return;
         }
-        outputShifters[outputShifterRegistered] = new (allocateMemory(sizeof(MFOutputShifter))) MFOutputShifter;
-        outputShifters[outputShifterRegistered]->attach(latchPin, clockPin, dataPin, modules);
-        outputShifters[outputShifterRegistered]->clear();
+        outputShifters[outputShifterRegistered] = MFOutputShifter();
+        outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
+        outputShifters[outputShifterRegistered].clear();
         outputShifterRegistered++;
 
 #ifdef DEBUG2CMDMESSENGER
@@ -35,7 +41,7 @@ namespace OutputShifter
     void Clear()
     {
         for (uint8_t i = 0; i < outputShifterRegistered; i++) {
-            outputShifters[i]->detach();
+            outputShifters[i].detach();
         }
 
         outputShifterRegistered = 0;
@@ -47,7 +53,7 @@ namespace OutputShifter
     void OnInit() // not used anywhere!?
     {
         int module = cmdMessenger.readInt16Arg();
-        outputShifters[module]->clear();
+        outputShifters[module].clear();
         setLastCommandMillis();
     }
 
@@ -57,7 +63,7 @@ namespace OutputShifter
         int   module = cmdMessenger.readInt16Arg();
         char *pins   = cmdMessenger.readStringArg();
         int   value  = cmdMessenger.readInt16Arg();
-        outputShifters[module]->setPins(pins, value);
+        outputShifters[module].setPins(pins, value);
         setLastCommandMillis();
     }
 } // namespace
