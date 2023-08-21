@@ -15,7 +15,7 @@ namespace Servos
 
     void setupArray(uint16_t count)
     {
-        if (count) return;
+        if (count == 0) return;
 
         // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFServo) * count)) {
