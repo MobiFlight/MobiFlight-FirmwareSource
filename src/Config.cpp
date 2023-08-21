@@ -226,7 +226,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
     return true;
 }
 
-void getArraysizes()
+bool getArraysizes()
 {
     if (configLength == 0) // do nothing if no config is available
         return;
@@ -346,20 +346,38 @@ void getArraysizes()
 
     if (!copy_success) { // too much/long names for input devices -> tbd how to handle this!!
         cmdMessenger.sendCmd(kStatus, F("Failure, EEPROM size exceeded "));
+        return false;
     }
 
-    // then call the function to dynamically set up the required arrays of each type
+    // then call the function to allocate required memory for the arrays of each type
     Button::setupArray(numberButtons);
     Output::setupArray(numberOutputs);
+#if MF_SEGMENT_SUPPORT == 1
     LedSegment::setupArray(numberLedSegments);
+#endif
+#if MF_STEPPER_SUPPORT == 1
     Stepper::setupArray(numberStepper);
+#endif
+#if MF_SERVO_SUPPORT == 1
     Servos::setupArray(numberServos);
+#endif
     Encoder::setupArray(numberEncoders);
+#if MF_LCD_SUPPORT == 1
     LCDDisplay::setupArray(numberLCD);
+#endif
+#if MF_ANALOG_SUPPORT == 1
     Analog::setupArray(numberAnalogIn);
+#endif
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
     OutputShifter::setupArray(numberOutputShifter);
+#endif
+#if MF_INPUT_SHIFTER_SUPPORT == 1
     InputShifter::setupArray(numberInputShifter);
+#endif
+#if MF_DIGIN_MUX_SUPPORT == 1
     DigInMux::setupArray(numberDigInMux);
+#endif
+    return true;
 }
 
 void readConfig()
@@ -376,7 +394,8 @@ void readConfig()
     if (command == 0) // just to be sure, configLength should also be 0
         return;
 
-    getArraysizes();
+    if (!getArraysizes())
+        return;
 
     do // go through the EEPROM until it is NULL terminated
     {
