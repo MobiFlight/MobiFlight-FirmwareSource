@@ -349,47 +349,162 @@ bool getArraysizes()
         return false;
     }
 
+//#define printInfo
+
+#ifdef printInfo
+uint16_t requiredMemoryDevice = 0;
+uint16_t availableMemory = MF_MAX_DEVICEMEM;
+uint16_t usedMemory = 0;
+Serial.print("Size of device buffer is: "); Serial.print(MF_MAX_DEVICEMEM); Serial.println(" bytes"); Serial.println();
+#endif
     // then call the function to allocate required memory for the arrays of each type
     Button::setupArray(numberButtons);
-    Output::setupArray(numberOutputs);
-#if MF_SEGMENT_SUPPORT == 1
-    LedSegment::setupArray(numberLedSegments);
-#endif
-#if MF_STEPPER_SUPPORT == 1
-    Stepper::setupArray(numberStepper);
-#endif
-#if MF_SERVO_SUPPORT == 1
-    Servos::setupArray(numberServos);
-#endif
-    Encoder::setupArray(numberEncoders);
-#if MF_LCD_SUPPORT == 1
-    LCDDisplay::setupArray(numberLCD);
-#endif
-#if MF_ANALOG_SUPPORT == 1
-    Analog::setupArray(numberAnalogIn);
-#endif
-#if MF_OUTPUT_SHIFTER_SUPPORT == 1
-    OutputShifter::setupArray(numberOutputShifter);
-#endif
-#if MF_INPUT_SHIFTER_SUPPORT == 1
-    InputShifter::setupArray(numberInputShifter);
-#endif
-#if MF_DIGIN_MUX_SUPPORT == 1
-    DigInMux::setupArray(numberDigInMux);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberButtons) requiredMemoryDevice = usedMemory / numberButtons;
+else requiredMemoryDevice = 0;
+Serial.print("Number buttons: "); Serial.println(numberButtons);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+Serial.println();
+availableMemory = GetAvailableMemory();
 #endif
 
-Serial.print("Number buttons: "); Serial.println(numberOutputs);
-Serial.print("Number Outputs: "); Serial.println(numberButtons);
-Serial.print("Number LedSegments: "); Serial.println(numberLedSegments);
-Serial.print("Number Steppers: "); Serial.println(numberStepper);
-Serial.print("Number Servos: "); Serial.println(numberServos);
-Serial.print("Number Encoders: "); Serial.println(numberEncoders);
-Serial.print("Number LCDs: "); Serial.println(numberLCD);
-Serial.print("Number AnalogIn: "); Serial.println(numberAnalogIn);
-Serial.print("Number OutputShifter: "); Serial.println(numberOutputShifter);
-Serial.print("Number InputShifter: "); Serial.println(numberInputShifter);
-Serial.print("Number DigInMux: "); Serial.println(numberDigInMux);
+    Output::setupArray(numberOutputs);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberOutputs) requiredMemoryDevice = usedMemory / numberOutputs;
+else requiredMemoryDevice = 0;
+Serial.print("Number Outputs: "); Serial.println(numberOutputs);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
 Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+
+#if MF_SEGMENT_SUPPORT == 1
+    LedSegment::setupArray(numberLedSegments);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberLedSegments) requiredMemoryDevice = usedMemory / numberLedSegments;
+else requiredMemoryDevice = 0;
+Serial.print("Number LedSegments: "); Serial.println(numberLedSegments);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+#if MF_STEPPER_SUPPORT == 1
+    Stepper::setupArray(numberStepper);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberStepper) requiredMemoryDevice = usedMemory / numberStepper;
+else requiredMemoryDevice = 0;
+Serial.print("Number Steppers: "); Serial.println(numberStepper);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+#if MF_SERVO_SUPPORT == 1
+    Servos::setupArray(numberServos);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberServos) requiredMemoryDevice = usedMemory / numberServos;
+else requiredMemoryDevice = 0;
+Serial.print("Number Servos: "); Serial.println(numberServos);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+    Encoder::setupArray(numberEncoders);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberEncoders) requiredMemoryDevice = usedMemory / numberEncoders;
+else requiredMemoryDevice = 0;
+Serial.print("Number Encoders: "); Serial.println(numberEncoders);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+
+#if MF_LCD_SUPPORT == 1
+    LCDDisplay::setupArray(numberLCD);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberLCD) requiredMemoryDevice = usedMemory / numberLCD;
+else requiredMemoryDevice = 0;
+Serial.print("Number LCDs: "); Serial.println(numberLCD);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+#if MF_ANALOG_SUPPORT == 1
+    Analog::setupArray(numberAnalogIn);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberAnalogIn) requiredMemoryDevice = usedMemory / numberAnalogIn;
+else requiredMemoryDevice = 0;
+Serial.print("Number AnalogIn: "); Serial.println(numberAnalogIn);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+#if MF_OUTPUT_SHIFTER_SUPPORT == 1
+    OutputShifter::setupArray(numberOutputShifter);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberOutputShifter) requiredMemoryDevice = usedMemory / numberOutputShifter;
+else requiredMemoryDevice = 0;
+Serial.print("Number OutputShifter: "); Serial.println(numberOutputShifter);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+#if MF_INPUT_SHIFTER_SUPPORT == 1
+    InputShifter::setupArray(numberInputShifter);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberInputShifter) requiredMemoryDevice = usedMemory / numberInputShifter;
+else requiredMemoryDevice = 0;
+Serial.print("Number InputShifter: "); Serial.println(numberInputShifter);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
+
+#if MF_DIGIN_MUX_SUPPORT == 1
+    DigInMux::setupArray(numberDigInMux);
+#ifdef printInfo
+usedMemory = availableMemory - GetAvailableMemory();
+if (numberDigInMux) requiredMemoryDevice = usedMemory / numberDigInMux;
+else requiredMemoryDevice = 0;
+Serial.print("Number DigInMux: "); Serial.println(numberDigInMux);
+Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+availableMemory = GetAvailableMemory();
+Serial.println();
+#endif
+#endif
 
     return true;
 }
