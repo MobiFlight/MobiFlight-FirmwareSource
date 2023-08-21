@@ -229,7 +229,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
 bool getArraysizes()
 {
     if (configLength == 0) // do nothing if no config is available
-        return;
+        return true;
     uint16_t addreeprom          = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
     char     command             = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success        = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
