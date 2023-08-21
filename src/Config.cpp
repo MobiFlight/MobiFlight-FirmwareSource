@@ -246,7 +246,7 @@ bool getArraysizes()
     uint8_t  numberDigInMux      = 0;
 
     if (command == 0) // just to be sure, configLength should also be 0
-        return;
+        return true;
 
     // go through the EEPROM and calculate the number of devices for each type
     do // go through the EEPROM until it is NULL terminated
@@ -377,6 +377,20 @@ bool getArraysizes()
 #if MF_DIGIN_MUX_SUPPORT == 1
     DigInMux::setupArray(numberDigInMux);
 #endif
+
+Serial.print("Number buttons: "); Serial.println(numberOutputs);
+Serial.print("Number Outputs: "); Serial.println(numberButtons);
+Serial.print("Number LedSegments: "); Serial.println(numberLedSegments);
+Serial.print("Number Steppers: "); Serial.println(numberStepper);
+Serial.print("Number Servos: "); Serial.println(numberServos);
+Serial.print("Number Encoders: "); Serial.println(numberEncoders);
+Serial.print("Number LCDs: "); Serial.println(numberLCD);
+Serial.print("Number AnalogIn: "); Serial.println(numberAnalogIn);
+Serial.print("Number OutputShifter: "); Serial.println(numberOutputShifter);
+Serial.print("Number InputShifter: "); Serial.println(numberInputShifter);
+Serial.print("Number DigInMux: "); Serial.println(numberDigInMux);
+Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
+
     return true;
 }
 
