@@ -13,23 +13,21 @@ namespace LedSegment
     MFSegments *ledSegments;
     uint8_t     ledSegmentsRegistered = 0;
 
-    void setupArray(uint16_t count) {
-        if (count)
-            ledSegments = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
-            //ledSegments = new MFSegments[count];
-    }
-
-    void        Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
+    void setupArray(uint16_t count)
     {
-        if (ledSegmentsRegistered == MAX_LEDSEGMENTS)
-            return;
+        if (count == 0) return;
 
-        if (!FitInMemory(sizeof(MFSegments))) {
-            // Error Message to Connector
+        // ToDo: how to handle exceeding device memory!!
+        if (!FitInMemory(sizeof(MFSegments) * count)) {
             cmdMessenger.sendCmd(kStatus, F("7Segment does not fit in Memory!"));
             return;
         }
-        ledSegments[ledSegmentsRegistered] =  MFSegments();
+        ledSegments = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
+    }
+
+    void Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
+    {
+        ledSegments[ledSegmentsRegistered] = MFSegments();
         ledSegments[ledSegmentsRegistered].attach(dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
         ledSegmentsRegistered++;
 #ifdef DEBUG2CMDMESSENGER

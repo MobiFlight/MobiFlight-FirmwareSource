@@ -30,22 +30,6 @@
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
 
-#define MAX_OUTPUTS         26
-#define MAX_BUTTONS         26
-#define MAX_LEDSEGMENTS     4
-#define MAX_ENCODERS        8
-#define MAX_STEPPERS        6
-#define MAX_MFSERVOS        8
-#define MAX_MFLCD_I2C       2
-#define MAX_ANALOG_INPUTS   3
-#define MAX_OUTPUT_SHIFTERS 4
-#define MAX_INPUT_SHIFTERS  4
-#define MAX_DIGIN_MUX       4
-
-#define STEPS               64
-#define STEPPER_SPEED       400     // 300 already worked, 467, too?
-#define STEPPER_ACCEL       800
-
 #define MOBIFLIGHT_TYPE         "MobiFlight RaspiPico"
 #define MOBIFLIGHT_SERIAL       "0987654321"
 #define MOBIFLIGHT_NAME         "MobiFlight RaspiPico"

@@ -13,7 +13,7 @@ namespace InputShifter
     MFInputShifter *inputShifters;
     uint8_t         inputShiftersRegistered = 0;
 
-    void            handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
+    void handlerInputShifterOnChange(uint8_t eventId, uint8_t pin, const char *name)
     {
         cmdMessenger.sendCmdStart(kInputShifterChange);
         cmdMessenger.sendCmdArg(name);
@@ -22,21 +22,21 @@ namespace InputShifter
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count) {
-        if (count)
-            inputShifters = new (allocateMemory(sizeof(MFInputShifter) * count)) MFInputShifter;
-            //inputShifters = new MFButton[count];
-    }
-
-    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name)
+    void setupArray(uint16_t count)
     {
-        if (inputShiftersRegistered == MAX_INPUT_SHIFTERS)
-            return;
-        if (!FitInMemory(sizeof(MFInputShifter))) {
+        if (count == 0) return;
+
+        // ToDo: how to handle exceeding device memory!!
+        if (!FitInMemory(sizeof(MFInputShifter) * count)) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("InputShifter does not fit in Memory"));
             return;
         }
+        inputShifters = new (allocateMemory(sizeof(MFInputShifter) * count)) MFInputShifter;
+    }
+
+    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name)
+    {
         inputShifters[inputShiftersRegistered] = MFInputShifter();
         inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name);
         MFInputShifter::attachHandler(handlerInputShifterOnChange);

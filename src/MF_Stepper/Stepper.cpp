@@ -13,23 +13,20 @@ namespace Stepper
     MFStepper *steppers;
     uint8_t    steppersRegistered = 0;
 
-    void setupArray(uint16_t count) {
-        if (count)
-            steppers = new (allocateMemory(sizeof(MFStepper) * count)) MFStepper;
-            //steppers = new MFButton[count];
+    void setupArray(uint16_t count)
+    {
+        if (count == 0) return;
+
+        // ToDo: how to handle exceeding device memory!!
+        if (!FitInMemory(sizeof(MFStepper) * count)) {
+            cmdMessenger.sendCmd(kStatus, F("Stepper does not fit in Memory!"));
+            return;
+        }
+        steppers = new (allocateMemory(sizeof(MFStepper) * count)) MFStepper;
     }
 
     void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t mode, int8_t backlash, bool deactivateOutput)
     {
-        if (steppersRegistered == MAX_STEPPERS)
-            return;
-
-        if (!FitInMemory(sizeof(MFStepper))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Stepper does not fit in Memory!"));
-            return;
-        }
-
         steppers[steppersRegistered] = MFStepper();
         steppers[steppersRegistered].attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput);
 

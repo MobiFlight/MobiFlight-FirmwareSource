@@ -13,21 +13,20 @@ namespace OutputShifter
     MFOutputShifter *outputShifters;
     uint8_t          outputShifterRegistered = 0;
 
-    void setupArray(uint16_t count) {
-        if (count)
-            outputShifters = new (allocateMemory(sizeof(MFOutputShifter) * count)) MFOutputShifter;
-            //outputShifters = new MFButton[count];
-    }
-
-    void             Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
+    void setupArray(uint16_t count)
     {
-        if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
-            return;
-        if (!FitInMemory(sizeof(MFOutputShifter))) {
-            // Error Message to Connector
+        if (count == 0) return;
+
+        // ToDo: how to handle exceeding device memory!!
+        if (!FitInMemory(sizeof(MFOutputShifter) * count)) {
             cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
             return;
         }
+        outputShifters = new (allocateMemory(sizeof(MFOutputShifter) * count)) MFOutputShifter;
+    }
+
+    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
+    {
         outputShifters[outputShifterRegistered] = MFOutputShifter();
         outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
         outputShifters[outputShifterRegistered].clear();

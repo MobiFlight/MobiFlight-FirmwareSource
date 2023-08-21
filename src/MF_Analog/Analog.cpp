@@ -22,22 +22,21 @@ namespace Analog
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count) {
-        if (count)
-            analog = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
-            //analog = new MFAnalog[count];
-    }
-
-    void Add(uint8_t pin, char const *name, uint8_t sensitivity)
+    void setupArray(uint16_t count)
     {
-        if (analogRegistered == MAX_ANALOG_INPUTS)
-            return;
+        if (count == 0) return;
 
-        if (!FitInMemory(sizeof(MFAnalog))) {
+        // ToDo: how to handle exceeding device memory!!
+        if (!FitInMemory(sizeof(MFAnalog) * count)) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
             return;
         }
+        analog = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
+    }
+
+    void Add(uint8_t pin, char const *name, uint8_t sensitivity)
+    {
         analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;

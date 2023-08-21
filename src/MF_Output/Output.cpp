@@ -15,21 +15,18 @@ namespace Output
 
     void setupArray(uint16_t count)
     {
-        if (count)
-            outputs = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
-        // outputs = new MFOutput[count];
+        if (count == 0) return;
+
+        // ToDo: how to handle exceeding device memory!!
+        if (!FitInMemory(sizeof(MFOutput) * count)) {
+            cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
+            return;
+        }
+        outputs = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
     }
 
     void Add(uint8_t pin)
     {
-        if (outputsRegistered == MAX_OUTPUTS)
-            return;
-
-        if (!FitInMemory(sizeof(MFOutput))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
-            return;
-        }
         outputs[outputsRegistered] = MFOutput(pin);
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
