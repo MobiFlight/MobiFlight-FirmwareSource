@@ -22,9 +22,8 @@ enum {
     kTypeInputShifter,        // 12 Input shift register support (example: 74HC165)
     kTypeMuxDriver,           // 13 Multiplexer selector support (generates select outputs)
     kTypeDigInMux,            // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
-    kTypeStepper              // new stepper type with settings for backlash and deactivate output
-    // if new device types are added, change 'kTypeStepper' for the array numberDevices[] in readConfig() to the new one!!
-    // Otherwise the array index will be exceeded
+    kTypeStepper,             // new stepper type with settings for backlash and deactivate output
+    kTypeMax                  // if new device types are added, this MUST be before this one!
 };
 
 void loadConfig(void);

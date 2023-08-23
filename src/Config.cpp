@@ -230,10 +230,10 @@ bool getArraysizes()
 {
     if (configLength == 0) // do nothing if no config is available
         return true;
-    uint16_t addreeprom                      = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
-    uint8_t  device                          = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
-    bool     copy_success                    = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
-    uint8_t  numberDevices[kTypeStepper + 1] = {0};                             // if new device types are added, change 'kTypeStepper' to the new one!! Otherwise the array inde will be exceeded
+    uint16_t addreeprom              = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
+    uint8_t  device                  = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
+    bool     copy_success            = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
+    uint8_t  numberDevices[kTypeMax] = {0};
 
     if (device == 0) // just to be sure, configLength should also be 0
         return true;
