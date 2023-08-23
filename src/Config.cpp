@@ -230,280 +230,54 @@ bool getArraysizes()
 {
     if (configLength == 0) // do nothing if no config is available
         return true;
-    uint16_t addreeprom          = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
-    char     command             = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
-    bool     copy_success        = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
-    uint8_t  numberButtons       = 0;
-    uint8_t  numberEncoders      = 0;
-    uint8_t  numberOutputs       = 0;
-    uint8_t  numberLedSegments   = 0;
-    uint8_t  numberStepper       = 0;
-    uint8_t  numberServos        = 0;
-    uint8_t  numberLCD           = 0;
-    uint8_t  numberAnalogIn      = 0;
-    uint8_t  numberOutputShifter = 0;
-    uint8_t  numberInputShifter  = 0;
-    uint8_t  numberDigInMux      = 0;
+    uint16_t addreeprom                      = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
+    uint8_t  device                          = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
+    bool     copy_success                    = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
+    uint8_t  numberDevices[kTypeStepper + 1] = {0};                             // if new device types are added, change 'kTypeStepper' to the new one!! Otherwise the array inde will be exceeded
 
-    if (command == 0) // just to be sure, configLength should also be 0
+    if (device == 0) // just to be sure, configLength should also be 0
         return true;
 
-    // go through the EEPROM and calculate the number of devices for each type
-    do // go through the EEPROM until it is NULL terminated
+    // step through the EEPROM and calculate the number of devices for each type
+    do // step through the EEPROM until it is NULL terminated
     {
-        switch (command) {
-        case kTypeButton:
-            numberButtons++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
-        case kTypeOutput:
-            numberOutputs++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
-#if MF_SEGMENT_SUPPORT == 1
-        case kTypeLedSegment:
-            numberLedSegments++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-#if MF_STEPPER_SUPPORT == 1
-        case kTypeStepperDeprecated1:
-            numberStepper++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
-        case kTypeStepperDeprecated2:
-            numberStepper++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
-        case kTypeStepper:
-            numberStepper++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-#if MF_SERVO_SUPPORT == 1
-        case kTypeServo:
-            numberServos++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-        case kTypeEncoderSingleDetent:
-            numberEncoders++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
-        case kTypeEncoder:
-            numberEncoders++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
-#if MF_LCD_SUPPORT == 1
-        case kTypeLcdDisplayI2C:
-            numberLCD++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-#if MF_ANALOG_SUPPORT == 1
-        case kTypeAnalogInput:
-            numberAnalogIn++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-#if MF_OUTPUT_SHIFTER_SUPPORT == 1
-        case kTypeOutputShifter:
-            numberOutputShifter++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-#if MF_INPUT_SHIFTER_SUPPORT == 1
-        case kTypeInputShifter:
-            numberInputShifter++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-#if MF_DIGIN_MUX_SUPPORT == 1
-        case kTypeDigInMux:
-            numberDigInMux++;
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-#endif
-
-        default:
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-        }
-        command = readUintFromEEPROM(&addreeprom);
-    } while (command && copy_success);
+        numberDevices[device]++;
+        copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+        device       = readUintFromEEPROM(&addreeprom);
+    } while (device && copy_success);
 
     if (!copy_success) { // too much/long names for input devices -> tbd how to handle this!!
         cmdMessenger.sendCmd(kStatus, F("Failure, EEPROM size exceeded "));
         return false;
     }
 
-//#define printInfo
-
-#ifdef printInfo
-uint16_t requiredMemoryDevice = 0;
-uint16_t availableMemory = MF_MAX_DEVICEMEM;
-uint16_t usedMemory = 0;
-Serial.print("Size of device buffer is: "); Serial.print(MF_MAX_DEVICEMEM); Serial.println(" bytes"); Serial.println();
-#endif
     // then call the function to allocate required memory for the arrays of each type
-    Button::setupArray(numberButtons);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberButtons) requiredMemoryDevice = usedMemory / numberButtons;
-else requiredMemoryDevice = 0;
-Serial.print("Number buttons: "); Serial.println(numberButtons);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-Serial.println();
-availableMemory = GetAvailableMemory();
-#endif
-
-    Output::setupArray(numberOutputs);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberOutputs) requiredMemoryDevice = usedMemory / numberOutputs;
-else requiredMemoryDevice = 0;
-Serial.print("Number Outputs: "); Serial.println(numberOutputs);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
-#endif
-
+    Button::setupArray(numberDevices[kTypeButton]);
+    Output::setupArray(numberDevices[kTypeOutput]);
 #if MF_SEGMENT_SUPPORT == 1
-    LedSegment::setupArray(numberLedSegments);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberLedSegments) requiredMemoryDevice = usedMemory / numberLedSegments;
-else requiredMemoryDevice = 0;
-Serial.print("Number LedSegments: "); Serial.println(numberLedSegments);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    LedSegment::setupArray(numberDevices[kTypeLedSegment]);
 #endif
-#endif
-
 #if MF_STEPPER_SUPPORT == 1
-    Stepper::setupArray(numberStepper);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberStepper) requiredMemoryDevice = usedMemory / numberStepper;
-else requiredMemoryDevice = 0;
-Serial.print("Number Steppers: "); Serial.println(numberStepper);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    Stepper::setupArray(numberDevices[kTypeStepper] + numberDevices[kTypeStepperDeprecated1] + numberDevices[kTypeStepperDeprecated2]);
 #endif
-#endif
-
 #if MF_SERVO_SUPPORT == 1
-    Servos::setupArray(numberServos);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberServos) requiredMemoryDevice = usedMemory / numberServos;
-else requiredMemoryDevice = 0;
-Serial.print("Number Servos: "); Serial.println(numberServos);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    Servos::setupArray(numberDevices[kTypeServo]);
 #endif
-#endif
-
-    Encoder::setupArray(numberEncoders);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberEncoders) requiredMemoryDevice = usedMemory / numberEncoders;
-else requiredMemoryDevice = 0;
-Serial.print("Number Encoders: "); Serial.println(numberEncoders);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
-#endif
-
+    Encoder::setupArray(numberDevices[kTypeEncoder] + numberDevices[kTypeEncoderSingleDetent]);
 #if MF_LCD_SUPPORT == 1
-    LCDDisplay::setupArray(numberLCD);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberLCD) requiredMemoryDevice = usedMemory / numberLCD;
-else requiredMemoryDevice = 0;
-Serial.print("Number LCDs: "); Serial.println(numberLCD);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    LCDDisplay::setupArray(numberDevices[kTypeLcdDisplayI2C]);
 #endif
-#endif
-
 #if MF_ANALOG_SUPPORT == 1
-    Analog::setupArray(numberAnalogIn);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberAnalogIn) requiredMemoryDevice = usedMemory / numberAnalogIn;
-else requiredMemoryDevice = 0;
-Serial.print("Number AnalogIn: "); Serial.println(numberAnalogIn);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    Analog::setupArray(numberDevices[kTypeAnalogInput]);
 #endif
-#endif
-
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
-    OutputShifter::setupArray(numberOutputShifter);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberOutputShifter) requiredMemoryDevice = usedMemory / numberOutputShifter;
-else requiredMemoryDevice = 0;
-Serial.print("Number OutputShifter: "); Serial.println(numberOutputShifter);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    OutputShifter::setupArray(numberDevices[kTypeOutputShifter]);
 #endif
-#endif
-
 #if MF_INPUT_SHIFTER_SUPPORT == 1
-    InputShifter::setupArray(numberInputShifter);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberInputShifter) requiredMemoryDevice = usedMemory / numberInputShifter;
-else requiredMemoryDevice = 0;
-Serial.print("Number InputShifter: "); Serial.println(numberInputShifter);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
+    InputShifter::setupArray(numberDevices[kTypeInputShifter]);
 #endif
-#endif
-
 #if MF_DIGIN_MUX_SUPPORT == 1
-    DigInMux::setupArray(numberDigInMux);
-#ifdef printInfo
-usedMemory = availableMemory - GetAvailableMemory();
-if (numberDigInMux) requiredMemoryDevice = usedMemory / numberDigInMux;
-else requiredMemoryDevice = 0;
-Serial.print("Number DigInMux: "); Serial.println(numberDigInMux);
-Serial.print("Required Memory per device: "); Serial.print(requiredMemoryDevice); Serial.println(" bytes");
-Serial.print("Available memory in device buffer: "); Serial.print(GetAvailableMemory()); Serial.println(" byte");
-availableMemory = GetAvailableMemory();
-Serial.println();
-#endif
+    DigInMux::setupArray(numberDevices[kTypeDigInMux]);
 #endif
 
     return true;
@@ -516,15 +290,14 @@ void readConfig()
     uint16_t addreeprom   = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
     uint16_t addrbuffer   = 0;                               // and start with first memory location from nameBuffer
     char     params[8]    = "";                              // buffer for reading parameters from EEPROM and sending to ::Add() function of device
-    char     command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
+    uint8_t  command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
 
     if (command == 0) // just to be sure, configLength should also be 0
         return;
 
-    if (!getArraysizes())
-        return;
+    getArraysizes();
 
     do // go through the EEPROM until it is NULL terminated
     {
