@@ -12,6 +12,7 @@ namespace Encoder
 {
     MFEncoder *encoders;
     uint8_t    encodersRegistered = 0;
+    uint8_t    maxEncoders        = 0;
 
     void handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
     {
@@ -25,17 +26,19 @@ namespace Encoder
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFEncoder) * count)) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Encoders does not fit in Memory"));
             return;
         }
-        encoders = new (allocateMemory(sizeof(MFEncoder) * count)) MFEncoder;
+        encoders    = new (allocateMemory(sizeof(MFEncoder) * count)) MFEncoder;
+        maxEncoders = count;
     }
 
     void Add(uint8_t pin1, uint8_t pin2, uint8_t encoder_type, char const *name)
     {
+        if (encodersRegistered == maxEncoders)
+            return;
         encoders[encodersRegistered] = MFEncoder();
         encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
         MFEncoder::attachHandler(handlerOnEncoder);

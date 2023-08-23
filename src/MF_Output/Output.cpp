@@ -12,21 +12,24 @@ namespace Output
 {
     MFOutput *outputs;
     uint8_t   outputsRegistered = 0;
+    uint8_t   maxOutputs        = 0;
 
     void setupArray(uint16_t count)
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFOutput) * count)) {
             cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
             return;
         }
-        outputs = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
+        outputs    = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
+        maxOutputs = count;
     }
 
     void Add(uint8_t pin)
     {
+        if (outputsRegistered == maxOutputs)
+            return;
         outputs[outputsRegistered] = MFOutput(pin);
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER

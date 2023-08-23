@@ -14,6 +14,7 @@ namespace DigInMux
 {
     MFDigInMux *digInMux;
     uint8_t     digInMuxRegistered = 0;
+    uint8_t     maxDigInMux        = 0;
 
     void handlerOnDigInMux(uint8_t eventId, uint8_t channel, const char *name)
     {
@@ -28,17 +29,19 @@ namespace DigInMux
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFDigInMux) * count)) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("DigInMux does not fit in Memory"));
             return;
         }
-        digInMux = new (allocateMemory(sizeof(MFDigInMux) * count)) MFDigInMux;
+        digInMux    = new (allocateMemory(sizeof(MFDigInMux) * count)) MFDigInMux;
+        maxDigInMux = count;
     }
 
     void Add(uint8_t dataPin, uint8_t nRegs, char const *name)
     {
+        if (digInMuxRegistered == maxDigInMux)
+            return;
         digInMux[digInMuxRegistered] = MFDigInMux(&MUX, name);
         digInMux[digInMuxRegistered].attach(dataPin, (nRegs == 1), name);
         MFDigInMux::attachHandler(handlerOnDigInMux);

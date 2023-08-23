@@ -12,21 +12,24 @@ namespace Servos
 {
     MFServo *servos;
     uint8_t  servosRegistered = 0;
+    uint8_t  maxServos        = 0;
 
     void setupArray(uint16_t count)
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFServo) * count)) {
             cmdMessenger.sendCmd(kStatus, F("Servo does not fit in Memory!"));
             return;
         }
-        servos = new (allocateMemory(sizeof(MFServo) * count)) MFServo;
+        servos    = new (allocateMemory(sizeof(MFServo) * count)) MFServo;
+        maxServos = count;
     }
 
     void Add(int pin)
     {
+        if (servosRegistered == maxServos)
+            return;
         servos[servosRegistered] = MFServo();
         servos[servosRegistered].attach(pin, true);
         servosRegistered++;

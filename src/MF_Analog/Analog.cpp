@@ -13,6 +13,7 @@ namespace Analog
 {
     MFAnalog *analog;
     uint8_t   analogRegistered = 0;
+    uint8_t   maxAnalogIn      = 0;
 
     void handlerOnAnalogChange(int value, uint8_t pin, const char *name)
     {
@@ -26,17 +27,20 @@ namespace Analog
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFAnalog) * count)) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
             return;
         }
-        analog = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
+        analog      = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
+        maxAnalogIn = count;
     }
 
     void Add(uint8_t pin, char const *name, uint8_t sensitivity)
     {
+        if (analogRegistered == maxAnalogIn)
+            return;
+
         analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;

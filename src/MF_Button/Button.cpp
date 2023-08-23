@@ -12,6 +12,7 @@ namespace Button
 {
     MFButton *buttons;
     uint8_t   buttonsRegistered = 0;
+    uint8_t   maxButtons        = 0;
 
     void handlerOnButton(uint8_t eventId, uint8_t pin, const char *name)
     {
@@ -25,16 +26,18 @@ namespace Button
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFButton) * count)) {
             cmdMessenger.sendCmd(kStatus, F("Button does not fit in Memory"));
             return;
         }
-        buttons = new (allocateMemory(sizeof(MFButton) * count)) MFButton;
+        buttons    = new (allocateMemory(sizeof(MFButton) * count)) MFButton;
+        maxButtons = count;
     }
 
     void Add(uint8_t pin, char const *name)
     {
+        if (buttonsRegistered == maxButtons)
+            return;
         buttons[buttonsRegistered] = MFButton(pin, name);
         MFButton::attachHandler(handlerOnButton);
         buttonsRegistered++;

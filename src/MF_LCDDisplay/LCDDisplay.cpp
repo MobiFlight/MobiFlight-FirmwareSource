@@ -12,21 +12,24 @@ namespace LCDDisplay
 {
     MFLCDDisplay *lcd_I2C;
     uint8_t       lcd_12cRegistered = 0;
+    uint8_t       maxLCD_I2C        = 0;
 
     void setupArray(uint16_t count)
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFLCDDisplay) * count)) {
             cmdMessenger.sendCmd(kStatus, F("LCD does not fit in Memory!"));
             return;
         }
-        lcd_I2C = new (allocateMemory(sizeof(MFLCDDisplay) * count)) MFLCDDisplay;
+        lcd_I2C    = new (allocateMemory(sizeof(MFLCDDisplay) * count)) MFLCDDisplay;
+        maxLCD_I2C = count;
     }
 
     void Add(uint8_t address, uint8_t cols, uint8_t lines)
     {
+        if (lcd_12cRegistered == maxLCD_I2C)
+            return;
         lcd_I2C[lcd_12cRegistered] = MFLCDDisplay();
         lcd_I2C[lcd_12cRegistered].attach(address, cols, lines);
         lcd_12cRegistered++;

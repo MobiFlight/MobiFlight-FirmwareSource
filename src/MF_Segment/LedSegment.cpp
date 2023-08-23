@@ -11,22 +11,25 @@
 namespace LedSegment
 {
     MFSegments *ledSegments;
-    uint8_t     ledSegmentsRegistered = 0;
+    uint8_t     ledSegmentsRegistered  = 0;
+    uint8_t     ledSegmentsRegistereds = 0;
 
     void setupArray(uint16_t count)
     {
         if (count == 0) return;
 
-        // ToDo: how to handle exceeding device memory!!
         if (!FitInMemory(sizeof(MFSegments) * count)) {
             cmdMessenger.sendCmd(kStatus, F("7Segment does not fit in Memory!"));
             return;
         }
-        ledSegments = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
+        ledSegments            = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
+        ledSegmentsRegistereds = count;
     }
 
     void Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
     {
+        if (ledSegmentsRegistered == ledSegmentsRegistereds)
+            return;
         ledSegments[ledSegmentsRegistered] = MFSegments();
         ledSegments[ledSegmentsRegistered].attach(dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
         ledSegmentsRegistered++;
