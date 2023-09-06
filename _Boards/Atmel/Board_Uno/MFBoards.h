@@ -42,7 +42,7 @@
 #define EEPROM_SIZE         1024 // EEPROMSizeUno
 #define MEMLEN_CONFIG       286  // max. size for config which wil be stored in EEPROM
 #define MEMLEN_NAMES_BUFFER 220  // max. size for configBuffer, contains only names from inputs
-#define MF_MAX_DEVICEMEM    300  // max. memory size for devices
+#define MF_MAX_DEVICEMEM    420  // max. memory size for devices
 
 #endif
 
