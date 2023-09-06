@@ -5,7 +5,7 @@
 
 // only required if you have more than one custom device
 enum {
-    MY_CUSTOM_DEVICE_1 = 0,
+    MY_CUSTOM_DEVICE_1 = 1,
     MY_CUSTOM_DEVICE_2
 };
 class MFCustomDevice
@@ -21,5 +21,5 @@ private:
     bool            _initialized = false;
     MyCustomDevice *_mydevice;
     uint8_t         _pin1, _pin2, _pin3;
-    uint8_t         _customType;
+    uint8_t         _customType = 0;
 };

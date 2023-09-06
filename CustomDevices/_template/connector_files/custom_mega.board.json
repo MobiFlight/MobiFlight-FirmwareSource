@@ -4,7 +4,7 @@
     "Device": "atmega2560",
     "BaudRates": [ "115200" ],
     "Programmer": "wiring",
-    "FirmwareBaseName": "mobiflight_custom_mega",
+    "FirmwareBaseName": "mobiflight_template_mega",
     "ResetFirmwareFile": "reset.arduino_mega_1_0_2.hex",
     "Timeout": 15000
   },
@@ -37,8 +37,12 @@
     "CanInstallFirmware": true,
     "DelayAfterFirmwareUpdate": 0,
     "LatestFirmwareVersion": "0.0.1",
-    "FriendlyName": "Arduino Mega 2560",
-    "MobiFlightType": "Custom Mega"
+    "FriendlyName": "Mobiflight Template Mega",
+    "MobiFlightType": "Mobiflight Template Mega",
+    "CustomDeviceType": [
+      "MOBIFLIGHT_TEMPLATE",
+      "MOBIFLIGHT_TEMPLATE"
+    ]
   },
   "ModuleLimits": {
     "MaxAnalogInputs": 16,

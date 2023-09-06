@@ -82,15 +82,4 @@ namespace CustomDevice
 
         setLastCommandMillis();
     }
-
-    /* **********************************************************************************
-        This function reports back the types of all custom devices.
-        Multiple custom devices must be delimited by '|'
-        Only custom devices which match this type can be added within the UI
-    ********************************************************************************** */
-    void OnGetType()
-    {
-        cmdMessenger.sendCmd(kGetCustomType, F(MY_CUSTOM_TYPE));
-    }
-
 } // end of namespace

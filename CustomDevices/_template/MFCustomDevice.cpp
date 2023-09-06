@@ -34,8 +34,8 @@ bool MFCustomDevice::getStringFromEEPROM(uint16_t addreeprom, char *buffer)
         if (counter >= MEMLEN_STRING_BUFFER) {                  // nameBuffer will be exceeded
             return false;                                       // abort copying to buffer
         }
-    } while (temp != '.');                                      // reads until limiter '.' and locates the next free buffer position
-    buffer[counter - 1] = 0x00;                                 // replace '.' by NULL, terminates the string
+    } while (temp != '.');      // reads until limiter '.' and locates the next free buffer position
+    buffer[counter - 1] = 0x00; // replace '.' by NULL, terminates the string
     return true;
 }
 
@@ -55,19 +55,13 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         Do something which is required to setup your custom device
     ********************************************************************************** */
 
-    char *params, *p = NULL;
-    char  parameter[MEMLEN_STRING_BUFFER];
-    uint8_t  _pin1, _pin2, _pin3;
+    char   *params, *p = NULL;
+    char    parameter[MEMLEN_STRING_BUFFER];
+    uint8_t _pin1, _pin2, _pin3;
     /* **********************************************************************************************
-        read the pins from the EEPROM, copy them into a buffer and split them up into single pins
+        read the pins from the EEPROM, copy them into a buffer
     ********************************************************************************************** */
     getStringFromEEPROM(adrPin, parameter);
-    params = strtok_r(parameter, "|", &p);
-    _pin1  = atoi(params);
-    params = strtok_r(NULL, "|", &p);
-    _pin2  = atoi(params);
-    params = strtok_r(NULL, "|", &p);
-    _pin3  = atoi(params);
 
     /* **********************************************************************************
         read the Type from the EEPROM, copy it into a buffer and evaluate it
@@ -81,23 +75,11 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         _customType = MY_CUSTOM_DEVICE_1;
     if (strcmp(parameter, MY_CUSTOM_TYPE_2) == 0)
         _customType = MY_CUSTOM_DEVICE_2;
-    /* ******************************************************************************* */
 
     /* **********************************************************************************
-        read the configuration from the EEPROM, copy it into a buffer and evaluate it.
-        This is just an example how to process the init string. Do NOT use
-        "," or ";" as delimiter for multiple parameters but e.g. "|"
-        For most customer devices it is not required.
-        In this case just delete the following
+        read the configuration from the EEPROM, copy it into a buffer.
     ********************************************************************************** */
     getStringFromEEPROM(adrConfig, parameter);
-    uint16_t Parameter1;
-    char    *Parameter2;
-    params     = strtok_r(parameter, "|", &p);
-    Parameter1 = atoi(params);
-    params     = strtok_r(NULL, "|", &p);
-    Parameter2 = params;
-    /* ******************************************************************************* */
 
     /* **********************************************************************************
         Next call the constructor of your custom device
@@ -105,18 +87,85 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         if you have multiple classes, check for _customType which constructor
         has to be called (e.g. if (_customType == MY_CUSTOM_DEVICE_1) ....)
     ********************************************************************************** */
-    if (!FitInMemory(sizeof(MyCustomDevice))) {
-        // Error Message to Connector
-        cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
-        return;
+    if (_customType == 1) {
+        if (!FitInMemory(sizeof(MyCustomDevice))) {
+            // Error Message to Connector
+            cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
+            return;
+        }
+        /* **********************************************************************************************
+            split the pins up into single pins. As the number of pins could be different between
+            multiple devices, it is done here.
+        ********************************************************************************************** */
+        params = strtok_r(parameter, "|", &p);
+        _pin1  = atoi(params);
+        params = strtok_r(NULL, "|", &p);
+        _pin2  = atoi(params);
+        params = strtok_r(NULL, "|", &p);
+        _pin3  = atoi(params);
+
+        /* **********************************************************************************
+            split the config up into single parameter. As the number of parameters could be
+            different between multiple devices, it is done here.
+            This is just an example how to process the init string. Do NOT use
+            "," or ";" as delimiter for multiple parameters but e.g. "|"
+            For most customer devices it is not required.
+            In this case just delete the following
+        ********************************************************************************** */
+        uint16_t Parameter1;
+        char    *Parameter2;
+        params     = strtok_r(parameter, "|", &p);
+        Parameter1 = atoi(params);
+        params     = strtok_r(NULL, "|", &p);
+        Parameter2 = params;
+
+        // In most cases you need only one of the following functions
+        // depending on if the constuctor takes the variables or a separate function is required
+        _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
+        _mydevice->attach(Parameter1, Parameter2);
+        // if your custom device does not need a separate begin() function, delete the following
+        // or this function could be called from the custom constructor or attach() function
+        _mydevice->begin();
+    } else if (_customType == 2) {
+        if (!FitInMemory(sizeof(MyCustomDevice))) {
+            // Error Message to Connector
+            cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
+            return;
+        }
+        /* **********************************************************************************************
+            split the pins up into single pins, as the number of pins could be different between
+            multiple devices, it is done here
+        ********************************************************************************************** */
+        params = strtok_r(parameter, "|", &p);
+        _pin1  = atoi(params);
+        params = strtok_r(NULL, "|", &p);
+        _pin2  = atoi(params);
+        params = strtok_r(NULL, "|", &p);
+        _pin3  = atoi(params);
+
+        /* **********************************************************************************
+            split the config up into single parameter. As the number of parameters could be
+            different between multiple devices, it is done here.
+            This is just an example how to process the init string. Do NOT use
+            "," or ";" as delimiter for multiple parameters but e.g. "|"
+            For most customer devices it is not required.
+            In this case just delete the following
+        ********************************************************************************** */
+        uint16_t Parameter1;
+        char    *Parameter2;
+        params     = strtok_r(parameter, "|", &p);
+        Parameter1 = atoi(params);
+        params     = strtok_r(NULL, "|", &p);
+        Parameter2 = params;
+        
+        // In most cases you need only one of the following functions
+        // depending on if the constuctor takes the variables or a separate function is required
+        _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
+        _mydevice->attach(Parameter1, Parameter2);
+        // if your custom device does not need a separate begin() function, delete the following
+        // or this function could be called from the custom constructor or attach() function
+        _mydevice->begin();
     }
-    // In most cases you need only one of the following functions
-    // depending on if the constuctor takes the variables or a separate function is required
-    _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
-    _mydevice->attach(Parameter1, Parameter2);
-    // if your custom device does not need a separate begin() function, delete the following
-    // or this function could be called from the custom constructor or attach() function
-    _mydevice->begin();
     /* ******************************************************************************* */
 }
 

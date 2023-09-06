@@ -17,12 +17,16 @@
     "Info": {
       "CanInstallFirmware": true,
       "CanResetBoard": true,
-      "FirmwareBaseName": "mobiflight_custom_raspberrypico",
+      "FirmwareBaseName": "mobiflight_template_raspberrypico",
       "FirmwareExtension": "uf2",
-      "FriendlyName": "MobiFlight RaspiPico",
+      "FriendlyName": "MobiFlight Template RaspiPico",
       "LatestFirmwareVersion": "2.4.1",
-      "MobiFlightType": "Custom RaspiPico",
-      "ResetFirmwareFile": "reset.raspberry_pico_flash_nuke.uf2"
+      "MobiFlightType": "Mobiflight Template RaspiPico",
+      "ResetFirmwareFile": "reset.raspberry_pico_flash_nuke.uf2",
+      "CustomDeviceType": [
+        "MOBIFLIGHT_TEMPLATE",
+        "MOBIFLIGHT_TEMPLATE2"
+      ]
     },
     "ModuleLimits": {
       "MaxAnalogInputs": 3,
