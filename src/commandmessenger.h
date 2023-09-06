@@ -45,7 +45,6 @@ enum {
     kDigInMuxChange,       // 30
     kSetStepperSpeedAccel, // 31
     kSetCustomDevice,      // 32
-    kGetCustomType,        // 33
     kDebug = 0xFF          // 255
 };
 
