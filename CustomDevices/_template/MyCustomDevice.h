@@ -19,6 +19,7 @@ public:
     void attach(uint16_t Pin3, char *init);
     void detach();
     void set(int8_t messageID, char *setPoint);
+    void update();
 
 private:
     bool    _initialised;

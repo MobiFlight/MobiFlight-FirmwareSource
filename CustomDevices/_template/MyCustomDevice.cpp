@@ -12,6 +12,7 @@ MyCustomDevice::MyCustomDevice(uint8_t Pin1, uint8_t Pin2)
     _pin1 = Pin1;
     _pin2 = Pin2;
 }
+
 void MyCustomDevice::begin()
 {
 }
@@ -20,6 +21,7 @@ void MyCustomDevice::attach(uint16_t Pin3, char *init)
 {
     _pin3 = Pin3;
 }
+
 void MyCustomDevice::detach()
 {
     if (!_initialised)
@@ -61,4 +63,9 @@ void MyCustomDevice::set(int8_t messageID, char *setPoint)
     default:
         break;
     }
+}
+
+void MyCustomDevice::update()
+{
+    // Do something which is required regulary
 }

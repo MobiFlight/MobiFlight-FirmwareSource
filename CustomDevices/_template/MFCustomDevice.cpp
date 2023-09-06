@@ -58,10 +58,6 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
     char   *params, *p = NULL;
     char    parameter[MEMLEN_STRING_BUFFER];
     uint8_t _pin1, _pin2, _pin3;
-    /* **********************************************************************************************
-        read the pins from the EEPROM, copy them into a buffer
-    ********************************************************************************************** */
-    getStringFromEEPROM(adrPin, parameter);
 
     /* **********************************************************************************
         read the Type from the EEPROM, copy it into a buffer and evaluate it
@@ -77,11 +73,6 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         _customType = MY_CUSTOM_DEVICE_2;
 
     /* **********************************************************************************
-        read the configuration from the EEPROM, copy it into a buffer.
-    ********************************************************************************** */
-    getStringFromEEPROM(adrConfig, parameter);
-
-    /* **********************************************************************************
         Next call the constructor of your custom device
         adapt it to the needs of your constructor
         if you have multiple classes, check for _customType which constructor
@@ -94,6 +85,10 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
             return;
         }
         /* **********************************************************************************************
+            read the pins from the EEPROM, copy them into a buffer
+        ********************************************************************************************** */
+        getStringFromEEPROM(adrPin, parameter);
+        /* **********************************************************************************************
             split the pins up into single pins. As the number of pins could be different between
             multiple devices, it is done here.
         ********************************************************************************************** */
@@ -104,6 +99,10 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         params = strtok_r(NULL, "|", &p);
         _pin3  = atoi(params);
 
+        /* **********************************************************************************
+            read the configuration from the EEPROM, copy it into a buffer.
+        ********************************************************************************** */
+        getStringFromEEPROM(adrConfig, parameter);
         /* **********************************************************************************
             split the config up into single parameter. As the number of parameters could be
             different between multiple devices, it is done here.
@@ -133,6 +132,10 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
             return;
         }
         /* **********************************************************************************************
+            read the pins from the EEPROM, copy them into a buffer
+        ********************************************************************************************** */
+        getStringFromEEPROM(adrPin, parameter);
+        /* **********************************************************************************************
             split the pins up into single pins, as the number of pins could be different between
             multiple devices, it is done here
         ********************************************************************************************** */
@@ -143,6 +146,10 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         params = strtok_r(NULL, "|", &p);
         _pin3  = atoi(params);
 
+        /* **********************************************************************************
+            read the configuration from the EEPROM, copy it into a buffer.
+        ********************************************************************************** */
+        getStringFromEEPROM(adrConfig, parameter);
         /* **********************************************************************************
             split the config up into single parameter. As the number of parameters could be
             different between multiple devices, it is done here.
@@ -157,7 +164,7 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         Parameter1 = atoi(params);
         params     = strtok_r(NULL, "|", &p);
         Parameter2 = params;
-        
+
         // In most cases you need only one of the following functions
         // depending on if the constuctor takes the variables or a separate function is required
         _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
@@ -177,7 +184,11 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
 void MFCustomDevice::detach()
 {
     _initialized = false;
-    _mydevice->detach();
+    if (_customType == 1) {
+        _mydevice->detach();
+    } else if (_customType == 2) {
+        _mydevice->detach();
+    }
 }
 
 /* **********************************************************************************
@@ -195,6 +206,11 @@ void MFCustomDevice::update()
     /* **********************************************************************************
         Do something if required
     ********************************************************************************** */
+   if (_customType == 1) {
+        _mydevice->update();
+    } else if (_customType == 2) {
+        _mydevice->update();
+    }
 }
 
 /* **********************************************************************************
@@ -206,5 +222,9 @@ void MFCustomDevice::set(int8_t messageID, char *setPoint)
 {
     if (!_initialized) return;
 
-    _mydevice->set(messageID, setPoint);
+    if (_customType == 1) {
+        _mydevice->set(messageID, setPoint);
+    } else if (_customType == 2) {
+        _mydevice->set(messageID, setPoint);
+    }
 }
