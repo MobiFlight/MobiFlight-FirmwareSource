@@ -11,10 +11,10 @@
 #define MY_CUSTOM_TYPE_1 "MyCustomType1"
 // This define should be in the second class, it's only here to show how to handle it
 #define MY_CUSTOM_TYPE_2 "MyCustomType2"
-class MyCustomDevice
+class MyCustomClass
 {
 public:
-    MyCustomDevice(uint8_t Pin1, uint8_t Pin2);
+    MyCustomClass(uint8_t Pin1, uint8_t Pin2);
     void begin();
     void attach(uint16_t Pin3, char *init);
     void detach();

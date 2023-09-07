@@ -1,35 +1,35 @@
-#include "MyCustomDevice.h"
+#include "MyCustomClass.h"
 
 /* **********************************************************************************
     This is just the basic code to set up your custom device.
     Change/add your code as needed.
     If you have no class and/or only less code you could also put it
-    into MFCustomDevice.cpp and delete this file and MyCustomDevice.h
+    into MFCustomDevice.cpp and delete this file and MyCustomClass.h
 ********************************************************************************** */
 
-MyCustomDevice::MyCustomDevice(uint8_t Pin1, uint8_t Pin2)
+MyCustomClass::MyCustomClass(uint8_t Pin1, uint8_t Pin2)
 {
     _pin1 = Pin1;
     _pin2 = Pin2;
 }
 
-void MyCustomDevice::begin()
+void MyCustomClass::begin()
 {
 }
 
-void MyCustomDevice::attach(uint16_t Pin3, char *init)
+void MyCustomClass::attach(uint16_t Pin3, char *init)
 {
     _pin3 = Pin3;
 }
 
-void MyCustomDevice::detach()
+void MyCustomClass::detach()
 {
     if (!_initialised)
         return;
     _initialised = false;
 }
 
-void MyCustomDevice::set(int8_t messageID, char *setPoint)
+void MyCustomClass::set(int8_t messageID, char *setPoint)
 {
     /* **********************************************************************************
         Each messageID has it's own value
@@ -65,7 +65,7 @@ void MyCustomDevice::set(int8_t messageID, char *setPoint)
     }
 }
 
-void MyCustomDevice::update()
+void MyCustomClass::update()
 {
     // Do something which is required regulary
 }

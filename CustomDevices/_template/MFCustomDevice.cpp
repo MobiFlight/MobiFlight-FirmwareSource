@@ -1,7 +1,7 @@
 #include "MFCustomDevice.h"
 #include "commandmessenger.h"
 #include "allocateMem.h"
-#include "MyCustomDevice.h"
+#include "MyCustomClass.h"
 #include "MFEEPROM.h"
 extern MFEEPROM MFeeprom;
 
@@ -17,7 +17,7 @@ extern MFEEPROM MFeeprom;
     E.g. 6 pins are required, each pin could have two characters (two digits),
     each pins are delimited by "|" and the string is NULL terminated.
     -> (6 * 2) + 5 + 1 = 18 bytes is the maximum.
-    The custom type is "MyCustomDevice", which means 14 characters plus NULL = 15
+    The custom type is "MyCustomClass", which means 14 characters plus NULL = 15
     The configuration is "myConfig", which means 8 characters plus NULL = 9
     The maximum characters to be expected is 18, so MEMLEN_STRING_BUFFER has to be at least 18
 ********************************************************************************** */
@@ -79,7 +79,7 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
         has to be called (e.g. if (_customType == MY_CUSTOM_DEVICE_1) ....)
     ********************************************************************************** */
     if (_customType == 1) {
-        if (!FitInMemory(sizeof(MyCustomDevice))) {
+        if (!FitInMemory(sizeof(MyCustomClass))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
@@ -120,13 +120,13 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
 
         // In most cases you need only one of the following functions
         // depending on if the constuctor takes the variables or a separate function is required
-        _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
+        _mydevice = new (allocateMemory(sizeof(MyCustomClass))) MyCustomClass(_pin1, _pin2);
         _mydevice->attach(Parameter1, Parameter2);
         // if your custom device does not need a separate begin() function, delete the following
         // or this function could be called from the custom constructor or attach() function
         _mydevice->begin();
     } else if (_customType == 2) {
-        if (!FitInMemory(sizeof(MyCustomDevice))) {
+        if (!FitInMemory(sizeof(MyCustomClass))) {
             // Error Message to Connector
             cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
             return;
@@ -167,7 +167,7 @@ MFCustomDevice::MFCustomDevice(uint16_t adrPin, uint16_t adrType, uint16_t adrCo
 
         // In most cases you need only one of the following functions
         // depending on if the constuctor takes the variables or a separate function is required
-        _mydevice = new (allocateMemory(sizeof(MyCustomDevice))) MyCustomDevice(_pin1, _pin2);
+        _mydevice = new (allocateMemory(sizeof(MyCustomClass))) MyCustomClass(_pin1, _pin2);
         _mydevice->attach(Parameter1, Parameter2);
         // if your custom device does not need a separate begin() function, delete the following
         // or this function could be called from the custom constructor or attach() function
@@ -206,7 +206,7 @@ void MFCustomDevice::update()
     /* **********************************************************************************
         Do something if required
     ********************************************************************************** */
-   if (_customType == 1) {
+    if (_customType == 1) {
         _mydevice->update();
     } else if (_customType == 2) {
         _mydevice->update();

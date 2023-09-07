@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "MyCustomDevice.h"
+#include "MyCustomClass.h"
 
 // only required if you have more than one custom device
 enum {
@@ -17,9 +17,9 @@ public:
     void set(int8_t messageID, char *setPoint);
 
 private:
-    bool            getStringFromEEPROM(uint16_t addreeprom, char *buffer);
-    bool            _initialized = false;
-    MyCustomDevice *_mydevice;
-    uint8_t         _pin1, _pin2, _pin3;
-    uint8_t         _customType = 0;
+    bool           getStringFromEEPROM(uint16_t addreeprom, char *buffer);
+    bool           _initialized = false;
+    MyCustomClass *_mydevice;
+    uint8_t        _pin1, _pin2, _pin3;
+    uint8_t        _customType = 0;
 };
