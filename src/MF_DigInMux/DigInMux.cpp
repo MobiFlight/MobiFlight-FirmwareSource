@@ -41,18 +41,14 @@ namespace DigInMux
         digInMuxRegistered++;
 
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmdStart(kDebug);
-        cmdMessenger.sendCmdArg(F("Added digital input MUX with "));
-        cmdMessenger.sendCmdArg(sizeof(MFDigInMux));
-        cmdMessenger.sendCmdArg(F(" byte"));
-        cmdMessenger.sendCmdEnd();
+        cmdMessenger.sendCmd(kDebug, F("Added digital input MUX"));
 #endif
     }
 
     void Clear()
     {
         for (uint8_t i = 0; i < digInMuxRegistered; i++) {
-            digInMux[digInMuxRegistered]->detach();
+            digInMux[i]->detach();
         }
         digInMuxRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER

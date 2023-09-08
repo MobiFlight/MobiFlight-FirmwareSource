@@ -28,6 +28,10 @@ std::size_t    *allocateMemory(uint8_t size)
     }
 #ifdef DEBUG2CMDMESSENGER
     cmdMessenger.sendCmdStart(kDebug);
+    cmdMessenger.sendCmdArg(F("Bytes added"));
+    cmdMessenger.sendCmdArg(size);
+    cmdMessenger.sendCmdEnd();
+    cmdMessenger.sendCmdStart(kDebug);
     cmdMessenger.sendCmdArg(F("BufferUsage"));
     cmdMessenger.sendCmdArg(nextPointer);
     cmdMessenger.sendCmdEnd();

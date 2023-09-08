@@ -36,26 +36,61 @@
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
 
+#ifndef MAX_OUTPUTS
 #define MAX_OUTPUTS         18
+#endif
+#ifndef MAX_BUTTONS
 #define MAX_BUTTONS         18
+#endif
+#ifndef MAX_LEDSEGMENTS
 #define MAX_LEDSEGMENTS     1
+#endif
+#ifndef MAX_ENCODERS
 #define MAX_ENCODERS        9
+#endif
+#ifndef MAX_STEPPERS
 #define MAX_STEPPERS        3
+#endif
+#ifndef MAX_MFSERVOS
 #define MAX_MFSERVOS        3
+#endif
+#ifndef MAX_MFLCD_I2C
 #define MAX_MFLCD_I2C       2
+#endif
+#ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS   9
+#endif
+#ifndef MAX_OUTPUT_SHIFTERS
 #define MAX_OUTPUT_SHIFTERS 2
+#endif
+#ifndef MAX_INPUT_SHIFTERS
 #define MAX_INPUT_SHIFTERS  2
+#endif
+#ifndef MAX_DIGIN_MUX
 #define MAX_DIGIN_MUX       3
+#endif
 
+#ifndef MOBIFLIGHT_TYPE
 #define MOBIFLIGHT_TYPE     "MobiFlight Micro"
+#endif
+#ifndef MOBIFLIGHT_SERIAL
 #define MOBIFLIGHT_SERIAL   "0987654321"
+#endif
+#ifndef MOBIFLIGHT_NAME
 #define MOBIFLIGHT_NAME     "MobiFlight Micro"
+#endif
+#ifndef EEPROM_SIZE
 #define EEPROM_SIZE         1024 // EEPROMSizeMicro
+#endif
+#ifndef MEMLEN_CONFIG
 #define MEMLEN_CONFIG       440  // max. size for config which wil be stored in EEPROM
+#endif
+#ifndef MEMLEN_NAMES_BUFFER
 #define MEMLEN_NAMES_BUFFER 350  // max. size for configBuffer, contains only names from inputs
+#endif
+#ifndef MF_MAX_DEVICEMEM
 #define MF_MAX_DEVICEMEM    400  // max. memory size for devices
-
+#endif
 
 #endif
 
