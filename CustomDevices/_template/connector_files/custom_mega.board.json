@@ -55,7 +55,8 @@
     "MaxServos": 10,
     "MaxShifters": 4,
     "MaxSteppers": 10,
-    "MaxInputMultiplexer": 4
+    "MaxInputMultiplexer": 4,
+    "MaxCustomDevices": 3
   },
   "Pins": [
     {
