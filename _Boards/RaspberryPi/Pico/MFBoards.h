@@ -63,10 +63,9 @@
 #ifndef MAX_DIGIN_MUX
 #define MAX_DIGIN_MUX       4
 #endif
-
-#define STEPS               64
-#define STEPPER_SPEED       400     // 300 already worked, 467, too?
-#define STEPPER_ACCEL       800
+#ifndef MAX_CUSTOM_DEVICES
+#define MAX_CUSTOM_DEVICES  5
+#endif
 
 #ifndef MOBIFLIGHT_TYPE
 #define MOBIFLIGHT_TYPE         "MobiFlight RaspiPico"
