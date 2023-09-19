@@ -35,7 +35,7 @@ jobs:
       - name: Checkout component library
         uses: actions/checkout@v3
         with:
-          repository: MobiFlight/MobiFlight-CustomDevices
+          repository: elral/MobiFlight-CustomDevices
           path: CustomDevices
 
       - name: Extract build version
