@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
-      - name: Checkout component library
+      - name: Checkout custom devices
         uses: actions/checkout@v3
         with:
           repository: elral/MobiFlight-CustomDevices
