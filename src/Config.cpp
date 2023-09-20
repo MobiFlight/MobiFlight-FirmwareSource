@@ -247,12 +247,6 @@ void readConfig()
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
 
-    uint16_t length    = MFeeprom.get_length();
-    char     temp      = 0;
-    uint16_t adrPin    = 0;
-    uint16_t adrType   = 0;
-    uint16_t adrConfig = 0;
-
     if (command == 0) // just to be sure, configLength should also be 0
         return;
 
@@ -420,18 +414,18 @@ void readConfig()
 #endif
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
-        case kTypeCustomDevice:
-            adrType      = addreeprom; // first location of custom Type in EEPROM
+        case kTypeCustomDevice: {
+            uint16_t adrType      = addreeprom; // first location of custom Type in EEPROM
             copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
 
-            adrPin       = addreeprom; // first location of custom pins in EEPROM
+            uint16_t adrPin       = addreeprom; // first location of custom pins in EEPROM
             copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
 
-            adrConfig    = addreeprom; // first location of custom config in EEPROM
+            uint16_t adrConfig    = addreeprom; // first location of custom config in EEPROM
             copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
             if (copy_success) {
                 CustomDevice::Add(adrPin, adrType, adrConfig);
@@ -439,6 +433,7 @@ void readConfig()
             }
             // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
             break;
+        }
 #endif
 
         default:
