@@ -52,8 +52,8 @@ jobs:
         with:
           name: firmware
           path: |
-            .pio/build/**/mobiflight*.hex
-            .pio/build/**/mobiflight*.uf2
+            .pio/build/**/*.hex
+            .pio/build/**/*.uf2
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -61,5 +61,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            .pio/build/**/mobiflight*.hex
-            .pio/build/**/mobiflight*.uf2
+            .pio/build/**/*.hex
+            .pio/build/**/*.uf2
