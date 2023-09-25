@@ -95,7 +95,6 @@
 #ifndef MF_MAX_DEVICEMEM
 #define MF_MAX_DEVICEMEM    300  // max. memory size for devices
 #endif
-
 #endif
 
 // MFBoards.h
