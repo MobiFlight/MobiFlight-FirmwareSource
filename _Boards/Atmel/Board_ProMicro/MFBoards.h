@@ -43,7 +43,7 @@
 #define MAX_BUTTONS         18
 #endif
 #ifndef MAX_LEDSEGMENTS
-#define MAX_LEDSEGMENTS     1
+#define MAX_LEDSEGMENTS     4
 #endif
 #ifndef MAX_ENCODERS
 #define MAX_ENCODERS        9
