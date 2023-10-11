@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <LedControl.h>
+#include <LedControl_dual.h>
 
 class MFSegments
 {
