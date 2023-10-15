@@ -14,16 +14,13 @@ namespace OutputShifter
     uint8_t          outputShifterRegistered = 0;
     uint8_t          maxOutputShifter        = 0;
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFOutputShifter) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFOutputShifter) * count))
+            return false;
         outputShifters   = new (allocateMemory(sizeof(MFOutputShifter) * count)) MFOutputShifter;
         maxOutputShifter = count;
+        return true;
     }
 
     void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)

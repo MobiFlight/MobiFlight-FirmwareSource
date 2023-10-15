@@ -14,16 +14,13 @@ namespace Stepper
     uint8_t    steppersRegistered = 0;
     uint8_t    maxSteppers        = 0;
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFStepper) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("Stepper does not fit in Memory!"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFStepper) * count))
+            return false;
         steppers    = new (allocateMemory(sizeof(MFStepper) * count)) MFStepper;
         maxSteppers = count;
+        return true;
     }
 
     void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t mode, int8_t backlash, bool deactivateOutput)

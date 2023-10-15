@@ -14,16 +14,13 @@ namespace Output
     uint8_t   outputsRegistered = 0;
     uint8_t   maxOutputs        = 0;
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFOutput) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("Output does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFOutput) * count))
+            return false;
         outputs    = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
         maxOutputs = count;
+        return true;
     }
 
     void Add(uint8_t pin)

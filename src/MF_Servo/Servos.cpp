@@ -14,16 +14,13 @@ namespace Servos
     uint8_t  servosRegistered = 0;
     uint8_t  maxServos        = 0;
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFServo) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("Servo does not fit in Memory!"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFServo) * count))
+            return false;
         servos    = new (allocateMemory(sizeof(MFServo) * count)) MFServo;
         maxServos = count;
+        return true;
     }
 
     void Add(int pin)

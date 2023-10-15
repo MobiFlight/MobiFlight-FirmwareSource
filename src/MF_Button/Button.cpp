@@ -22,16 +22,13 @@ namespace Button
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFButton) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("Button does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFButton) * count))
+            return false;
         buttons    = new (allocateMemory(sizeof(MFButton) * count)) MFButton;
         maxButtons = count;
+        return true;
     }
 
     void Add(uint8_t pin, char const *name)

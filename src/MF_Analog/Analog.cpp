@@ -23,17 +23,13 @@ namespace Analog
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFAnalog) * count)) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("AnalogIn does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFAnalog) * count))
+            return false;
         analog      = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
         maxAnalogIn = count;
+        return true;
     }
 
     void Add(uint8_t pin, char const *name, uint8_t sensitivity)

@@ -23,17 +23,13 @@ namespace InputShifter
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFInputShifter) * count)) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("InputShifter does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFInputShifter) * count))
+            return false;
         inputShifters    = new (allocateMemory(sizeof(MFInputShifter) * count)) MFInputShifter;
         maxInputShiffter = count;
+        return true;
     }
 
     void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules, char const *name)

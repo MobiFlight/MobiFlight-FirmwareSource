@@ -14,16 +14,13 @@ namespace LCDDisplay
     uint8_t       lcd_12cRegistered = 0;
     uint8_t       maxLCD_I2C        = 0;
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFLCDDisplay) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("LCD does not fit in Memory!"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFLCDDisplay) * count))
+            return false;
         lcd_I2C    = new (allocateMemory(sizeof(MFLCDDisplay) * count)) MFLCDDisplay;
         maxLCD_I2C = count;
+        return true;
     }
 
     void Add(uint8_t address, uint8_t cols, uint8_t lines)

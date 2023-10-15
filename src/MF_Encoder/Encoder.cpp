@@ -22,17 +22,13 @@ namespace Encoder
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFEncoder) * count)) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Encoders does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFEncoder) * count))
+            return false;
         encoders    = new (allocateMemory(sizeof(MFEncoder) * count)) MFEncoder;
         maxEncoders = count;
+        return true;
     }
 
     void Add(uint8_t pin1, uint8_t pin2, uint8_t encoder_type, char const *name)

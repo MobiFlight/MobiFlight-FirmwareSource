@@ -25,17 +25,13 @@ namespace DigInMux
         cmdMessenger.sendCmdEnd();
     };
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFDigInMux) * count)) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("DigInMux does not fit in Memory"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFDigInMux) * count))
+            return false;
         digInMux    = new (allocateMemory(sizeof(MFDigInMux) * count)) MFDigInMux;
         maxDigInMux = count;
+        return true;
     }
 
     void Add(uint8_t dataPin, uint8_t nRegs, char const *name)

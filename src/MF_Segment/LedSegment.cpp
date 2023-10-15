@@ -14,16 +14,13 @@ namespace LedSegment
     uint8_t     ledSegmentsRegistered  = 0;
     uint8_t     ledSegmentsRegistereds = 0;
 
-    void setupArray(uint16_t count)
+    bool setupArray(uint16_t count)
     {
-        if (count == 0) return;
-
-        if (!FitInMemory(sizeof(MFSegments) * count)) {
-            cmdMessenger.sendCmd(kStatus, F("7Segment does not fit in Memory!"));
-            return;
-        }
+        if (!FitInMemory(sizeof(MFSegments) * count))
+            return false;
         ledSegments            = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
         ledSegmentsRegistereds = count;
+        return true;
     }
 
     void Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
