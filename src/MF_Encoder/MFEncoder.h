@@ -20,7 +20,7 @@
 #include <Arduino.h>
 
 extern "C" {
-typedef void (*encoderEvent)(uint8_t, uint8_t, const char *);
+typedef void (*encoderEvent)(uint8_t, const char *);
 };
 
 // this prevents the internal position overflow.

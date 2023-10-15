@@ -103,16 +103,16 @@ void MFEncoder::update()
         if (abs(delta) < (MF_ENC_FAST_LIMIT)) {
             // slow turn detected
             if (dir) {
-                (*_handler)(encLeft, _pin1, _name);
+                (*_handler)(encLeft, _name);
             } else {
-                (*_handler)(encRight, _pin2, _name);
+                (*_handler)(encRight, _name);
             }
         } else {
             // fast turn detected
             if (dir) {
-                (*_handler)(encLeftFast, _pin1, _name);
+                (*_handler)(encLeftFast, _name);
             } else {
-                (*_handler)(encRightFast, _pin2, _name);
+                (*_handler)(encRightFast, _name);
             }
         }
     }
