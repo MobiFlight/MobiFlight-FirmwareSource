@@ -226,10 +226,10 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
     return true;
 }
 
-void sendFailureMessage(const char *device)
+void sendFailureMessage(const char *deviceName)
 {
     cmdMessenger.sendCmdStart(kStatus);
-    cmdMessenger.sendCmdArg(device);
+    cmdMessenger.sendCmdArg(deviceName);
     cmdMessenger.sendCmdArg(F("does not fit in Memory"));
     cmdMessenger.sendCmdEnd();
 }
