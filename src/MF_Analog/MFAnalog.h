@@ -16,7 +16,7 @@
 
 extern "C" {
 // callback functions
-typedef void (*analogEvent)(int, uint8_t, const char *);
+typedef void (*analogEvent)(int, const char *);
 };
 
 /////////////////////////////////////////////////////////////////////
