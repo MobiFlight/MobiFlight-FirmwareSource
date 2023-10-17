@@ -460,7 +460,23 @@ bool getStatusConfig()
 void generateRandomSerial()
 {
     randomSeed(millis());
-    sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
+    serial[0]             = 'S';
+    serial[1]             = 'N';
+    serial[2]             = '-';
+    serial[6]             = '-';
+    serial[10] = 0x00;
+    uint16_t randomSerial = random(4095);
+    for (uint8_t i = 3; i < 6; i++) {
+        serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
+        if (serial[i] >= 58) serial[i] += 8;      // if HeX value is A - F add 8 to get the letters
+        randomSerial >>= 4;
+    }
+    randomSerial = random(4095);
+    for (uint8_t i = 7; i < 10; i++) {
+        serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
+        if (serial[i] >= 58) serial[i] += 8;      // if HeX value is A - F add 8 to get the letters
+        randomSerial >>= 4;
+    }
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
