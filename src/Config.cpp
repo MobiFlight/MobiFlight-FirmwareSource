@@ -9,7 +9,9 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
+#if defined(ARDUINO_ARCH_RP2040)
 #include "ArduinoUniqueID.h"
+#endif
 
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
@@ -55,12 +57,16 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
-char      name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG                   = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG]       = "";
-uint16_t  configLength                     = 0;
-boolean   configActivated                  = false;
+#if defined(ARDUINO_ARCH_AVR)
+char serial[11] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-",7 characters for "xyz-zyx" plus terminating NULL
+#elif defined(ARDUINO_ARCH_RP2040)
+char serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
+#endif
+char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
+char      nameBuffer[MEM_LEN_CONFIG] = "";
+uint16_t  configLength               = 0;
+boolean   configActivated            = false;
 
 void resetConfig();
 void readConfig();
@@ -78,8 +84,7 @@ bool readConfigLength()
 
     while (MFeeprom.read_byte(addreeprom++) != 0x00) {
         configLength++;
-        if (addreeprom > length)
-        {
+        if (addreeprom > length) {
             cmdMessenger.sendCmd(kStatus, F("Loading config failed")); // text or "-1" like config upload?
             return false;
         }
@@ -209,8 +214,8 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
         if (*addrbuffer >= MEMLEN_NAMES_BUFFER) {                      // nameBuffer will be exceeded
             return false;                                              // abort copying from EEPROM to nameBuffer
         }
-    } while (temp != ':');                                             // reads until limiter ':' and locates the next free buffer position
-    buffer[(*addrbuffer) - 1] = 0x00;                                  // replace ':' by NULL, terminates the string
+    } while (temp != ':');            // reads until limiter ':' and locates the next free buffer position
+    buffer[(*addrbuffer) - 1] = 0x00; // replace ':' by NULL, terminates the string
     return true;
 }
 
@@ -223,13 +228,13 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
         temp = MFeeprom.read_byte((*addreeprom)++);
         if (*addreeprom > length) // abort if EEPROM size will be exceeded
             return false;
-    } while (temp != ':');        // reads until limiter ':'
+    } while (temp != ':'); // reads until limiter ':'
     return true;
 }
 
 void readConfig()
 {
-    if (configLength == 0)                                   // do nothing if no config is available
+    if (configLength == 0) // do nothing if no config is available
         return;
     uint16_t addreeprom   = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
     uint16_t addrbuffer   = 0;                               // and start with first memory location from nameBuffer
@@ -238,7 +243,7 @@ void readConfig()
     bool     copy_success = true;                            // will be set to false if copying input names to nameBuffer exceeds array dimensions
                                                              // not required anymore when pins instead of names are transferred to the UI
 
-    if (command == 0)                                        // just to be sure, configLength should also be 0
+    if (command == 0) // just to be sure, configLength should also be 0
         return;
 
     do // go through the EEPROM until it is NULL terminated
@@ -251,18 +256,18 @@ void readConfig()
             break;
 
         case kTypeOutput:
-            params[0] = readUintFromEEPROM(&addreeprom);          // Pin number
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin number
             Output::Add(params[0]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
 
 #if MF_SEGMENT_SUPPORT == 1
         case kTypeLedSegment:
-            params[0] = readUintFromEEPROM(&addreeprom);          // Pin Data number
-            params[1] = readUintFromEEPROM(&addreeprom);          // Pin CS number
-            params[2] = readUintFromEEPROM(&addreeprom);          // Pin CLK number
-            params[3] = readUintFromEEPROM(&addreeprom);          // brightness
-            params[4] = readUintFromEEPROM(&addreeprom);          // number of modules
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin Data number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin CS number
+            params[2] = readUintFromEEPROM(&addreeprom); // Pin CLK number
+            params[3] = readUintFromEEPROM(&addreeprom); // brightness
+            params[4] = readUintFromEEPROM(&addreeprom); // number of modules
             LedSegment::Add(params[0], params[1], params[2], params[4], params[3]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
@@ -271,21 +276,21 @@ void readConfig()
 #if MF_STEPPER_SUPPORT == 1
         case kTypeStepperDeprecated1:
             // this is for backwards compatibility
-            params[0] = readUintFromEEPROM(&addreeprom);          // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom);          // Pin2 number
-            params[2] = readUintFromEEPROM(&addreeprom);          // Pin3 number
-            params[3] = readUintFromEEPROM(&addreeprom);          // Pin4 number
-            params[4] = readUintFromEEPROM(&addreeprom);          // Button number
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
+            params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
+            params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
+            params[4] = readUintFromEEPROM(&addreeprom); // Button number
             Stepper::Add(params[0], params[1], params[2], params[3], 0);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
 
         case kTypeStepperDeprecated2:
-            params[0] = readUintFromEEPROM(&addreeprom);          // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom);          // Pin2 number
-            params[2] = readUintFromEEPROM(&addreeprom);          // Pin3 number
-            params[3] = readUintFromEEPROM(&addreeprom);          // Pin4 number
-            params[4] = readUintFromEEPROM(&addreeprom);          // Button number
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
+            params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
+            params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
+            params[4] = readUintFromEEPROM(&addreeprom); // Button number
             Stepper::Add(params[0], params[1], params[2], params[3], params[4]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
@@ -308,7 +313,7 @@ void readConfig()
 
 #if MF_SERVO_SUPPORT == 1
         case kTypeServo:
-            params[0] = readUintFromEEPROM(&addreeprom);          // Pin number
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin number
             Servos::Add(params[0]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
@@ -333,9 +338,9 @@ void readConfig()
 
 #if MF_LCD_SUPPORT == 1
         case kTypeLcdDisplayI2C:
-            params[0] = readUintFromEEPROM(&addreeprom);          // address
-            params[1] = readUintFromEEPROM(&addreeprom);          // columns
-            params[2] = readUintFromEEPROM(&addreeprom);          // lines
+            params[0] = readUintFromEEPROM(&addreeprom); // address
+            params[1] = readUintFromEEPROM(&addreeprom); // columns
+            params[2] = readUintFromEEPROM(&addreeprom); // lines
             LCDDisplay::Add(params[0], params[1], params[2]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
@@ -353,10 +358,10 @@ void readConfig()
 
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
         case kTypeOutputShifter:
-            params[0] = readUintFromEEPROM(&addreeprom);          // latch Pin
-            params[1] = readUintFromEEPROM(&addreeprom);          // clock Pin
-            params[2] = readUintFromEEPROM(&addreeprom);          // data Pin
-            params[3] = readUintFromEEPROM(&addreeprom);          // number of daisy chained modules
+            params[0] = readUintFromEEPROM(&addreeprom); // latch Pin
+            params[1] = readUintFromEEPROM(&addreeprom); // clock Pin
+            params[2] = readUintFromEEPROM(&addreeprom); // data Pin
+            params[3] = readUintFromEEPROM(&addreeprom); // number of daisy chained modules
             OutputShifter::Add(params[0], params[1], params[2], params[3]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
@@ -364,10 +369,10 @@ void readConfig()
 
 #if MF_INPUT_SHIFTER_SUPPORT == 1
         case kTypeInputShifter:
-            params[0] = readUintFromEEPROM(&addreeprom);                             // latch Pin
-            params[1] = readUintFromEEPROM(&addreeprom);                             // clock Pin
-            params[2] = readUintFromEEPROM(&addreeprom);                             // data Pin
-            params[3] = readUintFromEEPROM(&addreeprom);                             // number of daisy chained modules
+            params[0] = readUintFromEEPROM(&addreeprom); // latch Pin
+            params[1] = readUintFromEEPROM(&addreeprom); // clock Pin
+            params[2] = readUintFromEEPROM(&addreeprom); // data Pin
+            params[3] = readUintFromEEPROM(&addreeprom); // number of daisy chained modules
             InputShifter::Add(params[0], params[1], params[2], params[3], &nameBuffer[addrbuffer]);
             copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
                                                                                      //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
@@ -459,13 +464,15 @@ void generateRandomSerial()
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
-void generateUniqueSerial()
+#if defined(ARDUINO_ARCH_RP2040)
+void readUniqueSerial()
 {
     sprintf(serial, "SN-");
     for (size_t i = 0; i < UniqueIDsize; i++) {
         sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
     }
 }
+#endif
 
 void generateSerial(bool force)
 {
@@ -481,12 +488,13 @@ void generateSerial(bool force)
         MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
     }
-
+#if defined(ARDUINO_ARCH_RP2040)
     // A uniqueID is already generated and saved to the eeprom
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'D') {
-        generateUniqueSerial();
+        readUniqueSerial();
         return;
     }
+#endif
 
     // Coming here no UniqueID and no serial number is available, so it's the first start up of a board
 #if defined(ARDUINO_ARCH_AVR)
@@ -497,7 +505,7 @@ void generateSerial(bool force)
     generateRandomSerial();
 #elif defined(ARDUINO_ARCH_RP2040)
     // Read the uniqueID for Pico's and use it as serial number
-    generateUniqueSerial();
+    readUniqueSerial();
     // mark this in the eeprom that a UniqueID is used on first start up for Pico's
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
 #endif
