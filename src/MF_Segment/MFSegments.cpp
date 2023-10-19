@@ -11,7 +11,7 @@ MFSegments::MFSegments()
     _moduleCount = 0;
 }
 
-void MFSegments::display(byte module, char *string, byte points, byte mask, bool convertPoints)
+void MFSegments::display(uint8_t module, char *string, uint8_t points, uint8_t mask, bool convertPoints)
 {
     if (_moduleCount == 0)
         return;
@@ -26,7 +26,7 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
     }
 }
 
-void MFSegments::setBrightness(byte module, byte value)
+void MFSegments::setBrightness(uint8_t module, uint8_t value)
 {
     if (_moduleCount == 0)
         return;
@@ -40,7 +40,7 @@ void MFSegments::setBrightness(byte module, byte value)
     }
 }
 
-void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
+void MFSegments::attach(uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t moduleCount, uint8_t brightness)
 {
     _ledControl.begin(dataPin, clkPin, csPin, moduleCount);
     _moduleCount = moduleCount;

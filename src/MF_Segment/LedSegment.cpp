@@ -13,7 +13,7 @@ namespace LedSegment
     MFSegments *ledSegments[MAX_LEDSEGMENTS];
     uint8_t     ledSegmentsRegistered = 0;
 
-    void        Add(int dataPin, int csPin, int clkPin, int numDevices, int brightness)
+    void        Add(uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t numDevices, uint8_t brightness)
     {
         if (ledSegmentsRegistered == MAX_LEDSEGMENTS)
             return;
