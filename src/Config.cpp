@@ -315,20 +315,16 @@ void readConfig()
 #endif
 
         case kTypeEncoderSingleDetent:
-            params[0] = readUintFromEEPROM(&addreeprom);                             // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom);                             // Pin2 number
-            Encoder::Add(params[0], params[1], 0, &nameBuffer[addrbuffer]);          // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
-            break;
-
         case kTypeEncoder:
-            params[0] = readUintFromEEPROM(&addreeprom);                             // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom);                             // Pin2 number
-            params[2] = readUintFromEEPROM(&addreeprom);                             // type
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
+            params[2] = 0;                               // type
+
+            if (command == kTypeEncoder)
+                params[2] = readUintFromEEPROM(&addreeprom); // type
+
             Encoder::Add(params[0], params[1], params[2], &nameBuffer[addrbuffer]);  // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to nameBuffer and set to next free memory location
             break;
 
 #if MF_LCD_SUPPORT == 1
