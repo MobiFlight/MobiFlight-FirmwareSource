@@ -1,33 +1,26 @@
-// =======================================================================
-// @file        LedControl_dual.h
 //
-// @project     MobiFlight custom Firmware
+// LedControl_dual.cpp
 //
-// @author      GiorgioCC (g.crocic@gmail.com) - 2023-06-29
-// @modifiedby  GiorgioCC - 2023-07-04 15:45
+// (C) MobiFlight Project 2023
 //
-// A library for controlling LED 7-segment displays with either
-// a MAX7219/MAX7221 or a TM1637 (4/6 digit) driver
+// @author GiorgioCC (g.crocic@gmail.com) - 2023-06-29
+//
+// Remarks:
+//
 // Portions of code derived from:
 // - LedControl - A library for controlling Leds with a MAX7219/MAX7221
 //   Copyright (c) 2007 Eberhard Fahle
 // - TM1637TinyDisplay - TM1637 Tiny Display library by Jason A. Cox
 //   (https://github.com/jasonacox)
-//
 // =======================================================================
 // This is basically a mix of two drivers in the same library (with common
 // code parts factorized as much as possible):
-// the type of driver to be used is determined with the value passed for
-// the <csPin> argument in the begin() call.
-// Since the TM1637 does not use a CS line, special values (which are
-// invalid for a MAX72xx) are used to configure the display as a TM1637.
-// Specifically, csPin = 0xFD -> TM1637 4-digit, 0xFE -> TM1637 6-digit
+// the type of driver is determined by the first argument in constructor
 // =======================================================================
 // Method signatures (and purpose) have been kept exactly as in the original
 // LedControl library used in MF firmware, so the interface doesn't change;
 // non-relevant arguments (particularly: <addr> for TM's) are ignored.
 // A few methods (mostly for internal use) have been added.
-//
 
 #ifndef __LEDCONTROL_DUAL__H__
 #define __LEDCONTROL_DUAL__H__

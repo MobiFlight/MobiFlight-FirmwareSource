@@ -1,26 +1,10 @@
-// =======================================================================
-// @file        LedControl_dual.cpp
 //
-// @project     MobiFlight custom Firmware
+// LedControl_dual.cpp
 //
-// @author      GiorgioCC (g.crocic@gmail.com) - 2023-06-29
-// @modifiedby  GiorgioCC - 2023-07-09 20:13
+// (C) MobiFlight Project 2023
 //
-// A library for controlling LED 7-segment displays with either
-// a MAX7219/MAX7221 or a TM1637 (4/6 digit) driver
-// Portions of code derived from:
-// - LedControl - A library for controlling Leds with a MAX7219/MAX7221
-//   Copyright (c) 2007 Eberhard Fahle
-// - TM1637TinyDisplay - TM1637 Tiny Display library by Jason A. Cox
-//   (https://github.com/jasonacox)
-//
-// =======================================================================
 
 #include "LedControl_dual.h"
-
-// =======================================================================
-// Common Definitions
-// =======================================================================
 
 // Segments to be switched on for characters and digits on 7-Segment Displays
 // bit/segment sequence: dABCDEFG
@@ -154,7 +138,7 @@ void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
     IO_DTA     = dataPin;
     IO_CLK     = clkPin;
     IO_CS      = csPin;
-    
+
     if (isMAX()) {
         if ((numDevices - 1) > 7) numDevices = 8;
         maxUnits = numDevices;
