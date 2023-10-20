@@ -44,6 +44,7 @@
 #include <stdint.h>
 // #include <inttypes.h>
 #include <Arduino.h>
+#include <LedSegment.h>
 
 #ifdef __AVR__
 #include <avr/pgmspace.h>
@@ -59,20 +60,13 @@
 // =======================================================================
 
 #define DEFAULT_BIT_DELAY 100
+#define TYPE_UNDEFINED    0xFF
+#define MAX_BRIGHTNESS    15
 
 // =======================================================================
 
 class LedControl
 {
-public:
-    enum { TYPE_MAX72XX        = 0,
-           TYPE_TM1637_4DIGITS = 0xFD,
-           TYPE_TM1637_6DIGITS = 0xFE,
-           TYPE_UNDEFINED      = 0xFF };
-    enum { ZERO_BRIGHTNESS = 0,
-           MIN_BRIGHTNESS  = 1,
-           MAX_BRIGHTNESS  = 15 };
-
 private:
     // Common
     uint8_t type   = TYPE_UNDEFINED;
@@ -85,12 +79,14 @@ private:
     // For TM, buffer can't be static (= shared): either we are building
     // the extended version (which adds a per-unit buffer instead of the static one)
     // or we are forced to resort to digit-by-digit output
-    static
+    static uint8_t rawdata[16];
+#else
+    uint8_t rawdata[16];
 #endif
-        uint8_t rawdata[16];
-    uint8_t     maxUnits   = 0; // MAX: N. of chained units; TM: N. of digits
-    uint8_t     brightness = MAX_BRIGHTNESS;
-    void        setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow = true);
+
+    uint8_t maxUnits   = 0; // MAX: N. of chained units; TM: N. of digits
+    uint8_t brightness = MAX_BRIGHTNESS;
+    void    setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow = true);
 
     // MAX-specific
     void setScanLimit(uint8_t addr, uint8_t limit);
@@ -116,7 +112,7 @@ public:
 
     void begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices = 1);
 
-    bool    isMAX(void) { return type == TYPE_MAX72XX; }
+    bool    isMAX(void) { return type == LedSegment::TYPE_MAX72XX; }
     uint8_t getDeviceCount(void) { return (isMAX() ? maxUnits : 1); };
     uint8_t getDigitCount(void) { return (isMAX() ? 8 : maxUnits); };
 

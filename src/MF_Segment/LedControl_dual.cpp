@@ -148,17 +148,13 @@ uint8_t LedControl::rawdata[16] = {0};
 // Digit sequence map for 6 digit displays
 const uint8_t digitmap[] = {2, 1, 0, 5, 4, 3};
 
-// Configuration:
-// csPin < 0xFD -> MAX72xx
-// csPin = 0xFD -> TM1637 4-digit
-// csPin = 0xFE -> TM1637 6-digit
-// csPin = 0xFF -> uninitialized
 void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices)
 {
     this->type = type;
     IO_DTA     = dataPin;
     IO_CLK     = clkPin;
     IO_CS      = csPin;
+    
     if (isMAX()) {
         if ((numDevices - 1) > 7) numDevices = 8;
         maxUnits = numDevices;
