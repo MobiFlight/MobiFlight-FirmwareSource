@@ -13,8 +13,8 @@ class MFSegments
 {
 public:
     MFSegments();
-    void display(uint8_t module, char *string, uint8_t points, uint8_t mask, bool convertPoints = false);
-    void attach(uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t moduleCount, uint8_t brightness);
+    void display(byte module, char *string, byte points, byte mask, bool convertPoints = false);
+    void attach(byte type, int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness);
     void detach();
     void test();
     void powerSavingMode(bool state);
