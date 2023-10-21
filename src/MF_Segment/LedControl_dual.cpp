@@ -1,26 +1,10 @@
-// =======================================================================
-// @file        LedControl_dual.cpp
 //
-// @project     MobiFlight custom Firmware
+// LedControl_dual.cpp
 //
-// @author      GiorgioCC (g.crocic@gmail.com) - 2023-06-29
-// @modifiedby  GiorgioCC - 2023-07-09 20:13
+// (C) MobiFlight Project 2023
 //
-// A library for controlling LED 7-segment displays with either
-// a MAX7219/MAX7221 or a TM1637 (4/6 digit) driver
-// Portions of code derived from:
-// - LedControl - A library for controlling Leds with a MAX7219/MAX7221
-//   Copyright (c) 2007 Eberhard Fahle
-// - TM1637TinyDisplay - TM1637 Tiny Display library by Jason A. Cox
-//   (https://github.com/jasonacox)
-//
-// =======================================================================
 
 #include "LedControl_dual.h"
-
-// =======================================================================
-// Common Definitions
-// =======================================================================
 
 // Segments to be switched on for characters and digits on 7-Segment Displays
 // bit/segment sequence: dABCDEFG
@@ -89,7 +73,7 @@ enum {
 };
 
 #ifdef LEDCONTROL_NO_BUF
-    uint8_t LedControl::rawdata[16] = {0};
+uint8_t LedControl::rawdata[16] = {0};
 #endif
 
 // =======================================================================
@@ -139,48 +123,45 @@ enum {
 // 1  0  0  0  0  _  _  _  - Display OFF
 // 1  0  0  0  1  _  _  _  - Display ON
 
-#define TM1637_I2C_COMM1    0x40 // CmdSetData       0b01000000
-#define TM1637_I2C_COMM2    0xC0 // CmdSetAddress    0b11000000
-#define TM1637_I2C_COMM3    0x80 // CmdDisplay       0b10000000
-#define TM1637_I2C_COMM1F   0x44 // CmdSetData - fixedAddress    0b11000100
+#define TM1637_I2C_COMM1  0x40 // CmdSetData       0b01000000
+#define TM1637_I2C_COMM2  0xC0 // CmdSetAddress    0b11000000
+#define TM1637_I2C_COMM3  0x80 // CmdDisplay       0b10000000
+#define TM1637_I2C_COMM1F 0x44 // CmdSetData - fixedAddress    0b11000100
 // =======================================================================
 
 // Digit sequence map for 6 digit displays
 const uint8_t digitmap[] = {2, 1, 0, 5, 4, 3};
 
-// Configuration:
-// csPin < 0xFD -> MAX72xx
-// csPin = 0xFD -> TM1637 4-digit
-// csPin = 0xFE -> TM1637 6-digit
-// csPin = 0xFF -> uninitialized
-void LedControl::begin(uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices)
+void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices)
 {
-    IO_DTA = dataPin;
-    IO_CLK = clkPin;
-    IO_CS  = csPin;
+    _type    = type;
+    _dataPin = dataPin;
+    _clkPin  = clkPin;
+    _csPin   = csPin;
+
     if (isMAX()) {
         if ((numDevices - 1) > 7) numDevices = 8;
         maxUnits = numDevices;
-        pinMode(IO_DTA, OUTPUT);
-        pinMode(IO_CLK, OUTPUT);
-        pinMode(IO_CS, OUTPUT);
-        digitalWrite(IO_CS, HIGH);
+        pinMode(_dataPin, OUTPUT);
+        pinMode(_clkPin, OUTPUT);
+        pinMode(_csPin, OUTPUT);
+        digitalWrite(_csPin, HIGH);
         for (uint8_t i = 0; i < maxUnits; i++) {
             spiTransfer(i, OP_DISPLAYTEST, 0);
             setScanLimit(i, 7);               // scanlimit is set to max on startup
             spiTransfer(i, OP_DECODEMODE, 0); // decode is done in source
             clearDisplay(i);
-            shutdown(i, true);                // we go into shutdown-mode on startup
+            shutdown(i, true); // we go into shutdown-mode on startup
         }
     } else {
-        maxUnits = (IO_CS == 0xFD ? 4 : 6);
+        maxUnits = (this->_type == LedSegment::TYPE_TM1637_4DIGITS ? 4 : 6);
         // Both pins are set as inputs, allowing the pull-up resistors to pull them up
-        pinMode(IO_CLK, INPUT_PULLUP);
-        pinMode(IO_DTA, INPUT_PULLUP);
-        digitalWrite(IO_CLK, LOW); // Prepare '0' value as dominant
-        digitalWrite(IO_DTA, LOW); // Prepare '0' value as dominant
+        pinMode(_clkPin, INPUT_PULLUP);
+        pinMode(_dataPin, INPUT_PULLUP);
+        digitalWrite(_clkPin, LOW);  // Prepare '0' value as dominant
+        digitalWrite(_dataPin, LOW); // Prepare '0' value as dominant
         clearDisplay(0);
-        //setIntensity(0, MAX_BRIGHTNESS);
+        // setIntensity(0, MAX_BRIGHTNESS);
         brightness = MAX_BRIGHTNESS;
         shutdown(0, true);
     }
@@ -193,7 +174,7 @@ void LedControl::shutdown(uint8_t addr, bool b)
         spiTransfer(addr, OP_SHUTDOWN, b ? 0 : 1);
     } else {
         uint8_t bri = brightness >> 1;
-        if(!b) bri |= 0x08;
+        if (!b) bri |= 0x08;
         // Write COMM3 + intensity
         start();
         writeByte(TM1637_I2C_COMM3 + bri);
@@ -209,8 +190,8 @@ void LedControl::setIntensity(uint8_t addr, uint8_t intensity)
         if (addr >= maxUnits) return;
         spiTransfer(addr, OP_INTENSITY, brightness);
     } else {
-        if(intensity > 0) {
-            if(intensity > 1) intensity >>= 1;
+        if (intensity > 0) {
+            if (intensity > 1) intensity >>= 1;
             intensity |= 0x08;
         }
         // Write COMM3 + intensity
@@ -229,7 +210,7 @@ void LedControl::clearDisplay(uint8_t addr)
         }
     } else {
 #ifdef LEDCONTROL_NO_BUF
-        for(uint8_t i = 0; i < 8; i++) {
+        for (uint8_t i = 0; i < 8; i++) {
             writeOneDigit(i, 0);
         }
 #else
@@ -242,7 +223,7 @@ void LedControl::clearDisplay(uint8_t addr)
 void LedControl::setDigit(uint8_t addr, uint8_t digit, uint8_t value, bool dp, bool sendNow)
 {
     if (addr >= maxUnits) return;
-    if ((value > 15) && (value != '-')) value = (uint8_t)' ';     // Use space for invalid digit
+    if ((value > 15) && (value != '-')) value = (uint8_t)' '; // Use space for invalid digit
     if (dp) value |= 0x80;
     setPattern(addr, digit, value, sendNow);
 }
@@ -259,12 +240,12 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
 
 void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow)
 {
-    if(digit > getDigitCount()-1) return;
+    if (digit > getDigitCount() - 1) return;
     uint8_t v;
     v = pgm_read_byte_near(charTable + (value & 0x7F));
     if (isMAX()) {
         if (value & 0x80) v |= 0x80;
-        spiTransfer(addr, digit + 1, v);    // Always send immediately for MAX
+        spiTransfer(addr, digit + 1, v); // Always send immediately for MAX
     } else {
         // Original data for MAX has the bit sequence: dABCDEFG
         // Common TM1637 boards are connected so that they require: dGFEDCBA
@@ -275,8 +256,8 @@ void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sen
 #ifdef LEDCONTROL_NO_BUF
         writeOneDigit(digit, v);
 #else
-        rawdata[(maxUnits-1) - digit] = v; // Change only the individual affected digit in static buffer
-        if(sendNow) {
+        rawdata[(maxUnits - 1) - digit] = v; // Change only the individual affected digit in static buffer
+        if (sendNow) {
             writeDigits(digit, 1);
         }
 #endif
@@ -287,11 +268,12 @@ void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sen
 // MAX-specific driver methods
 // ------------------------------------------------
 
-void LedControl::setScanLimit(uint8_t addr, uint8_t limit) {
-    if(!isMAX()) return;
-    if(addr>=maxUnits) return;
-    if(limit > 7) return;
-    spiTransfer(addr, OP_SCANLIMIT,limit);
+void LedControl::setScanLimit(uint8_t addr, uint8_t limit)
+{
+    if (!isMAX()) return;
+    if (addr >= maxUnits) return;
+    if (limit > 7) return;
+    spiTransfer(addr, OP_SCANLIMIT, limit);
 }
 
 void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
@@ -304,18 +286,18 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
     rawdata[offset + 1] = opcode;
     rawdata[offset]     = data;
 
-    digitalWrite(IO_CS, LOW);
+    digitalWrite(_csPin, LOW);
     for (uint8_t i = maxBytes; i > 0; i--) {
         // shiftOut(IO_DTA, IO_CLK, MSBFIRST, rawdata[i - 1]);
         byte dta = rawdata[i - 1];
         for (uint8_t m = 0x80; m != 0; m >>= 1) {
             // MSB first
-            digitalWrite(IO_DTA, (dta & m));
-            digitalWrite(IO_CLK, HIGH);
-            digitalWrite(IO_CLK, LOW);
+            digitalWrite(_dataPin, (dta & m));
+            digitalWrite(_clkPin, HIGH);
+            digitalWrite(_clkPin, LOW);
         }
     }
-    digitalWrite(IO_CS, HIGH);
+    digitalWrite(_csPin, HIGH);
 }
 
 // ------------------------------------------------
@@ -324,17 +306,17 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 
 void LedControl::start()
 {
-    pinMode(IO_DTA, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
     bitDelay();
 }
 
 void LedControl::stop()
 {
-    pinMode(IO_DTA, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
     bitDelay();
-    pinMode(IO_CLK, INPUT);
+    pinMode(_clkPin, INPUT);
     bitDelay();
-    pinMode(IO_DTA, INPUT);
+    pinMode(_dataPin, INPUT);
     bitDelay();
 }
 
@@ -343,45 +325,45 @@ bool LedControl::writeByte(uint8_t data, bool rvs)
     uint8_t msk = (rvs ? 0x80 : 0x01);
     for (uint8_t i = 0; i < 8; i++) {
         // CLK low
-        pinMode(IO_CLK, OUTPUT);
+        pinMode(_clkPin, OUTPUT);
         bitDelay();
         // Set data bit
-        pinMode(IO_DTA, (data & msk) ? INPUT : OUTPUT);
+        pinMode(_dataPin, (data & msk) ? INPUT : OUTPUT);
         bitDelay();
         // CLK high
-        pinMode(IO_CLK, INPUT);
+        pinMode(_clkPin, INPUT);
         bitDelay();
         data = (rvs ? data << 1 : data >> 1);
     }
     // Wait for acknowledge
     // CLK to zero
-    pinMode(IO_CLK, OUTPUT);
-    pinMode(IO_DTA, INPUT);
+    pinMode(_clkPin, OUTPUT);
+    pinMode(_dataPin, INPUT);
     bitDelay();
     // CLK to high
-    pinMode(IO_CLK, INPUT);
+    pinMode(_clkPin, INPUT);
     bitDelay();
-    uint8_t ack = digitalRead(IO_DTA);
-    if (ack == 0) pinMode(IO_DTA, OUTPUT);
+    uint8_t ack = digitalRead(_dataPin);
+    if (ack == 0) pinMode(_dataPin, OUTPUT);
     bitDelay();
-    pinMode(IO_CLK, OUTPUT);
+    pinMode(_clkPin, OUTPUT);
     bitDelay();
     return ack;
 }
 
 #ifdef LEDCONTROL_NO_BUF
 
-void LedControl::writeOneDigit(uint8_t ndigit, uint8_t pattern) 
+void LedControl::writeOneDigit(uint8_t ndigit, uint8_t pattern)
 {
     uint8_t b;
     // Write COMM1
     start();
-    writeByte(TM1637_I2C_COMM1F);  // TM1637_I2C_COMM1 is also fine
+    writeByte(TM1637_I2C_COMM1F); // TM1637_I2C_COMM1 is also fine
     stop();
 
     start();
-    ndigit = (maxUnits-1)-ndigit;
-    b = ((maxUnits == 4) ? ndigit : digitmap[ndigit]);
+    ndigit = (maxUnits - 1) - ndigit;
+    b      = ((maxUnits == 4) ? ndigit : digitmap[ndigit]);
     writeByte(TM1637_I2C_COMM2 + b);
     // Write only raw data bit-reversed (to use the existing data in MAX-format)
     writeByte(pattern, true);
@@ -398,7 +380,7 @@ void LedControl::writeOneDigit(uint8_t ndigit, uint8_t pattern)
 
 void LedControl::writeDigits(uint8_t startd, uint8_t len)
 {
-    bool is4Digit = (maxUnits == 4);
+    bool    is4Digit = (maxUnits == 4);
     uint8_t b;
 
     // Write COMM1
@@ -406,17 +388,17 @@ void LedControl::writeDigits(uint8_t startd, uint8_t len)
     writeByte(TM1637_I2C_COMM1);
     stop();
 
-    uint8_t pos = (maxUnits-1) - startd;
-    b = (is4Digit ? pos : digitmap[pos+len-1]);
+    uint8_t pos = (maxUnits - 1) - startd;
+    b           = (is4Digit ? pos : digitmap[pos + len - 1]);
 
     start();
     writeByte(TM1637_I2C_COMM2 + b);
     // Write the data bytes
-    if(pos + len > maxUnits) len = maxUnits - pos;
+    if (pos + len > maxUnits) len = maxUnits - pos;
     uint8_t k;
     for (b = 0; b < len; b++) {
         k = (is4Digit ? b : len - b - 1);
-        writeByte(rawdata[pos+k], true);
+        writeByte(rawdata[pos + k], true);
     }
     stop();
 }
@@ -429,15 +411,16 @@ void LedControl::showNumber(uint8_t addr, int32_t num, bool isHex, uint8_t dots,
 {
     uint8_t digits[8];
     uint8_t pos;
-    uint8_t maxlen = getDigitCount();
-    bool minusRequired = (num < 0);
-    if(minusRequired) num = -num;
+    uint8_t maxlen        = getDigitCount();
+    bool    minusRequired = (num < 0);
+    if (minusRequired) num = -num;
 
-    for (uint8_t i = 0; i < 8; i++) digits[i] = (uint8_t)' ';
+    for (uint8_t i = 0; i < 8; i++)
+        digits[i] = (uint8_t)' ';
 
-    pos = (maxlen-1)-roffset;   // Reverse to use as counter
+    pos = (maxlen - 1) - roffset; // Reverse to use as counter
     if (num == 0) {
-        if(leading_zero) {
+        if (leading_zero) {
             for (uint8_t i = 0; i < pos; i++) {
                 digits[i] = '0';
             }
@@ -447,7 +430,7 @@ void LedControl::showNumber(uint8_t addr, int32_t num, bool isHex, uint8_t dots,
         uint8_t dval;
         do {
             if (num == 0) {
-                if(leading_zero) {
+                if (leading_zero) {
                     digits[pos] = '0';
                     if (minusRequired && pos == 0) digits[0] = '-';
                 } else {
@@ -455,36 +438,36 @@ void LedControl::showNumber(uint8_t addr, int32_t num, bool isHex, uint8_t dots,
                     pos = 0;
                 }
             } else {
-                if(!isHex) {
-                    dval = num % 10;
-                    digits[pos] = '0'+dval;
+                if (!isHex) {
+                    dval        = num % 10;
+                    digits[pos] = '0' + dval;
                 } else {
-                    dval = num & 0x0F;
-                    digits[pos] = ((dval > 9) ? 'A'-10 : '0') + dval;
+                    dval        = num & 0x0F;
+                    digits[pos] = ((dval > 9) ? 'A' - 10 : '0') + dval;
                 }
             }
-            if(!isHex) {
+            if (!isHex) {
                 num /= 10;
             } else {
                 num >>= 4;
             }
-        } while((pos--) > 0);
+        } while ((pos--) > 0);
     }
-    showString(addr, (char*)digits, 0, dots);
+    showString(addr, (char *)digits, 0, dots);
 }
 
-void LedControl::showString(uint8_t addr, char* s, uint8_t loffset, uint8_t dots)
-{ 
+void LedControl::showString(uint8_t addr, char *s, uint8_t loffset, uint8_t dots)
+{
     uint8_t maxlen = getDigitCount();
-    uint8_t msk = 0x80 >> loffset;
-    for(uint8_t d = loffset; d < maxlen && (*s != 0); d++) {
-        uint8_t pos = (maxlen-1)-d;
-        setChar(addr, pos, *s++, ((dots & msk)!=0), false);
-        msk>>=1;
+    uint8_t msk    = 0x80 >> loffset;
+    for (uint8_t d = loffset; d < maxlen && (*s != 0); d++) {
+        uint8_t pos = (maxlen - 1) - d;
+        setChar(addr, pos, *s++, ((dots & msk) != 0), false);
+        msk >>= 1;
     }
 
 #ifndef LEDCONTROL_NO_BUF
-    if(!isMAX()) writeBuffer();
+    if (!isMAX()) writeBuffer();
 #endif
 }
 
