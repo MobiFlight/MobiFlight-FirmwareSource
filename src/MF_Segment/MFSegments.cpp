@@ -40,9 +40,9 @@ void MFSegments::setBrightness(byte module, byte value)
     }
 }
 
-void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
+void MFSegments::attach(byte type, int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
 {
-    _ledControl.begin(dataPin, clkPin, csPin, moduleCount);
+    _ledControl.begin(type, dataPin, clkPin, csPin, moduleCount);
     _moduleCount = moduleCount;
     for (uint8_t i = 0; i < _moduleCount; ++i) {
         setBrightness(i, brightness);
