@@ -36,7 +36,7 @@ jobs:
       - name: Checkout custom devices
         uses: actions/checkout@v3
         with:
-          repository: elral/MobiFlight-CustomDevices
+          repository: MobiFlight/MobiFlight-CustomDevices
           path: CustomDevices
 
       - name: Run PlatformIO
