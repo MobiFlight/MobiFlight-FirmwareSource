@@ -333,48 +333,49 @@ void readConfig()
             break;
 
 #if MF_SEGMENT_SUPPORT == 1
-        case kTypeLedSegment:
-            params[0] = readUintFromEEPROM(&addreeprom); // Pin Data number
-            params[1] = readUintFromEEPROM(&addreeprom); // Pin CS number
-            params[2] = readUintFromEEPROM(&addreeprom); // Pin CLK number
-            params[3] = readUintFromEEPROM(&addreeprom); // brightness
-            params[4] = readUintFromEEPROM(&addreeprom); // number of modules
-            LedSegment::Add(params[0], params[1], params[2], params[4], params[3]);
+        // this is for backwards compatibility
+        case kTypeLedSegmentDeprecated:
+        // this is the new type
+        case kTypeLedSegmentMulti:
+            params[0] = LedSegment::TYPE_MAX72XX;
+            if (command == kTypeLedSegmentMulti)
+                params[0] = readUintFromEEPROM(&addreeprom); // Type of LedSegment
+
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin Data number
+            params[2] = readUintFromEEPROM(&addreeprom); // Pin CS number
+            params[3] = readUintFromEEPROM(&addreeprom); // Pin CLK number
+            params[4] = readUintFromEEPROM(&addreeprom); // brightness
+            params[5] = readUintFromEEPROM(&addreeprom); // number of modules
+            LedSegment::Add(params[0], params[1], params[2], params[3], params[5], params[4]);
             copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
             break;
 #endif
 
 #if MF_STEPPER_SUPPORT == 1
         case kTypeStepperDeprecated1:
-            // this is for backwards compatibility
-            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
-            params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
-            params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
-            params[4] = readUintFromEEPROM(&addreeprom); // Button number
-            Stepper::Add(params[0], params[1], params[2], params[3], 0);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
         case kTypeStepperDeprecated2:
-            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
-            params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
-            params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
-            params[4] = readUintFromEEPROM(&addreeprom); // Button number
-            Stepper::Add(params[0], params[1], params[2], params[3], params[4]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
-            break;
-
         case kTypeStepper:
+            // Values for all stepper types
             params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
             params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
             params[2] = readUintFromEEPROM(&addreeprom); // Pin3 number
             params[3] = readUintFromEEPROM(&addreeprom); // Pin4 number
-            params[4] = readUintFromEEPROM(&addreeprom); // Button number
-            params[5] = readUintFromEEPROM(&addreeprom); // Stepper Mode
-            params[6] = readUintFromEEPROM(&addreeprom); // backlash
-            params[7] = readUintFromEEPROM(&addreeprom); // deactivate output
+
+            // Default values for older types
+            params[4] = (uint8_t)0; // Button number
+            params[5] = (uint8_t)0; // Stepper Mode
+            params[6] = (uint8_t)0; // backlash
+            params[7] = false;      // deactivate output
+
+            if (command == kTypeStepperDeprecated2) {
+                params[4] = readUintFromEEPROM(&addreeprom); // Button number
+            }
+
+            if (command == kTypeStepper) {
+                params[5] = readUintFromEEPROM(&addreeprom); // Stepper Mode
+                params[6] = readUintFromEEPROM(&addreeprom); // backlash
+                params[7] = readUintFromEEPROM(&addreeprom); // deactivate output
+            }
             // there is an additional 9th parameter stored in the config (profileID) which is not needed in the firmware
             // and therefor not read in, it is just skipped like the name with reading until end of command
             Stepper::Add(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
@@ -391,20 +392,16 @@ void readConfig()
 #endif
 
         case kTypeEncoderSingleDetent:
-            params[0] = readUintFromEEPROM(&addreeprom);                             // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom);                             // Pin2 number
-            Encoder::Add(params[0], params[1], 0, &nameBuffer[addrbuffer]);          // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
-            break;
-
         case kTypeEncoder:
-            params[0] = readUintFromEEPROM(&addreeprom);                             // Pin1 number
-            params[1] = readUintFromEEPROM(&addreeprom);                             // Pin2 number
-            params[2] = readUintFromEEPROM(&addreeprom);                             // type
+            params[0] = readUintFromEEPROM(&addreeprom); // Pin1 number
+            params[1] = readUintFromEEPROM(&addreeprom); // Pin2 number
+            params[2] = 0;                               // type
+
+            if (command == kTypeEncoder)
+                params[2] = readUintFromEEPROM(&addreeprom); // type
+
             Encoder::Add(params[0], params[1], params[2], &nameBuffer[addrbuffer]);  // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
-            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to to nameBuffer and set to next free memory location
-                                                                                     //    copy_success = readEndCommandFromEEPROM(&addreeprom);       // once the nameBuffer is not required anymore uncomment this line and delete the line before
+            copy_success = readNameFromEEPROM(&addreeprom, nameBuffer, &addrbuffer); // copy the NULL terminated name to nameBuffer and set to next free memory location
             break;
 
 #if MF_LCD_SUPPORT == 1
