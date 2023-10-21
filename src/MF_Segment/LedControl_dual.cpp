@@ -134,18 +134,18 @@ const uint8_t digitmap[] = {2, 1, 0, 5, 4, 3};
 
 void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices)
 {
-    this->type = type;
-    IO_DTA     = dataPin;
-    IO_CLK     = clkPin;
-    IO_CS      = csPin;
+    _type    = type;
+    _dataPin = dataPin;
+    _clkPin  = clkPin;
+    _csPin   = csPin;
 
     if (isMAX()) {
         if ((numDevices - 1) > 7) numDevices = 8;
         maxUnits = numDevices;
-        pinMode(IO_DTA, OUTPUT);
-        pinMode(IO_CLK, OUTPUT);
-        pinMode(IO_CS, OUTPUT);
-        digitalWrite(IO_CS, HIGH);
+        pinMode(_dataPin, OUTPUT);
+        pinMode(_clkPin, OUTPUT);
+        pinMode(_csPin, OUTPUT);
+        digitalWrite(_csPin, HIGH);
         for (uint8_t i = 0; i < maxUnits; i++) {
             spiTransfer(i, OP_DISPLAYTEST, 0);
             setScanLimit(i, 7);               // scanlimit is set to max on startup
@@ -154,12 +154,12 @@ void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
             shutdown(i, true); // we go into shutdown-mode on startup
         }
     } else {
-        maxUnits = (IO_CS == 0xFD ? 4 : 6);
+        maxUnits = (this->_type == LedSegment::TYPE_TM1637_4DIGITS ? 4 : 6);
         // Both pins are set as inputs, allowing the pull-up resistors to pull them up
-        pinMode(IO_CLK, INPUT_PULLUP);
-        pinMode(IO_DTA, INPUT_PULLUP);
-        digitalWrite(IO_CLK, LOW); // Prepare '0' value as dominant
-        digitalWrite(IO_DTA, LOW); // Prepare '0' value as dominant
+        pinMode(_clkPin, INPUT_PULLUP);
+        pinMode(_dataPin, INPUT_PULLUP);
+        digitalWrite(_clkPin, LOW);  // Prepare '0' value as dominant
+        digitalWrite(_dataPin, LOW); // Prepare '0' value as dominant
         clearDisplay(0);
         // setIntensity(0, MAX_BRIGHTNESS);
         brightness = MAX_BRIGHTNESS;
@@ -286,18 +286,18 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
     rawdata[offset + 1] = opcode;
     rawdata[offset]     = data;
 
-    digitalWrite(IO_CS, LOW);
+    digitalWrite(_csPin, LOW);
     for (uint8_t i = maxBytes; i > 0; i--) {
         // shiftOut(IO_DTA, IO_CLK, MSBFIRST, rawdata[i - 1]);
         byte dta = rawdata[i - 1];
         for (uint8_t m = 0x80; m != 0; m >>= 1) {
             // MSB first
-            digitalWrite(IO_DTA, (dta & m));
-            digitalWrite(IO_CLK, HIGH);
-            digitalWrite(IO_CLK, LOW);
+            digitalWrite(_dataPin, (dta & m));
+            digitalWrite(_clkPin, HIGH);
+            digitalWrite(_clkPin, LOW);
         }
     }
-    digitalWrite(IO_CS, HIGH);
+    digitalWrite(_csPin, HIGH);
 }
 
 // ------------------------------------------------
@@ -306,17 +306,17 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 
 void LedControl::start()
 {
-    pinMode(IO_DTA, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
     bitDelay();
 }
 
 void LedControl::stop()
 {
-    pinMode(IO_DTA, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
     bitDelay();
-    pinMode(IO_CLK, INPUT);
+    pinMode(_clkPin, INPUT);
     bitDelay();
-    pinMode(IO_DTA, INPUT);
+    pinMode(_dataPin, INPUT);
     bitDelay();
 }
 
@@ -325,28 +325,28 @@ bool LedControl::writeByte(uint8_t data, bool rvs)
     uint8_t msk = (rvs ? 0x80 : 0x01);
     for (uint8_t i = 0; i < 8; i++) {
         // CLK low
-        pinMode(IO_CLK, OUTPUT);
+        pinMode(_clkPin, OUTPUT);
         bitDelay();
         // Set data bit
-        pinMode(IO_DTA, (data & msk) ? INPUT : OUTPUT);
+        pinMode(_dataPin, (data & msk) ? INPUT : OUTPUT);
         bitDelay();
         // CLK high
-        pinMode(IO_CLK, INPUT);
+        pinMode(_clkPin, INPUT);
         bitDelay();
         data = (rvs ? data << 1 : data >> 1);
     }
     // Wait for acknowledge
     // CLK to zero
-    pinMode(IO_CLK, OUTPUT);
-    pinMode(IO_DTA, INPUT);
+    pinMode(_clkPin, OUTPUT);
+    pinMode(_dataPin, INPUT);
     bitDelay();
     // CLK to high
-    pinMode(IO_CLK, INPUT);
+    pinMode(_clkPin, INPUT);
     bitDelay();
-    uint8_t ack = digitalRead(IO_DTA);
-    if (ack == 0) pinMode(IO_DTA, OUTPUT);
+    uint8_t ack = digitalRead(_dataPin);
+    if (ack == 0) pinMode(_dataPin, OUTPUT);
     bitDelay();
-    pinMode(IO_CLK, OUTPUT);
+    pinMode(_clkPin, OUTPUT);
     bitDelay();
     return ack;
 }

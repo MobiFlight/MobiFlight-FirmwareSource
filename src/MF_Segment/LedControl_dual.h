@@ -62,10 +62,10 @@ class LedControl
 {
 private:
     // Common
-    uint8_t type   = TYPE_UNDEFINED;
-    uint8_t IO_DTA = TYPE_UNDEFINED;
-    uint8_t IO_CLK = TYPE_UNDEFINED;
-    uint8_t IO_CS  = TYPE_UNDEFINED;
+    uint8_t _type    = TYPE_UNDEFINED;
+    uint8_t _dataPin = TYPE_UNDEFINED;
+    uint8_t _clkPin  = TYPE_UNDEFINED;
+    uint8_t _csPin   = TYPE_UNDEFINED;
     // MAX: Number of chained units
     // TM:  Number of digits (4 or 6)
 #ifdef LEDCONTROL_NO_BUF
@@ -105,7 +105,7 @@ public:
 
     void begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices = 1);
 
-    bool    isMAX(void) { return type == LedSegment::TYPE_MAX72XX; }
+    bool    isMAX(void) { return _type == LedSegment::TYPE_MAX72XX; }
     uint8_t getDeviceCount(void) { return (isMAX() ? maxUnits : 1); };
     uint8_t getDigitCount(void) { return (isMAX() ? 8 : maxUnits); };
 
