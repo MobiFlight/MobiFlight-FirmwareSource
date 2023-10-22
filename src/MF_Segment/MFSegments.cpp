@@ -40,7 +40,7 @@ void MFSegments::setBrightness(uint8_t module, uint8_t value)
     }
 }
 
-void MFSegments::attach(uint8_t type, int dataPin, int csPin, int clkPin, uint8_t moduleCount, uint8_t brightness)
+void MFSegments::attach(uint8_t type, uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t moduleCount, uint8_t brightness)
 {
     _ledControl.begin(type, dataPin, clkPin, csPin, moduleCount);
     _moduleCount = moduleCount;
