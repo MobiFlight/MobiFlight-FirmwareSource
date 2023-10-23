@@ -66,11 +66,11 @@ char serial[11] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-",7 characters for 
 #elif defined(ARDUINO_ARCH_RP2040)
 char serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
 #endif
-char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG] = "";
-uint16_t  configLength               = 0;
-boolean   configActivated            = false;
+char      name[MEM_LEN_NAME]              = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG                  = MEMLEN_CONFIG;
+char      nameBuffer[MEMLEN_NAMES_BUFFER] = "";
+uint16_t  configLength                    = 0;
+boolean   configActivated                 = false;
 
 void resetConfig();
 void readConfig();
