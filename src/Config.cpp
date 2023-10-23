@@ -66,11 +66,11 @@ char serial[11] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-",7 characters for 
 #elif defined(ARDUINO_ARCH_RP2040)
 char serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
 #endif
-char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG] = "";
-uint16_t  configLength               = 0;
-boolean   configActivated            = false;
+char      name[MEM_LEN_NAME]              = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG                  = MEMLEN_CONFIG;
+char      nameBuffer[MEMLEN_NAMES_BUFFER] = "";
+uint16_t  configLength                    = 0;
+boolean   configActivated                 = false;
 
 void resetConfig();
 void readConfig();
@@ -238,7 +238,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom, uint8_t delimiter)
         temp = MFeeprom.read_byte((*addreeprom)++);
         if (*addreeprom > length) // abort if EEPROM size will be exceeded
             return false;
-    } while (temp != delimiter);  // reads until limiter ':'
+    } while (temp != delimiter); // reads until limiter ':'
     return true;
 }
 
@@ -418,18 +418,18 @@ void readConfig()
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
         case kTypeCustomDevice: {
-            uint16_t adrType      = addreeprom; // first location of custom Type in EEPROM
-            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            uint16_t adrType = addreeprom; // first location of custom Type in EEPROM
+            copy_success     = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
 
-            uint16_t adrPin       = addreeprom; // first location of custom pins in EEPROM
-            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            uint16_t adrPin = addreeprom; // first location of custom pins in EEPROM
+            copy_success    = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
 
-            uint16_t adrConfig    = addreeprom; // first location of custom config in EEPROM
-            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            uint16_t adrConfig = addreeprom; // first location of custom config in EEPROM
+            copy_success       = readEndCommandFromEEPROM(&addreeprom, '.');
             if (copy_success) {
                 CustomDevice::Add(adrPin, adrType, adrConfig);
                 copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of command
