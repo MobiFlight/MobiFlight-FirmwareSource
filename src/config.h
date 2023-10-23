@@ -23,7 +23,8 @@ enum {
     kTypeMuxDriver,            // 13 Multiplexer selector support (generates select outputs)
     kTypeDigInMux,             // 14 Digital input multiplexer support (example: 74HCT4067, 74HCT4051)
     kTypeStepper,              // 15 new stepper type with settings for backlash and deactivate output
-    kTypeLedSegmentMulti       // 16 new led segment with MAX7219 and TM1637 support
+    kTypeLedSegmentMulti,      // 16 new led segment with MAX7219 and TM1637 support
+    kTypeCustomDevice          // 16 Custom Device
 };
 
 void loadConfig(void);

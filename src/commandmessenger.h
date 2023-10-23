@@ -44,6 +44,7 @@ enum {
     kInputShifterChangeDeprecated, // 29
     kDigInMuxChangeDeprecated,     // 30
     kSetStepperSpeedAccel,         // 31
+    kSetCustomDevice,              // 32
 
     // functions which get be called from the UI via the command messenger
     // must be added before. The command messenger has a fix buffer size

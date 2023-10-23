@@ -9,7 +9,9 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
+#if defined(ARDUINO_ARCH_RP2040)
 #include "ArduinoUniqueID.h"
+#endif
 
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
@@ -38,31 +40,37 @@
 #if MF_DIGIN_MUX_SUPPORT == 1
 #include "DigInMux.h"
 #endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+#include "CustomDevice.h"
+#endif
 
 // The build version comes from an environment variable
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg)  STRINGIZER(arg)
 #define VERSION         STR_VALUE(BUILD_VERSION)
+
 MFEEPROM MFeeprom;
 
 #if MF_MUX_SUPPORT == 1
 extern MFMuxDriver MUX;
 #endif
 
-#define MEM_OFFSET_NAME   0
-#define MEM_LEN_NAME      48
-#define MEM_OFFSET_SERIAL (MEM_OFFSET_NAME + MEM_LEN_NAME)
-#define MEM_LEN_SERIAL    11
-#define MEM_OFFSET_CONFIG (MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL)
+const uint8_t MEM_OFFSET_NAME   = 0;
+const uint8_t MEM_LEN_NAME      = 48;
+const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
+const uint8_t MEM_LEN_SERIAL    = 11;
+const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-#if ((MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL + MEM_LEN_CONFIG)) >= EEPROM_SIZE
-#error EEPROM size is exceeded
+#if defined(ARDUINO_ARCH_AVR)
+char serial[11] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-",7 characters for "xyz-zyx" plus terminating NULL
+#elif defined(ARDUINO_ARCH_RP2040)
+char serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
 #endif
-
-char     serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
-char     name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
-uint16_t configLength                     = 0;
-boolean  configActivated                  = false;
+char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
+char      nameBuffer[MEM_LEN_CONFIG] = "";
+uint16_t  configLength               = 0;
+boolean   configActivated            = false;
 
 void resetConfig();
 void readConfig();
@@ -148,6 +156,10 @@ void resetConfig()
 #if MF_DIGIN_MUX_SUPPORT == 1
     DigInMux::Clear();
 #endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+    CustomDevice::Clear();
+#endif
+
     configLength    = 0;
     configActivated = false;
     ClearMemory();
@@ -199,8 +211,8 @@ uint8_t readUintFromEEPROM(volatile uint16_t *addreeprom)
     return atoi(params);
 }
 
-// reads the EEPRROM until end of command which ':' terminated
-bool readEndCommandFromEEPROM(uint16_t *addreeprom)
+// reads the EEPRROM until end of command which is ':' terminated or end of parameter whichn is '.' terminated
+bool readEndCommandFromEEPROM(uint16_t *addreeprom, uint8_t delimiter)
 {
     char     temp   = 0;
     uint16_t length = MFeeprom.get_length();
@@ -208,7 +220,7 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom)
         temp = MFeeprom.read_byte((*addreeprom)++);
         if (*addreeprom > length) // abort if EEPROM size will be exceeded
             return false;
-    } while (temp != ':'); // reads until limiter ':'
+    } while (temp != delimiter);
     return true;
 }
 
@@ -231,13 +243,13 @@ void readConfig()
         case kTypeButton:
             params[0] = readUintFromEEPROM(&addreeprom); // Pin number
             Button::Add(params[0]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 
         case kTypeOutput:
             params[0] = readUintFromEEPROM(&addreeprom); // Pin number
             Output::Add(params[0]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 
 #if MF_SEGMENT_SUPPORT == 1
@@ -255,7 +267,7 @@ void readConfig()
             params[4] = readUintFromEEPROM(&addreeprom); // brightness
             params[5] = readUintFromEEPROM(&addreeprom); // number of modules
             LedSegment::Add(params[0], params[1], params[2], params[3], params[5], params[4]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -287,7 +299,7 @@ void readConfig()
             // there is an additional 9th parameter stored in the config (profileID) which is not needed in the firmware
             // and therefor not read in, it is just skipped like the name with reading until end of command
             Stepper::Add(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
             break;
 #endif
 
@@ -295,7 +307,7 @@ void readConfig()
         case kTypeServo:
             params[0] = readUintFromEEPROM(&addreeprom); // Pin number
             Servos::Add(params[0]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
 
@@ -309,7 +321,7 @@ void readConfig()
                 params[2] = readUintFromEEPROM(&addreeprom); // type
 
             Encoder::Add(params[0], params[1], params[2]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 
 #if MF_LCD_SUPPORT == 1
@@ -318,16 +330,16 @@ void readConfig()
             params[1] = readUintFromEEPROM(&addreeprom); // columns
             params[2] = readUintFromEEPROM(&addreeprom); // lines
             LCDDisplay::Add(params[0], params[1], params[2]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
 
 #if MF_ANALOG_SUPPORT == 1
         case kTypeAnalogInput:
-            params[0] = readUintFromEEPROM(&addreeprom); // pin number
-            params[1] = readUintFromEEPROM(&addreeprom); // sensitivity
-            Analog::Add(params[0], params[1]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            params[0] = readUintFromEEPROM(&addreeprom);                             // pin number
+            params[1] = readUintFromEEPROM(&addreeprom);                             // sensitivity
+            Analog::Add(params[0], &nameBuffer[addrbuffer], params[1]);              // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
 
@@ -338,7 +350,7 @@ void readConfig()
             params[2] = readUintFromEEPROM(&addreeprom); // data Pin
             params[3] = readUintFromEEPROM(&addreeprom); // number of daisy chained modules
             OutputShifter::Add(params[0], params[1], params[2], params[3]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
 
@@ -349,7 +361,7 @@ void readConfig()
             params[2] = readUintFromEEPROM(&addreeprom); // data Pin
             params[3] = readUintFromEEPROM(&addreeprom); // number of daisy chained modules
             InputShifter::Add(params[0], params[1], params[2], params[3]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
 
@@ -377,12 +389,35 @@ void readConfig()
             MUX.attach(params[1], params[2], params[3], params[4]);
             params[5] = readUintFromEEPROM(&addreeprom); // 8-bit registers (1-2)
             DigInMux::Add(params[0], params[5]);
-            copy_success = readEndCommandFromEEPROM(&addreeprom);
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
 
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+        case kTypeCustomDevice: {
+            uint16_t adrType      = addreeprom; // first location of custom Type in EEPROM
+            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            if (!copy_success)
+                break;
+
+            uint16_t adrPin       = addreeprom; // first location of custom pins in EEPROM
+            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            if (!copy_success)
+                break;
+
+            uint16_t adrConfig    = addreeprom; // first location of custom config in EEPROM
+            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            if (copy_success) {
+                CustomDevice::Add(adrPin, adrType, adrConfig);
+                copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of command
+            }
+            // cmdMessenger.sendCmd(kDebug, F("CustomDevice loaded"));
+            break;
+        }
+#endif
+
         default:
-            copy_success = readEndCommandFromEEPROM(&addreeprom); // check EEPROM until end of name
+            copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of name
         }
         command = readUintFromEEPROM(&addreeprom);
     } while (command && copy_success);
@@ -432,17 +467,40 @@ bool getStatusConfig()
 void generateRandomSerial()
 {
     randomSeed(millis());
-    sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
+    serial[0]             = 'S';
+    serial[1]             = 'N';
+    serial[2]             = '-';
+    serial[6]             = '-';
+    serial[10]            = 0x00;
+    uint16_t randomSerial = random(4095);
+    for (uint8_t i = 3; i < 6; i++) {
+        serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
+        if (serial[i] >= 58) serial[i] += 8;      // if HeX value is A - F add 8 to get the letters
+        randomSerial >>= 4;
+    }
+    randomSerial = random(4095);
+    for (uint8_t i = 7; i < 10; i++) {
+        serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
+        if (serial[i] >= 58) serial[i] += 7;      // if HeX value is A - F add 7 to get the letters
+        randomSerial >>= 4;
+    }
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
-void generateUniqueSerial()
+#if defined(ARDUINO_ARCH_RP2040)
+void readUniqueSerial()
 {
-    sprintf(serial, "SN-");
+    serial[0] = 'S';
+    serial[1] = 'N';
+    serial[2] = '-';
     for (size_t i = 0; i < UniqueIDsize; i++) {
-        sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
+        serial[3 + i * 2] = (UniqueID[i] >> 4) + 48;
+        if (serial[3 + i * 2] >= 58) serial[3 + i * 2] += 7;
+        serial[3 + i * 2 + 1] = (UniqueID[i] & 0x0F) + 48;
+        if (serial[3 + i * 2 + 1] >= 58) serial[3 + i * 2 + 1] += 7;
     }
 }
+#endif
 
 void generateSerial(bool force)
 {
@@ -458,12 +516,13 @@ void generateSerial(bool force)
         MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
     }
-
+#if defined(ARDUINO_ARCH_RP2040)
     // A uniqueID is already generated and saved to the eeprom
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'D') {
-        generateUniqueSerial();
+        readUniqueSerial();
         return;
     }
+#endif
 
     // Coming here no UniqueID and no serial number is available, so it's the first start up of a board
 #if defined(ARDUINO_ARCH_AVR)
@@ -474,7 +533,7 @@ void generateSerial(bool force)
     generateRandomSerial();
 #elif defined(ARDUINO_ARCH_RP2040)
     // Read the uniqueID for Pico's and use it as serial number
-    generateUniqueSerial();
+    readUniqueSerial();
     // mark this in the eeprom that a UniqueID is used on first start up for Pico's
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
 #endif
