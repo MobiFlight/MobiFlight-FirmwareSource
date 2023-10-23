@@ -13,16 +13,16 @@ class MFSegments
 {
 public:
     MFSegments();
-    void display(byte module, char *string, byte points, byte mask, bool convertPoints = false);
-    void attach(byte type, int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness);
+    void display(uint8_t module, char *string, uint8_t points, uint8_t mask, bool convertPoints = false);
+    void attach(uint8_t type, uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t moduleCount, uint8_t brightness);
     void detach();
     void test();
     void powerSavingMode(bool state);
-    void setBrightness(byte module, byte value);
+    void setBrightness(uint8_t module, uint8_t value);
 
 private:
     LedControl _ledControl;
-    byte       _moduleCount;
+    uint8_t       _moduleCount;
 };
 
 // MFSegments.h

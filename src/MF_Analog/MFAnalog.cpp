@@ -33,7 +33,7 @@ void MFAnalog::readChannel(uint8_t alwaysTrigger)
     if (alwaysTrigger || valueHasChanged(newValue)) {
         _lastValue = newValue;
         if (_handler != NULL) {
-            (*_handler)(_lastValue, _pin, _name);
+            (*_handler)(_lastValue, _name);
         }
     }
 }

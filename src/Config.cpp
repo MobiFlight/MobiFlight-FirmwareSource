@@ -9,7 +9,9 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
+#if defined(ARDUINO_ARCH_RP2040)
 #include "ArduinoUniqueID.h"
+#endif
 
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
@@ -59,12 +61,16 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
-char      serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
-char      name[MEM_LEN_NAME]               = MOBIFLIGHT_NAME;
-const int MEM_LEN_CONFIG                   = MEMLEN_CONFIG;
-char      nameBuffer[MEM_LEN_CONFIG]       = "";
-uint16_t  configLength                     = 0;
-boolean   configActivated                  = false;
+#if defined(ARDUINO_ARCH_AVR)
+char serial[11] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-",7 characters for "xyz-zyx" plus terminating NULL
+#elif defined(ARDUINO_ARCH_RP2040)
+char serial[3 + UniqueIDsize * 2 + 1] = MOBIFLIGHT_SERIAL; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
+#endif
+char      name[MEM_LEN_NAME]         = MOBIFLIGHT_NAME;
+const int MEM_LEN_CONFIG             = MEMLEN_CONFIG;
+char      nameBuffer[MEM_LEN_CONFIG] = "";
+uint16_t  configLength               = 0;
+boolean   configActivated            = false;
 
 void resetConfig();
 void readConfig();
@@ -484,17 +490,40 @@ bool getStatusConfig()
 void generateRandomSerial()
 {
     randomSeed(millis());
-    sprintf(serial, "SN-%03x-%03x", (unsigned int)random(4095), (unsigned int)random(4095));
+    serial[0]             = 'S';
+    serial[1]             = 'N';
+    serial[2]             = '-';
+    serial[6]             = '-';
+    serial[10]            = 0x00;
+    uint16_t randomSerial = random(4095);
+    for (uint8_t i = 3; i < 6; i++) {
+        serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
+        if (serial[i] >= 58) serial[i] += 8;      // if HeX value is A - F add 8 to get the letters
+        randomSerial >>= 4;
+    }
+    randomSerial = random(4095);
+    for (uint8_t i = 7; i < 10; i++) {
+        serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
+        if (serial[i] >= 58) serial[i] += 7;      // if HeX value is A - F add 7 to get the letters
+        randomSerial >>= 4;
+    }
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
 }
 
-void generateUniqueSerial()
+#if defined(ARDUINO_ARCH_RP2040)
+void readUniqueSerial()
 {
-    sprintf(serial, "SN-");
+    serial[0] = 'S';
+    serial[1] = 'N';
+    serial[2] = '-';
     for (size_t i = 0; i < UniqueIDsize; i++) {
-        sprintf(&serial[3 + i * 2], "%02X", UniqueID[i]);
+        serial[3 + i * 2] = (UniqueID[i] >> 4) + 48;
+        if (serial[3 + i * 2] >= 58) serial[3 + i * 2] += 7;
+        serial[3 + i * 2 + 1] = (UniqueID[i] & 0x0F) + 48;
+        if (serial[3 + i * 2 + 1] >= 58) serial[3 + i * 2 + 1] += 7;
     }
 }
+#endif
 
 void generateSerial(bool force)
 {
@@ -510,12 +539,13 @@ void generateSerial(bool force)
         MFeeprom.read_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
         return;
     }
-
+#if defined(ARDUINO_ARCH_RP2040)
     // A uniqueID is already generated and saved to the eeprom
     if (MFeeprom.read_byte(MEM_OFFSET_SERIAL) == 'I' && MFeeprom.read_byte(MEM_OFFSET_SERIAL + 1) == 'D') {
-        generateUniqueSerial();
+        readUniqueSerial();
         return;
     }
+#endif
 
     // Coming here no UniqueID and no serial number is available, so it's the first start up of a board
 #if defined(ARDUINO_ARCH_AVR)
@@ -526,7 +556,7 @@ void generateSerial(bool force)
     generateRandomSerial();
 #elif defined(ARDUINO_ARCH_RP2040)
     // Read the uniqueID for Pico's and use it as serial number
-    generateUniqueSerial();
+    readUniqueSerial();
     // mark this in the eeprom that a UniqueID is used on first start up for Pico's
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
 #endif

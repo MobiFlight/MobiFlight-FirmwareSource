@@ -10,7 +10,7 @@
 
 extern "C" {
 // callback functions always follow the signature: void cmd(void);
-typedef void (*buttonEvent)(byte, uint8_t, const char *);
+typedef void (*buttonEvent)(uint8_t, const char *);
 };
 
 enum {
