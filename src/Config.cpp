@@ -227,6 +227,7 @@ bool readNameFromEEPROM(uint16_t *addreeprom, char *buffer, uint16_t *addrbuffer
     return true;
 }
 
+
 // steps thru the EEPRROM until the delimiter is detected
 // it could be ":" for end of one device config
 // or "." for end of type/pin/config entry for custom device
