@@ -14,7 +14,7 @@ class MFSegments
 public:
     MFSegments();
     void display(byte module, char *string, byte points, byte mask, bool convertPoints = false);
-    void attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness);
+    void attach(byte type, int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness);
     void detach();
     void test();
     void powerSavingMode(bool state);
