@@ -228,11 +228,10 @@ void readConfig()
 {
     if (configLength == 0) // do nothing if no config is available
         return;
-    uint16_t addreeprom   = MEM_OFFSET_CONFIG;               // define first memory location where config is saved in EEPROM
+    uint16_t addreeprom   = MEM_OFFSET_CONFIG; // define first memory location where config is saved in EEPROM
     char     params[8]    = "";
     uint8_t  command      = readUintFromEEPROM(&addreeprom); // read the first value from EEPROM, it's a device definition
     bool     copy_success = true;                            // will be set to false if EEPROM size gets exceeded
-                                                             // not required anymore when pins instead of names are transferred to the UI
 
     if (command == 0) // just to be sure, configLength should also be 0
         return;
@@ -336,9 +335,9 @@ void readConfig()
 
 #if MF_ANALOG_SUPPORT == 1
         case kTypeAnalogInput:
-            params[0] = readUintFromEEPROM(&addreeprom);                             // pin number
-            params[1] = readUintFromEEPROM(&addreeprom);                             // sensitivity
-            Analog::Add(params[0], &nameBuffer[addrbuffer], params[1]);              // MUST be before readNameFromEEPROM because readNameFromEEPROM returns the pointer for the NEXT Name
+            params[0] = readUintFromEEPROM(&addreeprom); // pin number
+            params[1] = readUintFromEEPROM(&addreeprom); // sensitivity
+            Analog::Add(params[0], params[1]);
             copy_success = readEndCommandFromEEPROM(&addreeprom, ':');
             break;
 #endif
@@ -395,18 +394,18 @@ void readConfig()
 
 #if MF_CUSTOMDEVICE_SUPPORT == 1
         case kTypeCustomDevice: {
-            uint16_t adrType      = addreeprom; // first location of custom Type in EEPROM
-            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            uint16_t adrType = addreeprom; // first location of custom Type in EEPROM
+            copy_success     = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
 
-            uint16_t adrPin       = addreeprom; // first location of custom pins in EEPROM
-            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            uint16_t adrPin = addreeprom; // first location of custom pins in EEPROM
+            copy_success    = readEndCommandFromEEPROM(&addreeprom, '.');
             if (!copy_success)
                 break;
 
-            uint16_t adrConfig    = addreeprom; // first location of custom config in EEPROM
-            copy_success = readEndCommandFromEEPROM(&addreeprom, '.');
+            uint16_t adrConfig = addreeprom; // first location of custom config in EEPROM
+            copy_success       = readEndCommandFromEEPROM(&addreeprom, '.');
             if (copy_success) {
                 CustomDevice::Add(adrPin, adrType, adrConfig);
                 copy_success = readEndCommandFromEEPROM(&addreeprom, ':'); // check EEPROM until end of command
