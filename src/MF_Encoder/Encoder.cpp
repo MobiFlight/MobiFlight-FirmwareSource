@@ -14,7 +14,7 @@ namespace Encoder
     uint8_t    encodersRegistered = 0;
     uint8_t    maxEncoders        = 0;
 
-    void handlerOnEncoder(uint8_t eventId, uint8_t pin, const char *name)
+    void       handlerOnEncoder(uint8_t eventId, const char *name)
     {
         cmdMessenger.sendCmdStart(kEncoderChange);
         cmdMessenger.sendCmdArg(name);

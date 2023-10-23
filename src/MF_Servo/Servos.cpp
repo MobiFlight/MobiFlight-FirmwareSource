@@ -23,7 +23,7 @@ namespace Servos
         return true;
     }
 
-    void Add(int pin)
+    void Add(uint8_t pin)
     {
         if (servosRegistered == maxServos)
             return;

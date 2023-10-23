@@ -9,7 +9,6 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "MFEEPROM.h"
-#include "ArduinoUniqueID.h"
 #if MF_ANALOG_SUPPORT == 1
 #include "Analog.h"
 #endif
@@ -31,6 +30,9 @@
 #endif
 #if MF_DIGIN_MUX_SUPPORT == 1
 #include "DigInMux.h"
+#endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+#include "CustomDevice.h"
 #endif
 
 #define MF_BUTTON_DEBOUNCE_MS     10 // time between updating the buttons
@@ -66,6 +68,9 @@ typedef struct {
 #endif
 #if MF_DIGIN_MUX_SUPPORT == 1
     uint32_t DigInMux = 0;
+#endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+    uint32_t CustomDevice = 0;
 #endif
 } lastUpdate_t;
 
@@ -196,6 +201,15 @@ void loop()
 #if MF_DIGIN_MUX_SUPPORT == 1
         timedUpdate(DigInMux::read, &lastUpdate.DigInMux, MF_INMUX_POLL_MS);
 #endif
+
+#if MF_CUSTOMDEVICE_SUPPORT == 1 && defined(MF_CUSTOMDEVICE_HAS_UPDATE)
+#ifdef MF_CUSTOMDEVICE_POLL_MS
+        timedUpdate(CustomDevice::update, &lastUpdate.CustomDevice, MF_CUSTOMDEVICE_POLL_MS);
+#else
+        CustomDevice::update();
+#endif
+#endif
+
         // lcds, outputs, outputshifters, segments do not need update
     }
 }

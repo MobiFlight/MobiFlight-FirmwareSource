@@ -35,6 +35,9 @@
 #define MF_MUX_SUPPORT       1
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
+#ifndef MF_CUSTOMDEVICE_SUPPORT
+#define MF_CUSTOMDEVICE_SUPPORT 2
+#endif
 
 #ifndef MOBIFLIGHT_TYPE
 #define MOBIFLIGHT_TYPE     "MobiFlight Nano"
