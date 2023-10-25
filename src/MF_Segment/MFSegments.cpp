@@ -11,12 +11,12 @@ MFSegments::MFSegments()
     _moduleCount = 0;
 }
 
-void MFSegments::display(byte module, char *string, byte points, byte mask, bool convertPoints)
+void MFSegments::display(uint8_t module, char *string, uint8_t points, uint8_t mask, bool convertPoints)
 {
     if (_moduleCount == 0)
         return;
-    byte digit = 8;
-    byte pos   = 0;
+    uint8_t digit = 8;
+    uint8_t pos   = 0;
     for (uint8_t i = 0; i < 8; i++) {
         digit--;
         if (((1 << digit) & mask) == 0)
@@ -26,7 +26,7 @@ void MFSegments::display(byte module, char *string, byte points, byte mask, bool
     }
 }
 
-void MFSegments::setBrightness(byte module, byte value)
+void MFSegments::setBrightness(uint8_t module, uint8_t value)
 {
     if (_moduleCount == 0)
         return;
@@ -40,9 +40,9 @@ void MFSegments::setBrightness(byte module, byte value)
     }
 }
 
-void MFSegments::attach(int dataPin, int csPin, int clkPin, byte moduleCount, byte brightness)
+void MFSegments::attach(uint8_t type, uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t moduleCount, uint8_t brightness)
 {
-    _ledControl.begin(dataPin, clkPin, csPin, moduleCount);
+    _ledControl.begin(type, dataPin, clkPin, csPin, moduleCount);
     _moduleCount = moduleCount;
     for (uint8_t i = 0; i < _moduleCount; ++i) {
         setBrightness(i, brightness);
@@ -58,7 +58,7 @@ void MFSegments::detach()
 
 void MFSegments::powerSavingMode(bool state)
 {
-    for (byte i = 0; i != _moduleCount; ++i) {
+    for (uint8_t i = 0; i != _moduleCount; ++i) {
         _ledControl.shutdown(i, state);
     }
 }
@@ -67,9 +67,9 @@ void MFSegments::test()
 {
     if (_moduleCount == 0)
         return;
-    byte _delay = 10;
-    byte module = 0;
-    byte digit  = 0;
+    uint8_t _delay = 10;
+    uint8_t module = 0;
+    uint8_t digit  = 0;
 
     for (digit = 0; digit < 8; digit++) {
         for (module = 0; module != _moduleCount; ++module) {

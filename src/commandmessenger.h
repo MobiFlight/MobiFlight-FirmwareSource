@@ -44,6 +44,7 @@ enum {
     kInputShifterChange,   // 29
     kDigInMuxChange,       // 30
     kSetStepperSpeedAccel, // 31
+    kSetCustomDevice,      // 32
     kDebug = 0xFF          // 255
 };
 
