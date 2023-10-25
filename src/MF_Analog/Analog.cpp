@@ -14,7 +14,7 @@ namespace Analog
     MFAnalog *analog[MAX_ANALOG_INPUTS];
     uint8_t   analogRegistered = 0;
 
-    void handlerOnAnalogChange(int16_t value, uint8_t deviceID)
+    void handlerOnAnalogChange(int value, uint8_t deviceID)
     {
         cmdMessenger.sendCmdStart(kAnalogChange);
         cmdMessenger.sendCmdArg(deviceID);
