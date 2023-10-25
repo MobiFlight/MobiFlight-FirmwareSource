@@ -35,9 +35,6 @@
 #define MF_MUX_SUPPORT       1
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
-#ifndef MF_CUSTOMDEVICE_SUPPORT
-#define MF_CUSTOMDEVICE_SUPPORT 2
-#endif
 
 #ifndef MAX_OUTPUTS
 #define MAX_OUTPUTS         18
