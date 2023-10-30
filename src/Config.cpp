@@ -314,6 +314,10 @@ bool getArraysizes()
     if (!DigInMux::setupArray(numberDevices[kTypeDigInMux]))
         sendFailureMessage("DigInMux");
 #endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+    if (!CustomDevice::setupArray(numberDevices[kTypeCustomDevice]))
+        sendFailureMessage("CustomDevice");
+#endif
     return true;
 }
 
