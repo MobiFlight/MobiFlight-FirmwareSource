@@ -82,9 +82,6 @@
 #ifndef MOBIFLIGHT_NAME
 #define MOBIFLIGHT_NAME     "MobiFlight Micro"
 #endif
-#ifndef EEPROM_SIZE
-#define EEPROM_SIZE         1024 // EEPROMSizeMicro
-#endif
 #ifndef MEMLEN_CONFIG
 #define MEMLEN_CONFIG       440  // max. size for config which wil be stored in EEPROM
 #endif
