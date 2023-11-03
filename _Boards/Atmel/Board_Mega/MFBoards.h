@@ -35,9 +35,6 @@
 #define MF_MUX_SUPPORT       1
 #define MF_DIGIN_MUX_SUPPORT 1
 #endif
-#ifndef MF_CUSTOMDEVICE_SUPPORT
-#define MF_CUSTOMDEVICE_SUPPORT 1
-#endif
 
 #ifndef MAX_OUTPUTS
 #define MAX_OUTPUTS         40
@@ -84,9 +81,6 @@
 #endif
 #ifndef MOBIFLIGHT_NAME
 #define MOBIFLIGHT_NAME     "MobiFlight Mega"
-#endif
-#ifndef EEPROM_SIZE
-#define EEPROM_SIZE         4096 // EEPROMSizeMega
 #endif
 #ifndef MEMLEN_CONFIG
 #define MEMLEN_CONFIG       1496 // max. size for config which wil be stored in EEPROM

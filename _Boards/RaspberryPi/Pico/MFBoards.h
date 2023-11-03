@@ -76,9 +76,6 @@
 #ifndef MOBIFLIGHT_NAME
 #define MOBIFLIGHT_NAME         "MobiFlight RaspiPico"
 #endif
-#ifndef EEPROM_SIZE
-#define EEPROM_SIZE             4096    // EEPROMSizeRaspberryPico
-#endif
 #ifndef MEMLEN_CONFIG
 #define MEMLEN_CONFIG           1496    // MUST be less than EEPROM_SIZE!! MEM_OFFSET_CONFIG + MEM_LEN_CONFIG <= EEPROM_SIZE, see: eeprom_write_block (MEM_OFFSET_CONFIG, configBuffer, MEM_LEN_CONFIG);
 #endif
