@@ -9,7 +9,8 @@
 #include <stdint.h>
 namespace Analog
 {
-    void Add(uint8_t pin, uint8_t sensitivity);
+    bool setupArray(uint16_t count);
+    void Add(uint8_t pin, uint8_t sensitivity = 3);
     void Clear();
     void read();
     void readAverage();

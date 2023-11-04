@@ -10,21 +10,25 @@
 
 namespace Servos
 {
-    MFServo *servos[MAX_MFSERVOS];
+    MFServo *servos;
     uint8_t  servosRegistered = 0;
+    uint8_t  maxServos        = 0;
 
-    void     Add(uint8_t pin)
+    bool setupArray(uint16_t count)
     {
-        if (servosRegistered == MAX_MFSERVOS)
-            return;
+        if (!FitInMemory(sizeof(MFServo) * count))
+            return false;
+        servos    = new (allocateMemory(sizeof(MFServo) * count)) MFServo;
+        maxServos = count;
+        return true;
+    }
 
-        if (!FitInMemory(sizeof(MFServo))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Servo does not fit in Memory!"));
+    void Add(uint8_t pin)
+    {
+        if (servosRegistered == maxServos)
             return;
-        }
-        servos[servosRegistered] = new (allocateMemory(sizeof(MFServo))) MFServo;
-        servos[servosRegistered]->attach(pin, true);
+        servos[servosRegistered] = MFServo();
+        servos[servosRegistered].attach(pin, true);
         servosRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added servos"));
@@ -34,7 +38,7 @@ namespace Servos
     void Clear()
     {
         for (uint8_t i = 0; i < servosRegistered; i++) {
-            servos[i]->detach();
+            servos[i].detach();
         }
         servosRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
@@ -48,14 +52,14 @@ namespace Servos
         int newValue = cmdMessenger.readInt16Arg();
         if (servo >= servosRegistered)
             return;
-        servos[servo]->moveTo(newValue);
+        servos[servo].moveTo(newValue);
         setLastCommandMillis();
     }
 
     void update()
     {
         for (uint8_t i = 0; i < servosRegistered; i++) {
-            servos[i]->update();
+            servos[i].update();
         }
     }
 } // namespace

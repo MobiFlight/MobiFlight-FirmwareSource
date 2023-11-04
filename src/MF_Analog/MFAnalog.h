@@ -24,7 +24,7 @@ typedef void (*analogEvent)(int, uint8_t);
 class MFAnalog
 {
 public:
-    MFAnalog(uint8_t pin, uint8_t deviceID, uint8_t sensitivity);
+    MFAnalog(uint8_t pin = 1, uint8_t deviceID = 0, uint8_t sensitivity = 2);
     static void attachHandler(analogEvent handler);
     void        update();
     void        retrigger();

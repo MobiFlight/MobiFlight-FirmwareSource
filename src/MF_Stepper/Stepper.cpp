@@ -10,26 +10,29 @@
 
 namespace Stepper
 {
-    MFStepper *steppers[MAX_STEPPERS];
+    MFStepper *steppers;
     uint8_t    steppersRegistered = 0;
+    uint8_t    maxSteppers        = 0;
+
+    bool setupArray(uint16_t count)
+    {
+        if (!FitInMemory(sizeof(MFStepper) * count))
+            return false;
+        steppers    = new (allocateMemory(sizeof(MFStepper) * count)) MFStepper;
+        maxSteppers = count;
+        return true;
+    }
 
     void Add(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin1, uint8_t mode, int8_t backlash, bool deactivateOutput)
     {
-        if (steppersRegistered == MAX_STEPPERS)
+        if (steppersRegistered == maxSteppers)
             return;
-
-        if (!FitInMemory(sizeof(MFStepper))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Stepper does not fit in Memory!"));
-            return;
-        }
-
-        steppers[steppersRegistered] = new (allocateMemory(sizeof(MFStepper))) MFStepper;
-        steppers[steppersRegistered]->attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput);
+        steppers[steppersRegistered] = MFStepper();
+        steppers[steppersRegistered].attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput);
 
         if (btnPin1 > 0) {
             // this triggers the auto reset if we need to reset
-            steppers[steppersRegistered]->reset();
+            steppers[steppersRegistered].reset();
         }
 
         // all set
@@ -43,7 +46,7 @@ namespace Stepper
     void Clear()
     {
         for (uint8_t i = 0; i < steppersRegistered; i++) {
-            steppers[i]->detach();
+            steppers[i].detach();
         }
         steppersRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
@@ -58,7 +61,7 @@ namespace Stepper
 
         if (stepper >= steppersRegistered)
             return;
-        steppers[stepper]->moveTo(newPos);
+        steppers[stepper].moveTo(newPos);
         setLastCommandMillis();
     }
 
@@ -68,7 +71,7 @@ namespace Stepper
 
         if (stepper >= steppersRegistered)
             return;
-        steppers[stepper]->reset();
+        steppers[stepper].reset();
         setLastCommandMillis();
     }
 
@@ -78,7 +81,7 @@ namespace Stepper
 
         if (stepper >= steppersRegistered)
             return;
-        steppers[stepper]->setZero();
+        steppers[stepper].setZero();
         setLastCommandMillis();
     }
 
@@ -90,21 +93,21 @@ namespace Stepper
 
         if (stepper >= steppersRegistered)
             return;
-        steppers[stepper]->setMaxSpeed(maxSpeed);
-        steppers[stepper]->setAcceleration(maxAccel);
+        steppers[stepper].setMaxSpeed(maxSpeed);
+        steppers[stepper].setAcceleration(maxAccel);
     }
 
     void update()
     {
         for (uint8_t i = 0; i < steppersRegistered; i++) {
-            steppers[i]->update();
+            steppers[i].update();
         }
     }
 
     void PowerSave(bool state)
     {
         for (uint8_t i = 0; i < steppersRegistered; ++i) {
-            steppers[i]->powerSavingMode(state);
+            steppers[i].powerSavingMode(state);
         }
     }
 

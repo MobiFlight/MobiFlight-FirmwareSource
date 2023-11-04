@@ -9,6 +9,7 @@
 
 namespace Output
 {
+    bool setupArray(uint16_t count);
     void Add(uint8_t pin = 1);
     void Clear();
     void OnSet();

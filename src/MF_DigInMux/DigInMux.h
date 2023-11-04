@@ -10,6 +10,7 @@
 
 namespace DigInMux
 {
+    bool setupArray(uint16_t count);
     void Add(uint8_t dataPin, uint8_t nRegs);
     void Clear();
     void read();

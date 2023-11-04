@@ -10,21 +10,26 @@
 
 namespace OutputShifter
 {
-    MFOutputShifter *outputShifters[MAX_OUTPUT_SHIFTERS];
+    MFOutputShifter *outputShifters;
     uint8_t          outputShifterRegistered = 0;
+    uint8_t          maxOutputShifter        = 0;
 
-    void             Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
+    bool setupArray(uint16_t count)
     {
-        if (outputShifterRegistered == MAX_OUTPUT_SHIFTERS)
+        if (!FitInMemory(sizeof(MFOutputShifter) * count))
+            return false;
+        outputShifters   = new (allocateMemory(sizeof(MFOutputShifter) * count)) MFOutputShifter;
+        maxOutputShifter = count;
+        return true;
+    }
+
+    void Add(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t modules)
+    {
+        if (outputShifterRegistered == maxOutputShifter)
             return;
-        if (!FitInMemory(sizeof(MFOutputShifter))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("OutputShifter does not fit in Memory"));
-            return;
-        }
-        outputShifters[outputShifterRegistered] = new (allocateMemory(sizeof(MFOutputShifter))) MFOutputShifter;
-        outputShifters[outputShifterRegistered]->attach(latchPin, clockPin, dataPin, modules);
-        outputShifters[outputShifterRegistered]->clear();
+        outputShifters[outputShifterRegistered] = MFOutputShifter();
+        outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
+        outputShifters[outputShifterRegistered].clear();
         outputShifterRegistered++;
 
 #ifdef DEBUG2CMDMESSENGER
@@ -35,7 +40,7 @@ namespace OutputShifter
     void Clear()
     {
         for (uint8_t i = 0; i < outputShifterRegistered; i++) {
-            outputShifters[i]->detach();
+            outputShifters[i].detach();
         }
 
         outputShifterRegistered = 0;
@@ -47,7 +52,7 @@ namespace OutputShifter
     void OnInit() // not used anywhere!?
     {
         int module = cmdMessenger.readInt16Arg();
-        outputShifters[module]->clear();
+        outputShifters[module].clear();
         setLastCommandMillis();
     }
 
@@ -57,7 +62,7 @@ namespace OutputShifter
         int   module = cmdMessenger.readInt16Arg();
         char *pins   = cmdMessenger.readStringArg();
         int   value  = cmdMessenger.readInt16Arg();
-        outputShifters[module]->setPins(pins, value);
+        outputShifters[module].setPins(pins, value);
         setLastCommandMillis();
     }
 } // namespace

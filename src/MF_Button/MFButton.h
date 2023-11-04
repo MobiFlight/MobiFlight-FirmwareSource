@@ -23,7 +23,7 @@ enum {
 class MFButton
 {
 public:
-    MFButton(uint8_t pin, uint8_t deviceID);
+    MFButton(uint8_t pin = 1, uint8_t deviceID = 0);
     static void attachHandler(buttonEvent newHandler);
     void        update();
     void        trigger(uint8_t state);
