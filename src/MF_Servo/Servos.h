@@ -8,6 +8,7 @@
 
 namespace Servos
 {
+    bool setupArray(uint16_t count);
     void Add(uint8_t pin);
     void Clear();
     void OnSet();

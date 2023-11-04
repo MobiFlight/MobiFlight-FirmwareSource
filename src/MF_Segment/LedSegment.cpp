@@ -10,21 +10,25 @@
 
 namespace LedSegment
 {
-    MFSegments *ledSegments[MAX_LEDSEGMENTS];
-    uint8_t     ledSegmentsRegistered = 0;
+    MFSegments *ledSegments;
+    uint8_t     ledSegmentsRegistered  = 0;
+    uint8_t     ledSegmentsRegistereds = 0;
+
+    bool setupArray(uint16_t count)
+    {
+        if (!FitInMemory(sizeof(MFSegments) * count))
+            return false;
+        ledSegments            = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
+        ledSegmentsRegistereds = count;
+        return true;
+    }
 
     void Add(uint8_t type, uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t numDevices, uint8_t brightness)
     {
-        if (ledSegmentsRegistered == MAX_LEDSEGMENTS)
+        if (ledSegmentsRegistered == ledSegmentsRegistereds)
             return;
-
-        if (!FitInMemory(sizeof(MFSegments))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("7Segment does not fit in Memory!"));
-            return;
-        }
-        ledSegments[ledSegmentsRegistered] = new (allocateMemory(sizeof(MFSegments))) MFSegments;
-        ledSegments[ledSegmentsRegistered]->attach(type, dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
+        ledSegments[ledSegmentsRegistered] = MFSegments();
+        ledSegments[ledSegmentsRegistered].attach(type, dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
         ledSegmentsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added Led Segment"));
@@ -34,7 +38,7 @@ namespace LedSegment
     void Clear()
     {
         for (uint8_t i = 0; i < ledSegmentsRegistered; i++) {
-            ledSegments[i]->detach();
+            ledSegments[i].detach();
         }
         ledSegmentsRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
@@ -45,7 +49,7 @@ namespace LedSegment
     void PowerSave(bool state)
     {
         for (uint8_t i = 0; i < ledSegmentsRegistered; ++i) {
-            ledSegments[i]->powerSavingMode(state);
+            ledSegments[i].powerSavingMode(state);
         }
     }
 
@@ -54,7 +58,7 @@ namespace LedSegment
         int module     = cmdMessenger.readInt16Arg();
         int subModule  = cmdMessenger.readInt16Arg();
         int brightness = cmdMessenger.readInt16Arg();
-        ledSegments[module]->setBrightness(subModule, brightness);
+        ledSegments[module].setBrightness(subModule, brightness);
         setLastCommandMillis();
     }
 
@@ -65,7 +69,7 @@ namespace LedSegment
         char   *value     = cmdMessenger.readStringArg();
         uint8_t points    = (uint8_t)cmdMessenger.readInt16Arg();
         uint8_t mask      = (uint8_t)cmdMessenger.readInt16Arg();
-        ledSegments[module]->display(subModule, value, points, mask);
+        ledSegments[module].display(subModule, value, points, mask);
         setLastCommandMillis();
     }
 
@@ -74,7 +78,7 @@ namespace LedSegment
         int module     = cmdMessenger.readInt16Arg();
         int subModule  = cmdMessenger.readInt16Arg();
         int brightness = cmdMessenger.readInt16Arg();
-        ledSegments[module]->setBrightness(subModule, brightness);
+        ledSegments[module].setBrightness(subModule, brightness);
         setLastCommandMillis();
     }
 } // namespace

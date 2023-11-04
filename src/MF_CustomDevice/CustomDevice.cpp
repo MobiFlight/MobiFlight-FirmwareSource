@@ -1,9 +1,6 @@
-#include <Arduino.h>
+#include "mobiflight.h"
 #include "CustomDevice.h"
 #include "MFCustomDevice.h"
-#include "commandmessenger.h"
-#include "MFBoards.h"
-#include "allocateMem.h"
 
 /* **********************************************************************************
     Normally nothing has to be changed in this file
@@ -11,22 +8,27 @@
 ********************************************************************************** */
 namespace CustomDevice
 {
-    uint8_t         CustomDeviceRegistered = 0;
-    MFCustomDevice *customDevice[MAX_CUSTOM_DEVICES];
+    MFCustomDevice *customDevice;
+    uint8_t         customDeviceRegistered = 0;
+    uint8_t         maxCustomDevices       = 0;
+
+    bool setupArray(uint16_t count)
+    {
+        if (!FitInMemory(sizeof(MFCustomDevice) * count))
+            return false;
+        customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice(0,0,0);
+        maxCustomDevices = count;
+        return true;
+    }
 
     void Add(uint16_t adrPin, uint16_t adrType, uint16_t adrConfig)
     {
-        if (CustomDeviceRegistered == MAX_CUSTOM_DEVICES)
+        if (customDeviceRegistered == maxCustomDevices)
             return;
-        if (!FitInMemory(sizeof(MFCustomDevice))) {
-            // Error Message to Connector
-            cmdMessenger.sendCmd(kStatus, F("Custom Device does not fit in Memory"));
-            return;
-        }
-        customDevice[CustomDeviceRegistered] = new (allocateMemory(sizeof(MFCustomDevice))) MFCustomDevice(adrPin, adrType, adrConfig);
-        CustomDeviceRegistered++;
+        customDevice[customDeviceRegistered] = MFCustomDevice(adrPin, adrType, adrConfig);
+        customDeviceRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Added Stepper Setpoint"));
+        cmdMessenger.sendCmd(kStatus, F("Added CustomDevice"));
 #endif
     }
 
@@ -37,12 +39,12 @@ namespace CustomDevice
     ********************************************************************************** */
     void Clear()
     {
-        for (int i = 0; i != CustomDeviceRegistered; i++) {
-            customDevice[i]->detach();
+        for (int i = 0; i != customDeviceRegistered; i++) {
+            customDevice[i].detach();
         }
-        CustomDeviceRegistered = 0;
+        customDeviceRegistered = 0;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kStatus, F("Cleared Stepper Setpoint"));
+        cmdMessenger.sendCmd(kStatus, F("Cleared CustomDevice"));
 #endif
     }
 
@@ -56,8 +58,8 @@ namespace CustomDevice
     ********************************************************************************** */
     void update()
     {
-        for (int i = 0; i != CustomDeviceRegistered; i++) {
-            customDevice[i]->update();
+        for (int i = 0; i != customDeviceRegistered; i++) {
+            customDevice[i].update();
         }
     }
 
@@ -73,12 +75,12 @@ namespace CustomDevice
     void OnSet()
     {
         int16_t device = cmdMessenger.readInt16Arg(); // get the device number
-        if (device >= CustomDeviceRegistered)         // and do nothing if this device is not registered
+        if (device >= customDeviceRegistered)         // and do nothing if this device is not registered
             return;
         int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
         char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
-        customDevice[device]->set(messageID, output);     // send the string to your custom device
+        customDevice[device].set(messageID, output);     // send the string to your custom device
 
         setLastCommandMillis();
     }
