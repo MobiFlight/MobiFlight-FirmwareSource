@@ -281,7 +281,7 @@ bool getArraysizes()
     if (!Output::setupArray(numberDevices[kTypeOutput]))
         sendFailureMessage("Output");
 #if MF_SEGMENT_SUPPORT == 1
-    if (!LedSegment::setupArray(numberDevices[kTypeLedSegmentDeprecated]) + numberDevices[kTypeLedSegmentMulti])
+    if (!LedSegment::setupArray(numberDevices[kTypeLedSegmentDeprecated] + numberDevices[kTypeLedSegmentMulti]))
         sendFailureMessage("7Segment");
 #endif
 #if MF_STEPPER_SUPPORT == 1
