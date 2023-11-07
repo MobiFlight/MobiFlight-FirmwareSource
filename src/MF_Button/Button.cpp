@@ -58,7 +58,6 @@ namespace Button
     void read(void)
     {
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
-            // buttons[i]->update();
             buttons[i].update();
         }
     }
@@ -67,12 +66,10 @@ namespace Button
     {
         // Trigger all button release events first...
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
-            // buttons[i]->triggerOnRelease();
             buttons[i].triggerOnRelease();
         }
         // ... then trigger all the press events
         for (uint8_t i = 0; i < buttonsRegistered; i++) {
-            // buttons[i]->triggerOnPress();
             buttons[i].triggerOnPress();
         }
     }
