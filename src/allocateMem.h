@@ -11,7 +11,7 @@
 #if defined (ARDUINO_ARCH_AVR)
 uint8_t     *allocateMemory(uint16_t size);
 #else
-std::size_t    *allocateMemory(uint8_t size);
+std::size_t    *allocateMemory(uint16_t size);
 #endif
 
 void        ClearMemory();
