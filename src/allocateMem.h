@@ -9,13 +9,13 @@
 #include <new>
 
 #if defined (ARDUINO_ARCH_AVR)
-uint8_t     *allocateMemory(uint8_t size);
+uint8_t     *allocateMemory(uint16_t size);
 #else
-std::size_t    *allocateMemory(uint8_t size);
+std::size_t    *allocateMemory(uint16_t size);
 #endif
 
 void        ClearMemory();
 uint16_t    GetAvailableMemory();
-bool        FitInMemory(uint8_t size);
+bool        FitInMemory(uint16_t size);
 
 // allocatemem.h
