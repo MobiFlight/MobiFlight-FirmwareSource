@@ -15,9 +15,9 @@ std::size_t    deviceBuffer[MF_MAX_DEVICEMEM] = {0};
 uint16_t nextPointer                    = 0;
 
 #if defined (ARDUINO_ARCH_AVR)
-uint8_t     *allocateMemory(uint8_t size)
+uint8_t     *allocateMemory(uint16_t size)
 #else
-std::size_t    *allocateMemory(uint8_t size)
+std::size_t    *allocateMemory(uint16_t size)
 #endif
 {
     uint16_t actualPointer = nextPointer;
@@ -49,7 +49,7 @@ uint16_t GetAvailableMemory()
     return MF_MAX_DEVICEMEM - nextPointer;
 }
 
-bool FitInMemory(uint8_t size)
+bool FitInMemory(uint16_t size)
 {
     if (nextPointer + size > MF_MAX_DEVICEMEM)
         return false;
