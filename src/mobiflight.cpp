@@ -145,7 +145,6 @@ void updatePowerSaving()
 // ************************************************************
 void ResetBoard()
 {
-    setLastCommandMillis();
     restoreName();
     loadConfig();
 }

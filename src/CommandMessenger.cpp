@@ -77,6 +77,7 @@ void attachCommandCallbacks()
     cmdMessenger.attach(kSetName, OnSetName);
     cmdMessenger.attach(kGenNewSerial, OnGenNewSerial);
     cmdMessenger.attach(kTrigger, OnTrigger);
+    cmdMessenger.attach(kSetPowerSavingMode, OnSetPowerSavingMode);
 
 #if MF_LCD_SUPPORT == 1
     cmdMessenger.attach(kSetLcdDisplayI2C, LCDDisplay::OnSet);
@@ -100,6 +101,24 @@ void OnUnknownCommand()
 {
     lastCommand = millis();
     cmdMessenger.sendCmd(kStatus, F("n/a"));
+}
+
+// Handles requests from the desktop app to disable powersaving mode
+void OnSetPowerSavingMode()
+{
+    bool enablePowerSavingMode = cmdMessenger.readBoolArg();
+
+    // If the request is to disable power saving mode then simply set the last command
+    // to now. The next time loop() is called in mobiflight.cpp this will cause
+    // power saving mode to get turned off.
+    if (!enablePowerSavingMode) {
+#ifdef DEBUG2CMDMESSENGER
+        cmdMessenger.sendCmd(kDebug, F("Disabling power save mode"));
+#endif
+        setLastCommandMillis();
+    }
+
+    // There is no handling of a request to enable powersaving mode right now.
 }
 
 uint32_t getLastCommandMillis()

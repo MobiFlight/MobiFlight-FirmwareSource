@@ -53,7 +53,6 @@ namespace OutputShifter
     {
         int module = cmdMessenger.readInt16Arg();
         outputShifters[module].clear();
-        setLastCommandMillis();
     }
 
     void OnSet()
@@ -63,7 +62,6 @@ namespace OutputShifter
         char *pins   = cmdMessenger.readStringArg();
         int   value  = cmdMessenger.readInt16Arg();
         outputShifters[module].setPins(pins, value);
-        setLastCommandMillis();
     }
 } // namespace
 

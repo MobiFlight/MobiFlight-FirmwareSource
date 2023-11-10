@@ -53,7 +53,6 @@ namespace Servos
         if (servo >= servosRegistered)
             return;
         servos[servo].moveTo(newValue);
-        setLastCommandMillis();
     }
 
     void update()
