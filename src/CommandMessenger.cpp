@@ -114,7 +114,7 @@ void OnSetPowerSavingMode()
     // power saving mode to get turned off.
     if (!enablePowerSavingMode) {
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kDebug, F("Disabling power save mode"));
+        cmdMessenger.sendCmd(kDebug, F("Disabling power save mode via request"));
 #endif
         setLastCommandMillis();
     }
