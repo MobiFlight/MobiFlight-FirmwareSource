@@ -40,6 +40,7 @@
 CmdMessenger  cmdMessenger = CmdMessenger(Serial);
 unsigned long lastCommand;
 
+void OnSetPowerSavingMode();
 void OnTrigger();
 void OnUnknownCommand();
 
