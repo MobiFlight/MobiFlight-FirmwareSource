@@ -104,7 +104,7 @@ void OnUnknownCommand()
     cmdMessenger.sendCmd(kStatus, F("n/a"));
 }
 
-// Handles requests from the desktop app to disable powersaving mode
+// Handles requests from the desktop app to disable power saving mode
 void OnSetPowerSavingMode()
 {
     bool enablePowerSavingMode = cmdMessenger.readBoolArg();
@@ -114,7 +114,7 @@ void OnSetPowerSavingMode()
     // power saving mode to get turned off.
     if (!enablePowerSavingMode) {
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kDebug, F("Disabling power save mode via request"));
+        cmdMessenger.sendCmd(kDebug, F("Disabling power saving mode via request"));
 #endif
         setLastCommandMillis();
     }
