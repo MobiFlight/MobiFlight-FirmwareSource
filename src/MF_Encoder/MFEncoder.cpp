@@ -15,7 +15,7 @@
 // -----
 // 18.01.2014 created by Matthias Hertel
 // -----
-#include "mobiflight.h"
+
 #include "MFEncoder.h"
 
 // The array holds the values -1 for the entries where a position was decremented,
