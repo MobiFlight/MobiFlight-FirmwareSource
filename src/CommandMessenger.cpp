@@ -109,27 +109,29 @@ void OnSetPowerSavingMode()
 {
     bool enablePowerSavingMode = cmdMessenger.readBoolArg();
 
+    // If the request is to enable powersaving mode then set the last command time
+    // to the earliest possible time. The next time loop() is called in mobiflight.cpp
+    // this will cause power saving mode to get turned on.
+    if (enablePowerSavingMode) {
+#ifdef DEBUG2CMDMESSENGER
+        cmdMessenger.sendCmd(kDebug, F("Enabling power saving mode via request"));
+#endif
+        lastCommand = 0;
+    }
     // If the request is to disable power saving mode then simply set the last command
     // to now. The next time loop() is called in mobiflight.cpp this will cause
     // power saving mode to get turned off.
-    if (!enablePowerSavingMode) {
+    else {
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Disabling power saving mode via request"));
 #endif
-        setLastCommandMillis();
+        lastCommand = millis();
     }
-
-    // There is no handling of a request to enable powersaving mode right now.
 }
 
 uint32_t getLastCommandMillis()
 {
     return lastCommand;
-}
-
-void setLastCommandMillis()
-{
-    lastCommand = millis();
 }
 
 void OnTrigger()
