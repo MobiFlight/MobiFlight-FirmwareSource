@@ -24,7 +24,6 @@ public:
     void    setMaxSpeed(uint16_t speed);
     void    setAcceleration(uint16_t acceleration);
     void    setZero();
-    uint8_t getZeroPin();
     void    powerSavingMode(bool state);
 
 private:
