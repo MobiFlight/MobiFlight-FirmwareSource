@@ -387,7 +387,7 @@ void readConfig()
             params[6] = (uint8_t)0; // backlash
             params[7] = false;      // deactivate output
 
-            if (command == kTypeStepperDeprecated2) {
+            if (command == kTypeStepperDeprecated2 || command == kTypeStepper) {
                 params[4] = readUintFromEEPROM(&addreeprom); // Button number
             }
 
