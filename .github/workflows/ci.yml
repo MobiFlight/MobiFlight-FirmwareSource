@@ -24,7 +24,7 @@ jobs:
         with:
           path: |
             ~/.cache/pip
-            ~/.platformio/.cache
+            ~/.platformio
           key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini')}}
           restore-keys: |
             ${{ runner.os }}-pio-
