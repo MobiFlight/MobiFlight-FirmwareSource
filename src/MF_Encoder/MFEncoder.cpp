@@ -132,7 +132,7 @@ void MFEncoder::tick(void)
     int      _speed    = 0;
     uint32_t currentMs = millis();
 
-    int8_t   thisState = sig1 | (sig2 << 1);
+    int8_t thisState = sig1 | (sig2 << 1);
 
     if (currentMs - _lastFastDec > 100 && _detentCounter > 1) {
         _lastFastDec = currentMs;

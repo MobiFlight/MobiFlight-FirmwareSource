@@ -3,17 +3,16 @@
 //
 // (C) MobiFlight Project 2022
 //
-
 #include "MFButton.h"
 
 buttonEvent MFButton::_handler = NULL;
 
 MFButton::MFButton(uint8_t pin, const char *name)
 {
-    _pin   = pin;
-    _name  = name;
-    pinMode(_pin, INPUT_PULLUP);    // set pin to input
-    _state = digitalRead(_pin);     // initialize on actual status
+    _pin  = pin;
+    _name = name;
+    pinMode(_pin, INPUT_PULLUP); // set pin to input
+    _state = digitalRead(_pin);  // initialize on actual status
 }
 
 void MFButton::update()

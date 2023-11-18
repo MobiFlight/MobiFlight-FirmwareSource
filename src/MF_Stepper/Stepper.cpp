@@ -62,7 +62,6 @@ namespace Stepper
         if (stepper >= steppersRegistered)
             return;
         steppers[stepper].moveTo(newPos);
-        setLastCommandMillis();
     }
 
     void OnReset()
@@ -72,7 +71,6 @@ namespace Stepper
         if (stepper >= steppersRegistered)
             return;
         steppers[stepper].reset();
-        setLastCommandMillis();
     }
 
     void OnSetZero()
@@ -82,7 +80,6 @@ namespace Stepper
         if (stepper >= steppersRegistered)
             return;
         steppers[stepper].setZero();
-        setLastCommandMillis();
     }
 
     void OnSetSpeedAccel()
