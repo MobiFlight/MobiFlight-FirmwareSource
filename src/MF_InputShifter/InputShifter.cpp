@@ -70,14 +70,12 @@ namespace InputShifter
         for (uint8_t i = 0; i < inputShiftersRegistered; i++) {
             inputShifters[i].retrigger();
         }
-        setLastCommandMillis();
     }
 
     void OnInit() // not used anywhere!?
     {
         int module = cmdMessenger.readInt16Arg();
         inputShifters[module].clear();
-        setLastCommandMillis();
     }
 
 } // namespace

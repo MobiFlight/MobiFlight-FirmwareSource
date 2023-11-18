@@ -52,7 +52,6 @@ namespace LCDDisplay
         char *output  = cmdMessenger.readStringArg();
         cmdMessenger.unescape(output);
         lcd_I2C[address].display(output);
-        setLastCommandMillis();
     }
 } // namespace
 

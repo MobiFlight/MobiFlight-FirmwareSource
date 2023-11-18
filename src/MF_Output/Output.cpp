@@ -50,7 +50,6 @@ namespace Output
         // Set led
         analogWrite(pin, state); // why does the UI sends the pin number and not the x.th output number like other devices?
                                  //  output[pin].set(state);      // once this is changed uncomment this
-        setLastCommandMillis();
     }
 
     void PowerSave(bool state)
