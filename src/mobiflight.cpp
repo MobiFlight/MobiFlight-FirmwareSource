@@ -123,9 +123,9 @@ void SetPowerSavingMode(bool state)
 
 #ifdef DEBUG2CMDMESSENGER
     if (state)
-        cmdMessenger.sendCmd(kDebug, F("On"));
+        cmdMessenger.sendCmd(kDebug, F("Power saving mode on"));
     else
-        cmdMessenger.sendCmd(kDebug, F("Off"));
+        cmdMessenger.sendCmd(kDebug, F("Power saving mode off"));
 #endif
 }
 
@@ -145,7 +145,6 @@ void updatePowerSaving()
 // ************************************************************
 void ResetBoard()
 {
-    setLastCommandMillis();
     restoreName();
     loadConfig();
 }

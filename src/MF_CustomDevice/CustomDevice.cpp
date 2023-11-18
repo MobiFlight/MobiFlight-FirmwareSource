@@ -16,7 +16,7 @@ namespace CustomDevice
     {
         if (!FitInMemory(sizeof(MFCustomDevice) * count))
             return false;
-        customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice(0,0,0);
+        customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice(0, 0, 0);
         maxCustomDevices = count;
         return true;
     }
@@ -80,9 +80,7 @@ namespace CustomDevice
         int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
         char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
-        customDevice[device].set(messageID, output);     // send the string to your custom device
-
-        setLastCommandMillis();
+        customDevice[device].set(messageID, output);      // send the string to your custom device
     }
 
 } // end of namespace

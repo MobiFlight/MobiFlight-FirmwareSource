@@ -63,7 +63,6 @@ namespace LedSegment
         int subModule  = cmdMessenger.readInt16Arg();
         int brightness = cmdMessenger.readInt16Arg();
         ledSegments[module].setBrightness(subModule, brightness);
-        setLastCommandMillis();
     }
 
     void OnSetModule()
@@ -74,7 +73,6 @@ namespace LedSegment
         uint8_t points    = (uint8_t)cmdMessenger.readInt16Arg();
         uint8_t mask      = (uint8_t)cmdMessenger.readInt16Arg();
         ledSegments[module].display(subModule, value, points, mask);
-        setLastCommandMillis();
     }
 
     void OnSetModuleBrightness()
@@ -83,7 +81,6 @@ namespace LedSegment
         int subModule  = cmdMessenger.readInt16Arg();
         int brightness = cmdMessenger.readInt16Arg();
         ledSegments[module].setBrightness(subModule, brightness);
-        setLastCommandMillis();
     }
 } // namespace
 

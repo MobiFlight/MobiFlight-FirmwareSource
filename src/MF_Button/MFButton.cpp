@@ -3,7 +3,6 @@
 //
 // (C) MobiFlight Project 2022
 //
-
 #include "MFButton.h"
 
 buttonEvent MFButton::_handler = NULL;
