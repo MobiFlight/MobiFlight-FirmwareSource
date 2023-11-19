@@ -27,7 +27,11 @@ namespace Output
     {
         if (outputsRegistered == maxOutputs)
             return;
-        outputs[outputsRegistered] = MFOutput(pin);
+        outputs[outputsRegistered] = MFOutput();
+        outputs[outputsRegistered].init(pin);
+#if defined(ARDUINO_ARCH_RP2040)
+        pinMode(pin, OUTPUT);
+#endif
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added output"));
