@@ -6,11 +6,13 @@
 
 #include "MFOutput.h"
 
-MFOutput::MFOutput(uint8_t pin)
+MFOutput::MFOutput() {}
+
+void MFOutput::init(uint8_t pin)
 {
     _pin   = pin;
     _value = false;
-    pinMode(_pin, OUTPUT); // set pin to input
+    pinMode(_pin, OUTPUT);
     set(_value);
 }
 
