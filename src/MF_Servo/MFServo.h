@@ -13,8 +13,7 @@ class MFServo
 {
 public:
     MFServo();
-    MFServo(uint8_t pin, bool enable = true);
-    void attach(uint8_t pin = 1, bool enable = true);
+    void attach(uint8_t pin, bool enable);
     void detach();
     void setExternalRange(int min, int max);
     void setInternalRange(int min, int max);

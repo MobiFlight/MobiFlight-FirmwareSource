@@ -60,12 +60,6 @@ void MFServo::attach(uint8_t pin, bool enable)
 MFServo::MFServo()
     : _servo() {}
 
-MFServo::MFServo(uint8_t pin, bool enable)
-    : _servo()
-{
-    attach(pin, enable);
-}
-
 void MFServo::setExternalRange(int min, int max)
 {
     _mapRange[0] = min;

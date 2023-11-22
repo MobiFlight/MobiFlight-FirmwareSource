@@ -35,7 +35,8 @@ namespace Button
     {
         if (buttonsRegistered == maxButtons)
             return;
-        buttons[buttonsRegistered] = MFButton(pin, name);
+        buttons[buttonsRegistered] = MFButton();
+        buttons[buttonsRegistered].attach(pin, name);
         MFButton::attachHandler(handlerOnButton);
         buttonsRegistered++;
 #ifdef DEBUG2CMDMESSENGER

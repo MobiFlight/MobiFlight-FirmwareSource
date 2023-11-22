@@ -28,7 +28,7 @@ namespace LedSegment
         if (ledSegmentsRegistered == ledSegmentsRegistereds)
             return;
         ledSegments[ledSegmentsRegistered] = MFSegments();
-        ledSegments[ledSegmentsRegistered].attach(type, dataPin, csPin, clkPin, numDevices, brightness); // lc is our object
+        ledSegments[ledSegmentsRegistered].attach(type, dataPin, csPin, clkPin, numDevices, brightness);
         ledSegmentsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added Led Segment"));
