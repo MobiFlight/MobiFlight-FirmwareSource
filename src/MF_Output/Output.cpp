@@ -30,7 +30,7 @@ namespace Output
         outputs[outputsRegistered] = MFOutput();
         outputs[outputsRegistered].attach(pin);
 #if defined(ARDUINO_ARCH_RP2040)
-        pinMode(pin, OUTPUT);
+        pinMode(pin, OUTPUT_12MA);
         analogWrite(pin, false);
 #endif
         outputsRegistered++;
