@@ -31,7 +31,7 @@ void MFAnalog::attach(uint8_t pin, const char *name, uint8_t sensitivity)
 bool MFAnalog::valueHasChanged(int16_t newValue)
 {
     if (!_initialized)
-        return;
+        return false;
     return (abs(newValue - _lastValue) >= _sensitivity);
 }
 
