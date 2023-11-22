@@ -16,7 +16,7 @@ namespace CustomDevice
     {
         if (!FitInMemory(sizeof(MFCustomDevice) * count))
             return false;
-        customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice(0, 0, 0);
+        customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice();
         maxCustomDevices = count;
         return true;
     }
@@ -25,7 +25,8 @@ namespace CustomDevice
     {
         if (customDeviceRegistered == maxCustomDevices)
             return;
-        customDevice[customDeviceRegistered] = MFCustomDevice(adrPin, adrType, adrConfig);
+        customDevice[customDeviceRegistered] = MFCustomDevice();
+        customDevice[customDeviceRegistered].attach(adrPin, adrType, adrConfig);
         customDeviceRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kStatus, F("Added CustomDevice"));
