@@ -6,14 +6,18 @@
 
 #include "MFOutput.h"
 
-MFOutput::MFOutput() {}
+MFOutput::MFOutput()
+{
+    _value = false;
+}
 
-void MFOutput::init(uint8_t pin)
+void MFOutput::attach(uint8_t pin)
 {
     _pin   = pin;
-    _value = false;
+#if !defined(ARDUINO_ARCH_RP2040)
     pinMode(_pin, OUTPUT);
     set(_value);
+#endif
 }
 
 void MFOutput::set(uint8_t value)

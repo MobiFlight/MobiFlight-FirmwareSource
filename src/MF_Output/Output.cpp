@@ -28,9 +28,10 @@ namespace Output
         if (outputsRegistered == maxOutputs)
             return;
         outputs[outputsRegistered] = MFOutput();
-        outputs[outputsRegistered].init(pin);
+        outputs[outputsRegistered].attach(pin);
 #if defined(ARDUINO_ARCH_RP2040)
         pinMode(pin, OUTPUT);
+        analogWrite(pin, false);
 #endif
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
