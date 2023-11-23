@@ -37,7 +37,8 @@ namespace Analog
         if (analogRegistered == maxAnalogIn)
             return;
 
-        analog[analogRegistered] = MFAnalog(pin, name, sensitivity);
+        analog[analogRegistered] = MFAnalog();
+        analog[analogRegistered].attach(pin, name, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;
 #ifdef DEBUG2CMDMESSENGER

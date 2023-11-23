@@ -24,8 +24,9 @@ enum {
 class MFButton
 {
 public:
-    MFButton(uint8_t pin = 1, const char *name = "Button");
+    MFButton();
     static void attachHandler(buttonEvent newHandler);
+    void        attach(uint8_t pin, const char *name);
     void        update();
     void        trigger(uint8_t state);
     void        triggerOnPress();
@@ -36,6 +37,7 @@ private:
     FASTIO_s _pin;
     static buttonEvent _handler;
     bool               _state;
+    bool               _initialized;
 };
 
 // MFButton.h

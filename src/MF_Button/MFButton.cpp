@@ -7,7 +7,12 @@
 
 buttonEvent MFButton::_handler = NULL;
 
-MFButton::MFButton(uint8_t pin, const char *name)
+MFButton::MFButton()
+{
+    _initialized = false;
+}
+
+void MFButton::attach(uint8_t pin, const char *name)
 {
 #ifdef USE_FAST_IO
     _pin.Port = portInputRegister(digitalPinToPort(pin));
@@ -18,10 +23,13 @@ MFButton::MFButton(uint8_t pin, const char *name)
     _name  = name;
     pinMode(pin, INPUT_PULLUP);    // set pin to input
     _state = digitalRead(pin);     // initialize on actual status
+    _initialized = true;
 }
 
 void MFButton::update()
 {
+    if (!_initialized)
+        return;
     uint8_t newState = DIGITALREAD(_pin);
     if (newState != _state) {
         _state = newState;
@@ -36,6 +44,8 @@ void MFButton::trigger(uint8_t state)
 
 void MFButton::triggerOnPress()
 {
+    if (!_initialized)
+        return;
     if (_handler && _state == LOW) {
         (*_handler)(btnOnPress, _name);
     }
@@ -43,6 +53,8 @@ void MFButton::triggerOnPress()
 
 void MFButton::triggerOnRelease()
 {
+    if (!_initialized)
+        return;
     if (_handler && _state == HIGH) {
         (*_handler)(btnOnRelease, _name);
     }
