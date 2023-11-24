@@ -24,8 +24,9 @@ typedef void (*analogEvent)(int, uint8_t);
 class MFAnalog
 {
 public:
-    MFAnalog(uint8_t pin = 1, uint8_t deviceID = 0, uint8_t sensitivity = 2);
+    MFAnalog();
     static void attachHandler(analogEvent handler);
+    void        attach(uint8_t pin, uint8_t deviceID, uint8_t sensitivity);
     void        update();
     void        retrigger();
     void        readBuffer();
@@ -42,6 +43,7 @@ private:
     uint16_t         ADC_Average_Total           = 0;   // sum of sampled values, must be divided by ADC_MAX_AVERAGE to get actual value
     volatile uint8_t ADC_Average_Pointer         = 0;   // points to the actual position in ADC_BUFFER
     uint32_t         _lastReadBuffer;
+    bool             _initialized;
 
     void readChannel(uint8_t compare);
     bool valueHasChanged(int16_t newValue);

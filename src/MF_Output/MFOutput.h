@@ -11,7 +11,8 @@
 class MFOutput
 {
 public:
-    MFOutput(uint8_t pin = 1);
+    MFOutput();
+    void attach(uint8_t pin);
     void set(uint8_t value);
     void powerSavingMode(bool state);
 
