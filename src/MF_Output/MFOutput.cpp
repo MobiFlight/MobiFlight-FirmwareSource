@@ -16,7 +16,7 @@ void MFOutput::attach(uint8_t pin)
     _pin   = pin;
 #if defined(ARDUINO_ARCH_RP2040)
     pinMode(_pin, OUTPUT_12MA);
-    digitalWrite(_pin, LOW)
+    digitalWrite(_pin, LOW);
 #else
     pinMode(_pin, OUTPUT);
     analogWrite(pin, LOW);
