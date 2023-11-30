@@ -29,10 +29,6 @@ namespace Output
             return;
         outputs[outputsRegistered] = MFOutput();
         outputs[outputsRegistered].attach(pin);
-#if defined(ARDUINO_ARCH_RP2040)
-        pinMode(pin, OUTPUT_12MA);
-        analogWrite(pin, false);
-#endif
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Added output"));
@@ -52,9 +48,14 @@ namespace Output
         // Read led state argument, interpret string as boolean
         int pin   = cmdMessenger.readInt16Arg();
         int state = cmdMessenger.readInt16Arg();
+    
         // Set led
-        analogWrite(pin, state); // why does the UI sends the pin number and not the x.th output number like other devices?
-                                 //  output[pin].set(state);      // once this is changed uncomment this
+        if (state == 0xFF)
+            digitalWrite(pin, HIGH);
+        else if (state == 0x00)
+            digitalWrite(pin, LOW);
+        else
+            analogWrite(pin, state);
     }
 
     void PowerSave(bool state)
