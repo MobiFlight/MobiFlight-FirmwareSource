@@ -5,6 +5,7 @@
 //
 
 #include "MFOutputShifter.h"
+#include "allocateMem.h"
 
 MFOutputShifter::MFOutputShifter()
 {
@@ -39,7 +40,7 @@ void MFOutputShifter::setPins(char *pins, uint8_t value)
     updateShiftRegister();
 }
 
-void MFOutputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount)
+bool MFOutputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount)
 {
     _initialized = true;
     _latchPin    = latchPin;
@@ -51,12 +52,18 @@ void MFOutputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin
     pinMode(_clockPin, OUTPUT);
     pinMode(_dataPin, OUTPUT);
 
+    if (!FitInMemory(sizeof(uint8_t) * _moduleCount))
+        return false;
+
+    _outputBuffer = new (allocateMemory(sizeof(uint8_t) * _moduleCount)) uint8_t;
+
     clear();
+
+    return true;
 }
 
 void MFOutputShifter::detach()
 {
-    if (!_initialized) return;
     _initialized = false;
 }
 

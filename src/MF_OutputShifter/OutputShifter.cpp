@@ -28,7 +28,11 @@ namespace OutputShifter
         if (outputShifterRegistered == maxOutputShifter)
             return;
         outputShifters[outputShifterRegistered] = MFOutputShifter();
-        outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules);
+        if (!outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules))
+        {
+            cmdMessenger.sendCmd(kStatus, F("OutputShifter array does not fit in Memory"));
+            return;
+        }
         outputShifters[outputShifterRegistered].clear();
         outputShifterRegistered++;
 
