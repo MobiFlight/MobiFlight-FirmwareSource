@@ -39,7 +39,7 @@ namespace InputShifter
         inputShifters[inputShiftersRegistered] = MFInputShifter();
         if (!inputShifters[inputShiftersRegistered].attach(latchPin, clockPin, dataPin, modules, name))
         {
-            cmdMessenger.sendCmd(kStatus, F("InputShifter array does not fit in Memory"));
+            cmdMessenger.sendCmd(kStatus, F("InputShifter array does not fit into Memory"));
             return;
         }
         MFInputShifter::attachHandler(handlerInputShifterOnChange);

@@ -30,10 +30,9 @@ namespace OutputShifter
         outputShifters[outputShifterRegistered] = MFOutputShifter();
         if (!outputShifters[outputShifterRegistered].attach(latchPin, clockPin, dataPin, modules))
         {
-            cmdMessenger.sendCmd(kStatus, F("OutputShifter array does not fit in Memory"));
+            cmdMessenger.sendCmd(kStatus, F("OutputShifter array does not fit into Memory"));
             return;
         }
-        outputShifters[outputShifterRegistered].clear();
         outputShifterRegistered++;
 
 #ifdef DEBUG2CMDMESSENGER
@@ -51,12 +50,6 @@ namespace OutputShifter
 #ifdef DEBUG2CMDMESSENGER
         cmdMessenger.sendCmd(kDebug, F("Cleared Output Shifter"));
 #endif
-    }
-
-    void OnInit() // not used anywhere!?
-    {
-        int module = cmdMessenger.readInt16Arg();
-        outputShifters[module].clear();
     }
 
     void OnSet()

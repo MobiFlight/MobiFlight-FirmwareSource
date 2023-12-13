@@ -69,26 +69,10 @@ void MFOutputShifter::detach()
 
 void MFOutputShifter::clear()
 {
-    // Set everything to 0
     for (uint8_t i = 0; i < _moduleCount; i++) {
         _outputBuffer[i] = 0;
     }
     updateShiftRegister();
-}
-
-void MFOutputShifter::test()
-{
-    for (uint8_t b = 0; b < _moduleCount * 8; b++) {
-        uint8_t idx        = (b & 0xF8) >> 3;
-        uint8_t msk        = (0x01 << (b & 0x07));
-        _outputBuffer[idx] = msk;
-        if (msk == 0x01 && idx != 0) _outputBuffer[idx - 1] = 0x00;
-        updateShiftRegister();
-        delay(50);
-
-        _outputBuffer[_moduleCount - 1] = 0;
-        updateShiftRegister();
-    }
 }
 
 void MFOutputShifter::updateShiftRegister()

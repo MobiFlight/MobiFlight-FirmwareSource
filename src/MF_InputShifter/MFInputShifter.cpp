@@ -32,7 +32,7 @@ bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
         return false;
     
     _lastState = new (allocateMemory(sizeof(uint8_t) * _moduleCount)) uint8_t;
-    for (uint8_t i = 0; i++; i < _moduleCount) {
+    for (uint8_t i = 0; i < _moduleCount; i++) {
         _lastState[i] = 0;
     }
     _initialized = true;
