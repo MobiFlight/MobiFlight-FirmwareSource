@@ -250,8 +250,19 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
 
 void LedControl::setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, bool sendNow)
 {
-    // Do Bit Manipulation
-    //spiTransfer(addr, digit + 1, v); // Always send immediately for MAX
+    if (addr >= maxUnits) return;
+    if (segment > 63) return;
+
+    uint8_t digit = segment >> 3;
+    uint8_t bitPosition = digit % 8;
+
+    if (value) {
+        rawdata[digit * 2] |= (1 << bitPosition);   
+    } else {
+        rawdata[digit * 2] &= ~(1 << bitPosition);
+    }
+
+    spiTransfer(addr, digit + 1, rawdata[digit * 2]); // Always send immediately for MAX
 }
 
 void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow)
@@ -294,17 +305,19 @@ void LedControl::setScanLimit(uint8_t addr, uint8_t limit)
 
 void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 {
-    uint8_t offset   = addr * 2;
-    uint8_t maxBytes = maxUnits * 2;
-
-    // for (uint8_t i = 0; i < maxBytes; i++) rawdata[i] = (byte)0;
-    memset(rawdata, 0, maxBytes);
-    rawdata[offset + 1] = opcode;
-    rawdata[offset]     = data;
+/*
+    // for (uint8_t i = 0; i < maxUnits * 2; i++) rawdata[i] = (byte)0;
+    memset(rawdata, 0, maxUnits * 2);
+    But what todo if a command deletes the buffer???
+    Check for opcode > OP_DIGIT7 and send opcode instead of rawdata 
+*/
+    rawdata[addr * 2 + 1] = opcode;
+    rawdata[addr * 2]     = data;
 
     digitalWrite(_csPin, LOW);
-    for (uint8_t i = maxBytes; i > 0; i--) {
-        // shiftOut(IO_DTA, IO_CLK, MSBFIRST, rawdata[i - 1]);
+    for (uint8_t i = maxUnits * 2; i > 0; i--) {
+        shiftOut(_dataPin, _clkPin, MSBFIRST, rawdata[i - 1]);
+/*
         byte dta = rawdata[i - 1];
         for (uint8_t m = 0x80; m != 0; m >>= 1) {
             // MSB first
@@ -312,6 +325,7 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
             digitalWrite(_clkPin, HIGH);
             digitalWrite(_clkPin, LOW);
         }
+*/
     }
     digitalWrite(_csPin, HIGH);
 }
