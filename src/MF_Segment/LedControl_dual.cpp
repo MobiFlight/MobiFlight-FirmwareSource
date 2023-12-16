@@ -5,6 +5,7 @@
 //
 
 #include "LedControl_dual.h"
+#include "allocateMem.h"
 
 // Segments to be switched on for characters and digits on 7-Segment Displays
 // bit/segment sequence: dABCDEFG
@@ -73,7 +74,7 @@ enum {
 };
 
 #ifdef LEDCONTROL_NO_BUF
-uint8_t LedControl::rawdata[16] = {0};
+uint8_t *LedControl::rawdata;
 #endif
 
 // =======================================================================
@@ -132,12 +133,19 @@ uint8_t LedControl::rawdata[16] = {0};
 // Digit sequence map for 6 digit displays
 const uint8_t digitmap[] = {2, 1, 0, 5, 4, 3};
 
-void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices)
+bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices)
 {
     _type    = type;
     _dataPin = dataPin;
     _clkPin  = clkPin;
     _csPin   = csPin;
+
+    if (!FitInMemory(sizeof(uint8_t) * numDevices * 2))
+        return false;
+    
+    rawdata = new (allocateMemory(sizeof(uint8_t) * numDevices * 2)) uint8_t;
+    for (uint8_t i = 0; i < numDevices * 2; i++)
+        rawdata[i] = 0;
 
     if (isMAX()) {
         if ((numDevices - 1) > 7) numDevices = 8;
@@ -165,6 +173,8 @@ void LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
         brightness = MAX_BRIGHTNESS;
         shutdown(0, true);
     }
+
+    return true;
 }
 
 void LedControl::shutdown(uint8_t addr, bool b)
@@ -236,6 +246,12 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
     if (v > 127) v = 32; // undefined: replace with space char
     if (dp) v |= 0x80;
     setPattern(addr, digit, v, sendNow);
+}
+
+void LedControl::setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, bool sendNow)
+{
+    // Do Bit Manipulation
+    //spiTransfer(addr, digit + 1, v); // Always send immediately for MAX
 }
 
 void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow)

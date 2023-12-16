@@ -72,9 +72,9 @@ private:
     // For TM, buffer can't be static (= shared): either we are building
     // the extended version (which adds a per-unit buffer instead of the static one)
     // or we are forced to resort to digit-by-digit output
-    static uint8_t rawdata[16];
+    static uint8_t *rawdata;
 #else
-    uint8_t rawdata[16];
+    uint8_t *rawdata;
 #endif
 
     uint8_t maxUnits   = 0; // MAX: N. of chained units; TM: N. of digits
@@ -103,7 +103,7 @@ private:
 public:
     LedControl(){};
 
-    void begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices = 1);
+    bool begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices = 1);
 
     bool    isMAX(void) { return _type == LedSegment::TYPE_MAX72XX; }
     uint8_t getDeviceCount(void) { return (isMAX() ? maxUnits : 1); };
@@ -138,6 +138,16 @@ public:
     //          requires a sendAll() afterwards).
     //          Ignored for MAX, or if LEDCONTROL_NO_BUF is defined.
     void setChar(uint8_t addr, uint8_t digit, char value, bool dp = false, bool sendNow = true);
+
+    // Display a Single Segment.
+    // Params:
+    // addr	    address of the display (ignored for TM)
+    // segment	the segment to be set or unset
+    // value	set or unset the Segment
+    // sendnow  If false, buffers chars rather than sending them immediately (TM only;
+    //          requires a sendAll() afterwards).
+    //          Ignored for MAX, or if LEDCONTROL_NO_BUF is defined.
+    void setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, bool sendNow = true);
 
 #ifndef LEDCONTROL_NO_BUF
     // Sends the whole (previously filled) buffer content.
