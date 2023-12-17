@@ -90,9 +90,15 @@ namespace LedSegment
     {
         uint8_t module     = (uint8_t)cmdMessenger.readInt16Arg();
         uint8_t subModule  = (uint8_t)cmdMessenger.readInt16Arg();
-        uint8_t segment    = (uint8_t)cmdMessenger.readInt16Arg();  // 0 to 63
-        uint8_t on_off     = (uint8_t)cmdMessenger.readInt16Arg();  // 0 or 1
-        ledSegments[module].setSingleSegment(subModule, segment, on_off);
+        char *segment      = cmdMessenger.readStringArg();              // 0 to 63, multiple segments deliminited by '|'
+        uint8_t on_off     = (uint8_t)cmdMessenger.readInt16Arg();      // 0 or 1
+
+        char *pinTokens = strtok(segment, "|");
+        while (pinTokens != 0) {
+            uint8_t num = (uint8_t)atoi(pinTokens);
+            ledSegments[module].setSingleSegment(subModule, num, on_off);
+            pinTokens = strtok(0, "|");
+        }
     }
     
 } // namespace
