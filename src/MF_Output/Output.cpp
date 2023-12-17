@@ -16,7 +16,7 @@ namespace Output
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFOutput) * count))
+        if (!FitInMemory(sizeof(MFOutput) * count, "Output"))
             return false;
         outputs    = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
         maxOutputs = count;

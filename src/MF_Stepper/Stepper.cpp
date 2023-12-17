@@ -16,7 +16,7 @@ namespace Stepper
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFStepper) * count))
+        if (!FitInMemory(sizeof(MFStepper) * count, "Stepper"))
             return false;
         steppers    = new (allocateMemory(sizeof(MFStepper) * count)) MFStepper;
         maxSteppers = count;

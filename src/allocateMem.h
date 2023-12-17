@@ -16,6 +16,6 @@ std::size_t    *allocateMemory(uint16_t size);
 
 void        ClearMemory();
 uint16_t    GetAvailableMemory();
-bool        FitInMemory(uint16_t size);
+bool        FitInMemory(uint16_t size, const char *deviceName);
 
 // allocatemem.h

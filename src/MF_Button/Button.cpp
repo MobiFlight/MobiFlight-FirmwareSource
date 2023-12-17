@@ -24,7 +24,7 @@ namespace Button
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFButton) * count))
+        if (!FitInMemory(sizeof(MFButton) * count, "Button"))
             return false;
         buttons    = new (allocateMemory(sizeof(MFButton) * count)) MFButton;
         maxButtons = count;

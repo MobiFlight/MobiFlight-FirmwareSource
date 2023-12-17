@@ -25,11 +25,9 @@ MFStepper::MFStepper()
 
 void MFStepper::attach(uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t btnPin5, uint8_t mode, int8_t backlash, bool deactivateOutput)
 {
-    if (!FitInMemory(sizeof(AccelStepper))) {
-        // Error Message to Connector
-        cmdMessenger.sendCmd(kStatus, F("MFStepper does not fit in Memory"));
+    if (!FitInMemory(sizeof(AccelStepper), "MFStepper"))
         return;
-    }
+
     uint16_t maxSpeed = 0;
     uint16_t Accel    = 0;
 

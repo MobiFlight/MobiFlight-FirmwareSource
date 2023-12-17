@@ -241,14 +241,6 @@ bool readEndCommandFromEEPROM(uint16_t *addreeprom, uint8_t delimiter)
     return true;
 }
 
-void sendFailureMessage(const char *deviceName)
-{
-    cmdMessenger.sendCmdStart(kStatus);
-    cmdMessenger.sendCmdArg(deviceName);
-    cmdMessenger.sendCmdArg(F("does not fit in Memory"));
-    cmdMessenger.sendCmdEnd();
-}
-
 bool getArraysizes()
 {
     if (configLength == 0) // do nothing if no config is available
@@ -275,47 +267,35 @@ bool getArraysizes()
     }
 
     // then call the function to allocate required memory for the arrays of each type
-    if (!Button::setupArray(numberDevices[kTypeButton]))
-        sendFailureMessage("Button");
-    if (!Output::setupArray(numberDevices[kTypeOutput]))
-        sendFailureMessage("Output");
+    Button::setupArray(numberDevices[kTypeButton]);
+    Output::setupArray(numberDevices[kTypeOutput]);
 #if MF_SEGMENT_SUPPORT == 1
-    if (!LedSegment::setupArray(numberDevices[kTypeLedSegmentDeprecated] + numberDevices[kTypeLedSegmentMulti]))
-        sendFailureMessage("7Segment");
+    LedSegment::setupArray(numberDevices[kTypeLedSegmentDeprecated] + numberDevices[kTypeLedSegmentMulti]);
 #endif
 #if MF_STEPPER_SUPPORT == 1
-    if (!Stepper::setupArray(numberDevices[kTypeStepper] + numberDevices[kTypeStepperDeprecated1] + numberDevices[kTypeStepperDeprecated2]))
-        sendFailureMessage("Stepper");
+    Stepper::setupArray(numberDevices[kTypeStepper] + numberDevices[kTypeStepperDeprecated1] + numberDevices[kTypeStepperDeprecated2]);
 #endif
 #if MF_SERVO_SUPPORT == 1
-    if (!Servos::setupArray(numberDevices[kTypeServo]))
-        sendFailureMessage("Servo");
+    Servos::setupArray(numberDevices[kTypeServo]);
 #endif
-    if (!Encoder::setupArray(numberDevices[kTypeEncoder] + numberDevices[kTypeEncoderSingleDetent]))
-        sendFailureMessage("Encoders");
+    Encoder::setupArray(numberDevices[kTypeEncoder] + numberDevices[kTypeEncoderSingleDetent]);
 #if MF_LCD_SUPPORT == 1
-    if (!LCDDisplay::setupArray(numberDevices[kTypeLcdDisplayI2C]))
-        sendFailureMessage("LCD");
+    LCDDisplay::setupArray(numberDevices[kTypeLcdDisplayI2C]);
 #endif
 #if MF_ANALOG_SUPPORT == 1
-    if (!Analog::setupArray(numberDevices[kTypeAnalogInput]))
-        sendFailureMessage("AnalogIn");
+    Analog::setupArray(numberDevices[kTypeAnalogInput]);
 #endif
 #if MF_OUTPUT_SHIFTER_SUPPORT == 1
-    if (!OutputShifter::setupArray(numberDevices[kTypeOutputShifter]))
-        sendFailureMessage("OutputShifter");
+    OutputShifter::setupArray(numberDevices[kTypeOutputShifter]);
 #endif
 #if MF_INPUT_SHIFTER_SUPPORT == 1
-    if (!InputShifter::setupArray(numberDevices[kTypeInputShifter]))
-        sendFailureMessage("InputShifter");
+    InputShifter::setupArray(numberDevices[kTypeInputShifter]);
 #endif
 #if MF_DIGIN_MUX_SUPPORT == 1
-    if (!DigInMux::setupArray(numberDevices[kTypeDigInMux]))
-        sendFailureMessage("DigInMux");
+    DigInMux::setupArray(numberDevices[kTypeDigInMux]);
 #endif
 #if MF_CUSTOMDEVICE_SUPPORT == 1
-    if (!CustomDevice::setupArray(numberDevices[kTypeCustomDevice]))
-        sendFailureMessage("CustomDevice");
+    CustomDevice::setupArray(numberDevices[kTypeCustomDevice]);
 #endif
     return true;
 }

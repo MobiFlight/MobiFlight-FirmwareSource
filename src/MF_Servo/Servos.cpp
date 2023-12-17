@@ -16,7 +16,7 @@ namespace Servos
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFServo) * count))
+        if (!FitInMemory(sizeof(MFServo) * count, "Servo"))
             return false;
         servos    = new (allocateMemory(sizeof(MFServo) * count)) MFServo;
         maxServos = count;
