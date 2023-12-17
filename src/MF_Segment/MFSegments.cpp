@@ -53,11 +53,8 @@ void MFSegments::setBrightness(uint8_t module, uint8_t value)
 
 bool MFSegments::attach(uint8_t type, uint8_t dataPin, uint8_t csPin, uint8_t clkPin, uint8_t moduleCount, uint8_t brightness)
 {
-    if (_ledControl.begin(type, dataPin, clkPin, csPin, moduleCount))
-    {
-        cmdMessenger.sendCmd(kStatus, F("InputShifter array does not fit into Memory"));
+    if (!_ledControl.begin(type, dataPin, clkPin, csPin, moduleCount))
         return false;
-    }
 
     _moduleCount = moduleCount;
 
