@@ -142,13 +142,12 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
 
     if (!FitInMemory(sizeof(uint8_t) * numDevices * 2))
         return false;
-    
     rawdata = new (allocateMemory(sizeof(uint8_t) * numDevices * 2)) uint8_t;
-    for (uint8_t i = 0; i < numDevices * 2; i++)
-        rawdata[i] = 0;
 
     if (isMAX()) {
-        if ((numDevices - 1) > 7) numDevices = 8;
+        if (!FitInMemory(sizeof(uint8_t) * numDevices * 8))
+            return false;
+        digitBuffer = new (allocateMemory(sizeof(uint8_t) * numDevices * 8)) uint8_t;
         maxUnits = numDevices;
         pinMode(_dataPin, OUTPUT);
         pinMode(_clkPin, OUTPUT);
@@ -250,19 +249,29 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
 
 void LedControl::setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, bool sendNow)
 {
-    if (addr >= maxUnits) return;
-    if (segment > 63) return;
-
     uint8_t digit = segment >> 3;
     uint8_t bitPosition = digit % 8;
+    uint8_t offset = addr * 8;
 
-    if (value) {
-        rawdata[digit * 2] |= (1 << bitPosition);   
+    if (isMAX()) {
+        if (addr >= maxUnits) return;
+        if (segment > 63) return;
+
+        if (value) {
+            digitBuffer[offset + digit] |= (1 << bitPosition);   
+        } else {
+            digitBuffer[offset + digit] &= ~(1 << bitPosition);
+        }
+
+        spiTransfer(addr, digit + 1, digitBuffer[offset + digit]);
     } else {
-        rawdata[digit * 2] &= ~(1 << bitPosition);
+        if (value) {
+            rawdata[(maxUnits - 1) - digit] |= (1 << bitPosition);   
+        } else {
+            rawdata[(maxUnits - 1) - digit] &= ~(1 << bitPosition);
+        }
+        if (sendNow) writeDigits(digit, 1);
     }
-
-    spiTransfer(addr, digit + 1, rawdata[digit * 2]); // Always send immediately for MAX
 }
 
 void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow)
@@ -271,7 +280,9 @@ void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sen
     uint8_t v;
     v = pgm_read_byte_near(charTable + (value & 0x7F));
     if (isMAX()) {
+        uint8_t offset = addr * 8;
         if (value & 0x80) v |= 0x80;
+        digitBuffer[offset + digit] = v;
         spiTransfer(addr, digit + 1, v); // Always send immediately for MAX
     } else {
         // Original data for MAX has the bit sequence: dABCDEFG
@@ -305,19 +316,17 @@ void LedControl::setScanLimit(uint8_t addr, uint8_t limit)
 
 void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 {
-/*
-    // for (uint8_t i = 0; i < maxUnits * 2; i++) rawdata[i] = (byte)0;
-    memset(rawdata, 0, maxUnits * 2);
-    But what todo if a command deletes the buffer???
-    Check for opcode > OP_DIGIT7 and send opcode instead of rawdata 
-*/
-    rawdata[addr * 2 + 1] = opcode;
-    rawdata[addr * 2]     = data;
+    uint8_t offset   = addr * 2;
+    uint8_t maxBytes = maxUnits * 2;
+
+    // for (uint8_t i = 0; i < maxBytes; i++) rawdata[i] = (byte)0;
+    memset(rawdata, 0, maxBytes);
+    rawdata[offset + 1] = opcode;
+    rawdata[offset]     = data;
 
     digitalWrite(_csPin, LOW);
-    for (uint8_t i = maxUnits * 2; i > 0; i--) {
-        shiftOut(_dataPin, _clkPin, MSBFIRST, rawdata[i - 1]);
-/*
+    for (uint8_t i = maxBytes; i > 0; i--) {
+        // shiftOut(IO_DTA, IO_CLK, MSBFIRST, rawdata[i - 1]);
         byte dta = rawdata[i - 1];
         for (uint8_t m = 0x80; m != 0; m >>= 1) {
             // MSB first
@@ -325,7 +334,6 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
             digitalWrite(_clkPin, HIGH);
             digitalWrite(_clkPin, LOW);
         }
-*/
     }
     digitalWrite(_csPin, HIGH);
 }

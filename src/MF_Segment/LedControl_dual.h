@@ -66,8 +66,6 @@ private:
     uint8_t _dataPin = TYPE_UNDEFINED;
     uint8_t _clkPin  = TYPE_UNDEFINED;
     uint8_t _csPin   = TYPE_UNDEFINED;
-    // MAX: Number of chained units
-    // TM:  Number of digits (4 or 6)
 #ifdef LEDCONTROL_NO_BUF
     // For TM, buffer can't be static (= shared): either we are building
     // the extended version (which adds a per-unit buffer instead of the static one)
@@ -82,6 +80,7 @@ private:
     void    setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow = true);
 
     // MAX-specific
+    uint8_t *digitBuffer;   // each digit must be stored in a buffer to be able to set single segments
     void setScanLimit(uint8_t addr, uint8_t limit);
     void spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data);
 
