@@ -250,7 +250,7 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
 void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t value, bool sendNow)
 {
     uint8_t digit = segment >> 3;
-    uint8_t bitPosition = digit % 8;
+    uint8_t bitPosition = segment % 8;
     uint8_t offset = subModule * 8;
 
     if (isMAX()) {
