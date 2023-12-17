@@ -247,14 +247,14 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
     setPattern(addr, digit, v, sendNow);
 }
 
-void LedControl::setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, bool sendNow)
+void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t value, bool sendNow)
 {
     uint8_t digit = segment >> 3;
     uint8_t bitPosition = digit % 8;
-    uint8_t offset = addr * 8;
+    uint8_t offset = subModule * 8;
 
     if (isMAX()) {
-        if (addr >= maxUnits) return;
+        if (subModule >= maxUnits) return;
         if (segment > 63) return;
 
         if (value) {
@@ -263,8 +263,9 @@ void LedControl::setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, 
             digitBuffer[offset + digit] &= ~(1 << bitPosition);
         }
 
-        spiTransfer(addr, digit + 1, digitBuffer[offset + digit]);
+        spiTransfer(subModule, digit + 1, digitBuffer[offset + digit]);
     } else {
+        if (subModule >= maxUnits) return;
         if (value) {
             rawdata[(maxUnits - 1) - digit] |= (1 << bitPosition);   
         } else {
