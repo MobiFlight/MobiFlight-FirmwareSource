@@ -16,7 +16,7 @@ namespace LCDDisplay
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFLCDDisplay) * count, "LCD"))
+        if (!FitInMemory(sizeof(MFLCDDisplay) * count))
             return false;
         lcd_I2C    = new (allocateMemory(sizeof(MFLCDDisplay) * count)) MFLCDDisplay;
         maxLCD_I2C = count;

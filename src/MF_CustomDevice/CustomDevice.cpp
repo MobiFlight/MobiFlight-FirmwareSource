@@ -14,7 +14,7 @@ namespace CustomDevice
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFCustomDevice) * count, "CustomDevice"))
+        if (!FitInMemory(sizeof(MFCustomDevice) * count))
             return false;
         customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice();
         maxCustomDevices = count;

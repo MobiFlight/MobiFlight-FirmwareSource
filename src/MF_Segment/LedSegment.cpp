@@ -16,7 +16,7 @@ namespace LedSegment
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFSegments) * count, "7Segment"))
+        if (!FitInMemory(sizeof(MFSegments) * count))
             return false;
         ledSegments            = new (allocateMemory(sizeof(MFSegments) * count)) MFSegments;
         ledSegmentsRegistereds = count;
@@ -31,7 +31,10 @@ namespace LedSegment
         ledSegments[ledSegmentsRegistered] = MFSegments();
 
         if (!ledSegments[ledSegmentsRegistered].attach(type, dataPin, csPin, clkPin, numDevices, brightness))
+        {
+            cmdMessenger.sendCmd(kStatus, F("Led Segment array does not fit into Memory"));
             return;
+        }
 
         ledSegmentsRegistered++;
 #ifdef DEBUG2CMDMESSENGER

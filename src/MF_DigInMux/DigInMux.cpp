@@ -27,7 +27,7 @@ namespace DigInMux
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFDigInMux) * count, "DigInMux"))
+        if (!FitInMemory(sizeof(MFDigInMux) * count))
             return false;
         digInMux    = new (allocateMemory(sizeof(MFDigInMux) * count)) MFDigInMux;
         maxDigInMux = count;

@@ -49,15 +49,10 @@ uint16_t GetAvailableMemory()
     return MF_MAX_DEVICEMEM - nextPointer;
 }
 
-bool FitInMemory(uint16_t size, const char *deviceName)
+bool FitInMemory(uint16_t size)
 {
-    if (nextPointer + size > MF_MAX_DEVICEMEM) {
-        cmdMessenger.sendCmdStart(kStatus);
-        cmdMessenger.sendArg(deviceName);
-        cmdMessenger.sendCmdArg(F(" does not fit in DeviceBuffer"));
-        cmdMessenger.sendCmdEnd();
+    if (nextPointer + size > MF_MAX_DEVICEMEM)
         return false;
-    }
     return true;
 }
 

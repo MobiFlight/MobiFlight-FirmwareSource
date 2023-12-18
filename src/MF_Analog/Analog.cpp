@@ -25,7 +25,7 @@ namespace Analog
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFAnalog) * count, "AnalogIn"))
+        if (!FitInMemory(sizeof(MFAnalog) * count))
             return false;
         analog      = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
         maxAnalogIn = count;

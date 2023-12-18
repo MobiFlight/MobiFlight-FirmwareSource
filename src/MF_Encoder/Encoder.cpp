@@ -24,7 +24,7 @@ namespace Encoder
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFEncoder) * count, "Encoders"))
+        if (!FitInMemory(sizeof(MFEncoder) * count))
             return false;
         encoders    = new (allocateMemory(sizeof(MFEncoder) * count)) MFEncoder;
         maxEncoders = count;

@@ -25,7 +25,7 @@ namespace InputShifter
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFInputShifter) * count, "InputShifter"))
+        if (!FitInMemory(sizeof(MFInputShifter) * count))
             return false;
         inputShifters    = new (allocateMemory(sizeof(MFInputShifter) * count)) MFInputShifter;
         maxInputShiffter = count;

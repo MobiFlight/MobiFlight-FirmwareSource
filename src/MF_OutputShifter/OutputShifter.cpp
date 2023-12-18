@@ -16,7 +16,7 @@ namespace OutputShifter
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFOutputShifter) * count, "OutputShifter"))
+        if (!FitInMemory(sizeof(MFOutputShifter) * count))
             return false;
         outputShifters   = new (allocateMemory(sizeof(MFOutputShifter) * count)) MFOutputShifter;
         maxOutputShifter = count;
