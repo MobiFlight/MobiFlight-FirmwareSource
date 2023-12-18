@@ -45,9 +45,10 @@
 #endif
 
 // The build version comes from an environment variable
-#define STRINGIZER(arg) #arg
-#define STR_VALUE(arg)  STRINGIZER(arg)
-#define VERSION         STR_VALUE(BUILD_VERSION)
+#define STRINGIZER(arg)    #arg
+#define STR_VALUE(arg)     STRINGIZER(arg)
+#define VERSION            STR_VALUE(BUILD_VERSION)
+#define CUSTOM_VERSION     STR_VALUE(CUSTOM_BUILD_VERSION)
 
 MFEEPROM MFeeprom;
 
@@ -553,6 +554,9 @@ void OnGetInfo()
     cmdMessenger.sendCmdArg(F(MOBIFLIGHT_TYPE));
     cmdMessenger.sendCmdArg(name);
     cmdMessenger.sendCmdArg(serial);
+#ifdef CUSTOM_BUILD_VERSION
+    cmdMessenger.sendCmdArg(CUSTOM_VERSION);
+#endif
     cmdMessenger.sendCmdArg(VERSION);
     cmdMessenger.sendCmdEnd();
 }
