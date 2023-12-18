@@ -10,6 +10,10 @@ if firmware_version == "":
   # compatibility with MobiFlight desktop app version checks.
   firmware_version = "0.0.1"
 
+# But override if a custom version is defined
+if env.GetProjectOption("custom_firmware_version") != "":
+  firmware_version = env.GetProjectOption("custom_firmware_version")
+
 # Strip any leading "v" that might be on the version and
 # any leading or trailing periods.
 firmware_version = firmware_version.lstrip("v")
