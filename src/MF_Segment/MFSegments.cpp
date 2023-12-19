@@ -5,7 +5,7 @@
 //
 
 #include "MFSegments.h"
-#include "commandMessenger.h"
+#include "commandmessenger.h"
 
 MFSegments::MFSegments()
 {
