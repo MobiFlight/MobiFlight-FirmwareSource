@@ -3,7 +3,8 @@ import os
 Import("env")
 
 CUSTOMDEVICES_DIR = env.subst("$PROJECT_DIR/CustomDevices")
-CUSTOMDEVICES_TAG = "0.2.0"
+#CUSTOMDEVICES_TAG = "0.2.0"
+CUSTOMDEVICES_TAG = "main"
 
 if not os.path.exists(CUSTOMDEVICES_DIR):
     print ("Cloning Mobiflight-CustomDevices repo ... ")
