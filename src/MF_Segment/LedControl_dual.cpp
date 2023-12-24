@@ -256,7 +256,6 @@ void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t va
     if (isMAX()) {
         if (subModule >= maxUnits) return;
         if (segment > 63) return;
-
         if (value) {
             digitBuffer[offset + digit] |= (1 << bitPosition);   
         } else {
@@ -266,6 +265,7 @@ void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t va
         spiTransfer(subModule, digit + 1, digitBuffer[offset + digit]);
     } else {
         if (subModule >= maxUnits) return;
+        if (segment >= maxUnits * 8) return;
         if (value) {
             rawdata[(maxUnits - 1) - digit] |= (1 << bitPosition);   
         } else {
