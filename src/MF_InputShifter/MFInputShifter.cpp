@@ -5,6 +5,7 @@
 //
 
 #include "MFInputShifter.h"
+#include "allocateMem.h"
 
 inputShifterEvent MFInputShifter::_inputHandler = NULL;
 
@@ -15,7 +16,7 @@ MFInputShifter::MFInputShifter()
 
 // Registers a new input shifter and configures the clock, data and latch pins as well
 // as the number of modules to read from.
-void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name)
+bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name)
 {
     _latchPin    = latchPin;
     _clockPin    = clockPin;
@@ -26,10 +27,20 @@ void MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
     pinMode(_latchPin, OUTPUT);
     pinMode(_clockPin, OUTPUT);
     pinMode(_dataPin, INPUT);
+
+    if (!FitInMemory(sizeof(uint8_t) * _moduleCount))
+        return false;
+    
+    _lastState = new (allocateMemory(sizeof(uint8_t) * _moduleCount)) uint8_t;
+    for (uint8_t i = 0; i < _moduleCount; i++) {
+        _lastState[i] = 0;
+    }
     _initialized = true;
 
     // And now initialize all buttons with the actual status
     poll(DONT_TRIGGER);
+
+    return true;
 }
 
 // Reads the values from the attached modules, compares them to the previously
