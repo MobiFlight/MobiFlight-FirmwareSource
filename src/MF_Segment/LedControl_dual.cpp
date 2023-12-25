@@ -263,13 +263,14 @@ void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t va
         }
         spiTransfer(subModule, digit + 1, digitBuffer[offset + digit]);
     } else {
-        // Original data for MAX has the bit sequence: dABCDEFG
-        // Common TM1637 boards are connected so that they require: dGFEDCBA
-        // reverse bitorder but keep position for dp
-        if (bitPosition < 7)
-            bitPosition = 6 - bitPosition;
         if (subModule >= maxUnits) return;
         if (segment >= maxUnits * 8) return;
+        // Same order as MAX72XX
+        // MAX72XX order is:      dABCDEFG
+        // TM1637 order required: ABCDEFGd
+        bitPosition++;
+        if (bitPosition == 8)
+            bitPosition = 0;
         if (value) {
             rawdata[(maxUnits - 1) - digit] |= (1 << bitPosition);   
         } else {
