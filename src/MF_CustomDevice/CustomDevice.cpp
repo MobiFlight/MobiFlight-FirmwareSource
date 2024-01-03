@@ -84,4 +84,16 @@ namespace CustomDevice
         customDevice[device].set(messageID, output);      // send the string to your custom device
     }
 
+    /* **********************************************************************************
+        This function is called if the status of the PowerSavingMode changes.
+        'state' is true if PowerSaving is enabled
+        'state' is false if PowerSaving is disabled
+    ********************************************************************************** */
+    void PowerSave(bool state)
+    {
+        for (uint8_t i = 0; i < outputsRegistered; ++i) {
+            customDevice[i].powerSavingMode(state);
+        }
+    }
+
 } // end of namespace
