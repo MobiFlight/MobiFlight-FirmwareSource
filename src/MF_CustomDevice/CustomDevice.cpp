@@ -92,7 +92,7 @@ namespace CustomDevice
     void PowerSave(bool state)
     {
         for (uint8_t i = 0; i < outputsRegistered; ++i) {
-            customDevice[i].powerSavingMode(state);
+            customDevice[i].set("-1", state);
         }
     }
 
