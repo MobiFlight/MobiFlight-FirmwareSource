@@ -91,8 +91,11 @@ namespace CustomDevice
     ********************************************************************************** */
     void PowerSave(bool state)
     {
-        for (uint8_t i = 0; i < outputsRegistered; ++i) {
-            customDevice[i].set("-1", state);
+        for (uint8_t i = 0; i < customDeviceRegistered; ++i) {
+            if (state)
+                customDevice[i].set(-1, "1");
+            else
+                customDevice[i].set(-1, "0");
         }
     }
 
