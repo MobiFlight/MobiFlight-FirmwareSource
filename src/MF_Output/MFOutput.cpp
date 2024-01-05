@@ -26,9 +26,9 @@ void MFOutput::set(uint8_t value)
 {
     _value = value;
     if (_value == 0xFF)
-        digitalWrite(_pin, HIGH);
+        digitalWrite(_pin, MF_HIGH);
     else if (_value == 0x00)
-        digitalWrite(_pin, LOW);
+        digitalWrite(_pin, MF_LOW);
     else
         analogWrite(_pin, _value);
 }
