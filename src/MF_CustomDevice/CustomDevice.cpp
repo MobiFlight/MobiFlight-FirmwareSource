@@ -88,14 +88,15 @@ namespace CustomDevice
         This function is called if the status of the PowerSavingMode changes.
         'state' is true if PowerSaving is enabled
         'state' is false if PowerSaving is disabled
+        MessageID '-2' for the custom device  for PowerSavingMode
     ********************************************************************************** */
     void PowerSave(bool state)
     {
         for (uint8_t i = 0; i < customDeviceRegistered; ++i) {
             if (state)
-                customDevice[i].set(-1, "1");
+                customDevice[i].set(-2, "1");
             else
-                customDevice[i].set(-1, "0");
+                customDevice[i].set(-2, "0");
         }
     }
 
