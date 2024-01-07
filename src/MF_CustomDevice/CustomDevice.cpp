@@ -6,6 +6,9 @@
     Normally nothing has to be changed in this file
     It handles one or multiple custom devices
 ********************************************************************************** */
+
+#define MESSAGEID_POWERSAVINGMODE -2
+
 namespace CustomDevice
 {
     MFCustomDevice *customDevice;
@@ -94,9 +97,9 @@ namespace CustomDevice
     {
         for (uint8_t i = 0; i < customDeviceRegistered; ++i) {
             if (state)
-                customDevice[i].set(-2, "1");
+                customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "1");
             else
-                customDevice[i].set(-2, "0");
+                customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "0");
         }
     }
 
