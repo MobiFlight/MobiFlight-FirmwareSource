@@ -74,7 +74,11 @@ void MFOutputShifter::detach()
 void MFOutputShifter::clear()
 {
     for (uint8_t i = 0; i < _moduleCount; i++) {
+#ifdef REVERSED_OUTPUT_OUTPUTSHIFTER
+        _outputBuffer[i] = 0xFF;
+#else
         _outputBuffer[i] = 0;
+#endif
     }
     updateShiftRegister();
 }
