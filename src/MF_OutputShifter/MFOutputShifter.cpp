@@ -19,7 +19,7 @@ void MFOutputShifter::setPin(uint8_t pin, uint8_t value, uint8_t refresh)
     uint8_t idx = (pin & 0xF8) >> 3;
     uint8_t msk = (0x01 << (pin & 0x07));
 
-    if (value > 0) {
+    if (value != MF_LOW) {
         _outputBuffer[idx] |= msk;
     } else {
         _outputBuffer[idx] &= ~msk;
@@ -70,7 +70,7 @@ void MFOutputShifter::detach()
 void MFOutputShifter::clear()
 {
     for (uint8_t i = 0; i < _moduleCount; i++) {
-        _outputBuffer[i] = 0;
+        _outputBuffer[i] = 0xFF * MF_LOW;
     }
     updateShiftRegister();
 }
