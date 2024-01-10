@@ -48,6 +48,7 @@
 #define STRINGIZER(arg) #arg
 #define STR_VALUE(arg)  STRINGIZER(arg)
 #define VERSION         STR_VALUE(BUILD_VERSION)
+#define CORE_VERSION    STR_VALUE(CORE_BUILD_VERSION)
 
 MFEEPROM MFeeprom;
 
@@ -554,6 +555,7 @@ void OnGetInfo()
     cmdMessenger.sendCmdArg(name);
     cmdMessenger.sendCmdArg(serial);
     cmdMessenger.sendCmdArg(VERSION);
+    cmdMessenger.sendCmdArg(CORE_VERSION);
     cmdMessenger.sendCmdEnd();
 }
 

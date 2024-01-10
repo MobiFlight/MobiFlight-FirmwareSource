@@ -9,7 +9,7 @@
 #include <Arduino.h>
 #include "MFFastIO.h"
 
-#ifdef REVERSED_OUTPUT_OUTPUT
+#ifdef REVERSED_OUTPUT_OUTPUTSHIFTER
     #define MF_HIGH LOW
     #define MF_LOW  HIGH
 #else
