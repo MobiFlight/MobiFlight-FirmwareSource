@@ -15,11 +15,10 @@ if firmware_version == "":
 firmware_version = firmware_version.lstrip("v")
 firmware_version = firmware_version.strip(".")
 
-# Get the core version number from the custom.ini file
-try: 
-  core_firmware_version = env.GetProjectOption("custom_core_firmware_version")
-except:
-  core_firmware_version = firmware_version
+# The community devices have a slightly different version where the
+# core firmware version is defined within there .ini file
+# For the core FW both versions are always the same
+core_firmware_version = firmware_version
 
 print(f'Using version {firmware_version} for the build')
 print(f'Using version {core_firmware_version} as core version')
