@@ -7,4 +7,5 @@ namespace CustomDevice
     void Clear();
     void update();
     void OnSet();
+    void PowerSave(bool state);
 }
