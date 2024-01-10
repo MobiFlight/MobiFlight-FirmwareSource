@@ -15,10 +15,10 @@ namespace Analog
     uint8_t   analogRegistered = 0;
     uint8_t   maxAnalogIn      = 0;
 
-    void handlerOnAnalogChange(int value, const char *name)
+    void handlerOnAnalogChange(int value, uint8_t deviceID)
     {
         cmdMessenger.sendCmdStart(kAnalogChange);
-        cmdMessenger.sendCmdArg(name);
+        cmdMessenger.sendCmdArg(deviceID);
         cmdMessenger.sendCmdArg(value);
         cmdMessenger.sendCmdEnd();
     };
@@ -27,18 +27,18 @@ namespace Analog
     {
         if (!FitInMemory(sizeof(MFAnalog) * count))
             return false;
-        analog      = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
+        analog      = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog();
         maxAnalogIn = count;
         return true;
     }
 
-    void Add(uint8_t pin, char const *name, uint8_t sensitivity)
+    void Add(uint8_t pin, uint8_t sensitivity)
     {
         if (analogRegistered == maxAnalogIn)
             return;
 
         analog[analogRegistered] = MFAnalog();
-        analog[analogRegistered].attach(pin, name, sensitivity);
+        analog[analogRegistered].attach(pin, analogRegistered, sensitivity);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;
 #ifdef DEBUG2CMDMESSENGER

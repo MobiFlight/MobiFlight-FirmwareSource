@@ -13,11 +13,11 @@ MFAnalog::MFAnalog()
     _initialized = false;
 }
 
-void MFAnalog::attach(uint8_t pin, const char *name, uint8_t sensitivity)
+void MFAnalog::attach(uint8_t pin, uint8_t deviceID, uint8_t sensitivity)
 {
     _sensitivity = sensitivity;
     _pin         = pin;
-    _name        = name;
+    _deviceID    = deviceID;
     pinMode(_pin, INPUT_PULLUP); // set pin to input. Could use OUTPUT for analog, but shows the intention :-)
     // Fill averaging buffers with initial reading
     for (uint8_t i = 0; i < ADC_MAX_AVERAGE; i++) {
@@ -43,7 +43,7 @@ void MFAnalog::readChannel(uint8_t alwaysTrigger)
     if (alwaysTrigger || valueHasChanged(newValue)) {
         _lastValue = newValue;
         if (_handler != NULL) {
-            (*_handler)(_lastValue, _name);
+            (*_handler)(_lastValue, _deviceID);
         }
     }
 }

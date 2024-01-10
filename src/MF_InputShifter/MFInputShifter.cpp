@@ -16,12 +16,12 @@ MFInputShifter::MFInputShifter()
 
 // Registers a new input shifter and configures the clock, data and latch pins as well
 // as the number of modules to read from.
-bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, const char *name)
+bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount, uint8_t deviceID)
 {
     _latchPin    = latchPin;
     _clockPin    = clockPin;
     _dataPin     = dataPin;
-    _name        = name;
+    _deviceID    = deviceID;
     _moduleCount = moduleCount;
 
     pinMode(_latchPin, OUTPUT);
@@ -133,7 +133,7 @@ void MFInputShifter::retrigger()
 void MFInputShifter::trigger(uint8_t pin, bool state)
 {
     if (!_inputHandler) return;
-    (*_inputHandler)((state == LOW ? inputShifterOnPress : inputShifterOnRelease), pin, _name);
+    (*_inputHandler)((state == LOW ? inputShifterOnPress : inputShifterOnRelease), pin, _deviceID);
 }
 
 // Attaches a new event handler for the specified event.
