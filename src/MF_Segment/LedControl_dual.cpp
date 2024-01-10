@@ -145,6 +145,9 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
     rawdata = new (allocateMemory(sizeof(uint8_t) * numDevices * 2)) uint8_t;
 
     if (isMAX()) {
+        // make sure we have max 8 chips in the daisy chain
+        if (numDevices > 8) numDevices = 8;
+
         if (!FitInMemory(sizeof(uint8_t) * numDevices * 8))
             return false;
         digitBuffer = new (allocateMemory(sizeof(uint8_t) * numDevices * 8)) uint8_t;
