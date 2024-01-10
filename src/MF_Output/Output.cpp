@@ -51,9 +51,9 @@ namespace Output
     
         // Set led
         if (state == 0xFF)
-            digitalWrite(pin, HIGH);
+            digitalWrite(pin, MF_HIGH);
         else if (state == 0x00)
-            digitalWrite(pin, LOW);
+            digitalWrite(pin, MF_LOW);
         else
             analogWrite(pin, state);
     }
