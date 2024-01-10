@@ -8,6 +8,14 @@
 
 #include <Arduino.h>
 
+#ifdef REVERSED_OUTPUT_OUTPUT
+    #define MF_HIGH LOW
+    #define MF_LOW  HIGH
+#else
+    #define MF_HIGH HIGH
+    #define MF_LOW  LOW
+#endif
+
 class MFOutputShifter
 {
 public:
