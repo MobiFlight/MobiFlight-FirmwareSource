@@ -15,11 +15,17 @@ if firmware_version == "":
 firmware_version = firmware_version.lstrip("v")
 firmware_version = firmware_version.strip(".")
 
-print(f'Using version {firmware_version} for the build')
+# The community devices have a slightly different version where the
+# core firmware version is defined within there .ini file
+# For the core FW both versions are always the same
+core_firmware_version = firmware_version
 
-# Append the version to the build defines so it gets baked into the firmware
+print(f'Using version {firmware_version} for the build')
+print(f'Using version {core_firmware_version} as core version')
+
+# Append the version and core version to the build defines so it gets baked into the firmware
 env.Append(CPPDEFINES=[
-  f'BUILD_VERSION={firmware_version}'
+  f'BUILD_VERSION={firmware_version}', f'CORE_BUILD_VERSION={core_firmware_version}'
 ])
 
 # Set the output filename to the name of the board and the version

@@ -120,6 +120,9 @@ void SetPowerSavingMode(bool state)
 #if MF_STEPPER_SUPPORT == 1
     Stepper::PowerSave(state);
 #endif
+#if MF_CUSTOMDEVICE_SUPPORT == 1
+    CustomDevice::PowerSave(state);
+#endif
 
 #ifdef DEBUG2CMDMESSENGER
     if (state)

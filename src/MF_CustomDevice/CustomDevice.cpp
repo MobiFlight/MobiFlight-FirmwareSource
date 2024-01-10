@@ -6,6 +6,9 @@
     Normally nothing has to be changed in this file
     It handles one or multiple custom devices
 ********************************************************************************** */
+
+#define MESSAGEID_POWERSAVINGMODE -2
+
 namespace CustomDevice
 {
     MFCustomDevice *customDevice;
@@ -82,6 +85,22 @@ namespace CustomDevice
         char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
         customDevice[device].set(messageID, output);      // send the string to your custom device
+    }
+
+    /* **********************************************************************************
+        This function is called if the status of the PowerSavingMode changes.
+        'state' is true if PowerSaving is enabled
+        'state' is false if PowerSaving is disabled
+        MessageID '-2' for the custom device  for PowerSavingMode
+    ********************************************************************************** */
+    void PowerSave(bool state)
+    {
+        for (uint8_t i = 0; i < customDeviceRegistered; ++i) {
+            if (state)
+                customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "1");
+            else
+                customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "0");
+        }
     }
 
 } // end of namespace
