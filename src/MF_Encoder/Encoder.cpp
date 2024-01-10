@@ -40,7 +40,11 @@ namespace Encoder
         MFEncoder::attachHandler(handlerOnEncoder);
         encodersRegistered++;
 #ifdef DEBUG2CMDMESSENGER
-        cmdMessenger.sendCmd(kDebug, F("Added encoder"));
+        cmdMessenger.sendCmdStart(kDebug);
+        cmdMessenger.sendCmdArg(F("Added encoder with "));
+        cmdMessenger.sendCmdArg(sizeof(MFEncoder));
+        cmdMessenger.sendCmdArg(F(" byte"));
+        cmdMessenger.sendCmdEnd();
 #endif
     }
 
