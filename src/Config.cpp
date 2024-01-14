@@ -88,7 +88,7 @@ bool readConfigLength()
     configLength        = 0;
 
     if (MFeeprom.read_byte(MEM_OFFSET_CONFIG) == 0xFF)
-        return;
+        return false;
     while (MFeeprom.read_byte(addreeprom++) != 0x00) {
         configLength++;
         if (addreeprom > length) {
