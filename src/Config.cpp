@@ -641,16 +641,15 @@ void generateSerial(bool force)
     // used as starting point. It is very unlikely that the time between flashing the firmware
     // and getting the command to send the info's to the connector is always the same.
     // additional double check if it's really a new board, should reduce Jaimes problem
-    generateRandomSerial();
+    if (MFeeprom.read_byte(MEM_OFFSET_CONFIG) == 0xFF) {
+        generateRandomSerial();
+    }
 #elif defined(ARDUINO_ARCH_RP2040)
     // Read the uniqueID for Pico's and use it as serial number
     readUniqueSerial();
     // mark this in the eeprom that a UniqueID is used on first start up for Pico's
     MFeeprom.write_block(MEM_OFFSET_SERIAL, "ID", 2);
 #endif
-    if (MFeeprom.read_byte(MEM_OFFSET_CONFIG) == 0xFF) {
-        MFeeprom.write_block(MEM_OFFSET_CONFIG, 0x00);
-    }
 }
 
 void OnGenNewSerial()
