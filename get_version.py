@@ -2,6 +2,13 @@ Import("env")
 import os, zipfile, shutil
 from pathlib import Path
 
+zip_file_name = 'Mobiflight-Connector'
+build_path = './_build'
+build_path_fw = build_path + '/firmware'
+build_path_json = build_path + '/Boards'
+distrubution_path = './_dist'
+source_folders = ['./_Boards']
+
 # Get the version number from the build environment.
 firmware_version = os.environ.get('VERSION', "")
 
@@ -33,13 +40,6 @@ env.Append(CPPDEFINES=[
 env.Replace(PROGNAME=f'{env["PIOENV"]}_{firmware_version.replace(".", "_")}')
 
 
-zip_file_name = 'Mobiflight-Connector'
-build_path = './_build'
-build_path_fw = build_path + '/firmware'
-build_path_json = build_path + '/Boards'
-distrubution_path = './_dist'
-source_folders = ['./_Boards']
-
 def copy_fw_files (source, target, env):
     fw_file_name=str(target[0])
 
@@ -50,9 +50,11 @@ def copy_fw_files (source, target, env):
 
     if fw_file_name[-3:] == "bin":
         fw_file_name=fw_file_name[0:-3] + "uf2"
-    
+
+    # Copy build FW file
     shutil.copy(fw_file_name, build_path_fw)
 
+    # Copy reset/uf2/json files
     file_extension = '.hex'
     copy_files_by_extension(source_folders, build_path_fw, file_extension)
     file_extension = '.uf2'
@@ -60,7 +62,10 @@ def copy_fw_files (source, target, env):
     file_extension = '.json'
     copy_files_by_extension(source_folders, build_path_json, file_extension)
 
-    createCommunityZipFile(source, target, env)
+    # Create ZIP file and add files from distrubution folder
+    zip_file_path = distrubution_path + '/' + zip_file_name + '_' + firmware_version + '.zip'
+    createZIP(build_path, zip_file_path, zip_file_name)
+
 
 def copy_files_by_extension(source_folders, target_folder, file_extension):
     for source_folder in source_folders:
@@ -71,11 +76,6 @@ def copy_files_by_extension(source_folders, target_folder, file_extension):
                     target_path = os.path.join(target_folder, file)
                     shutil.copy2(source_path, target_path)
 
-def createCommunityZipFile(source, target, env):
-    original_folder_path = build_path
-    zip_file_path = distrubution_path + '/' + zip_file_name + '_' + firmware_version + '.zip'
-    new_folder_in_zip = zip_file_name
-    createZIP(original_folder_path, zip_file_path, new_folder_in_zip)
 
 def createZIP(original_folder_path, zip_file_path, new_folder_name):
     if os.path.exists(distrubution_path) == False:
