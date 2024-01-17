@@ -590,7 +590,7 @@ void generateRandomSerial()
         randomSerial >>= 4;
     }
     MFeeprom.write_block(MEM_OFFSET_SERIAL, serial, MEM_LEN_SERIAL);
-    cmdMessenger.sendCmd(kInfo, F("Serial number generated"));
+    cmdMessenger.sendCmd(kDebug, F("Serial number generated"));
 }
 
 #if defined(ARDUINO_ARCH_RP2040)
