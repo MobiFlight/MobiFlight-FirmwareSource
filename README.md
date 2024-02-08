@@ -10,6 +10,8 @@ build. To enable long paths type the following in a terminal window:
 git config --global core.longpaths true
 ```
 
+If you still receive an error then [enable long paths support in Windows](https://www.thewindowsclub.com/how-to-enable-or-disable-win32-long-paths-in-windows-11-10).
+
 ## Building
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/Download)
