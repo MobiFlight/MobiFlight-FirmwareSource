@@ -38,7 +38,7 @@ bool MFEEPROM::write_byte(uint16_t adr, const uint8_t data)
     // Communication with Core1
     // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
     // #########################################################################
-    multicore_fifo_push_blocking(CORE1_CMD_STOP);
+    multicore_fifo_push_blocking(CORE1_CMD | CORE1_CMD_STOP);
     multicore_lockout_start_blocking();
 #endif
 #if defined(ARDUINO_ARCH_RP2040)
