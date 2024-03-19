@@ -7,6 +7,9 @@
 #pragma once
 
 #include <EEPROM.h>
+#if defined(USE_2ND_CORE)
+#include "MFCustomDevice.h"
+#endif
 
 class MFEEPROM
 {

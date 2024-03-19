@@ -7,9 +7,6 @@
 #include <Arduino.h>
 #include "MFEEPROM.h"
 #include "MFBoards.h"
-#if defined(USE_2ND_CORE)
-#include "MFCustomDevice.h"
-#endif
 
 MFEEPROM::MFEEPROM() {}
 
