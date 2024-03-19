@@ -102,5 +102,11 @@ namespace CustomDevice
                 customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "0");
         }
     }
+#if defined(USE_2ND_CORE)
+    void init_2ndCore()
+    {
+        MFCustomDevice_init_2ndCore();
+    }
+#endif
 
 } // end of namespace

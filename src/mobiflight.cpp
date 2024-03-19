@@ -163,6 +163,9 @@ void setup()
     cmdMessenger.printLfCr();
     ResetBoard();
     initPollIntervals();
+#if defined(USE_2ND_CORE)
+    CustomDevice::init_2ndCore();
+#endif
 }
 
 // ************************************************************

@@ -8,4 +8,7 @@ namespace CustomDevice
     void update();
     void OnSet();
     void PowerSave(bool state);
+#if defined(USE_2ND_CORE)
+    void init_2ndCore();
+#endif
 }
