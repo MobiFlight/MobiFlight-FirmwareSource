@@ -8,7 +8,7 @@
 
 #include <EEPROM.h>
 #if defined(USE_2ND_CORE)
-#include "MFCustomDevice.h"
+#include "CustomDevice.h"
 #endif
 
 class MFEEPROM
