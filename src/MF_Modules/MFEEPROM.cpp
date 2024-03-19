@@ -41,7 +41,9 @@ bool MFEEPROM::write_byte(uint16_t adr, const uint8_t data)
     multicore_fifo_push_blocking(CORE1_CMD_STOP);
     multicore_lockout_start_blocking();
 #endif
-    EEPROM.commit();
+#if defined(ARDUINO_ARCH_RP2040)
+        EEPROM.commit();
+#endif
 #if defined(ARDUINO_ARCH_RP2040) && defined(USE_2ND_CORE)
     multicore_lockout_end_blocking();
 #endif
