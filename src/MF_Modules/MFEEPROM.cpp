@@ -39,7 +39,7 @@ bool MFEEPROM::write_byte(uint16_t adr, const uint8_t data)
         // Communication with Core1
         // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
         // #########################################################################
-        multicore_fifo_push_blocking(CORE1_CMD | CORE1_CMD_STOP);
+        multicore_fifo_push_blocking(CORE1_CMD_STOP);
         multicore_lockout_start_blocking();
 #endif
         EEPROM.commit();

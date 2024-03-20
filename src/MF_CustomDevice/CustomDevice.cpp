@@ -87,13 +87,16 @@ namespace CustomDevice
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
 
 #if defined(USE_2ND_CORE)
+    strncpy(payload, output, DSERIAL_RX_BUFFER_SIZE);
     // #########################################################################
     // Communication with Core1
+    // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
     // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
     // #########################################################################
-    multicore_fifo_push_blocking(CORE1_DATA | CORE1_DATA_DEVICE     | (device & 0x00FFFFFF));
-    multicore_fifo_push_blocking(CORE1_DATA | CORE1_DATA_MESSAGE_ID | (messageID & 0x00FFFFFF));
-    multicore_fifo_push_blocking(CORE1_CMD | CORE1_CMD_SEND);
+    multicore_fifo_push_blocking(CORE1_CMD_SEND);
+    multicore_fifo_push_blocking(device);
+    multicore_fifo_push_blocking(messageID);
+    //multicore_fifo_push_blocking(payload);
 #else
     customDevice[device].set(messageID, output);      // send the string to your custom device
 #endif
@@ -121,22 +124,26 @@ namespace CustomDevice
         static uint32_t receivedDevice, receivedMessageID, receivedPayload;
         // #########################################################################
         // Communication with Core0
+        // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
         // see https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
         // #########################################################################
         if (multicore_fifo_rvalid()) {
             uint32_t dataCore0 = multicore_fifo_pop_blocking();
-            if (dataCore0 & CORE1_CMD) {      // check if bit 32 is set to 1
-                if (dataCore0 & CORE1_CMD_STOP)
-                    multicore_lockout_victim_init();
-                if (dataCore0 & CORE1_CMD_SEND)
-                    customDevice[receivedDevice].set(receivedMessageID, output);
-            } else {    // bit 32 is set to 0
-                if (dataCore0 & CORE1_DATA_DEVICE)
-                    receivedDevice = dataCore0 & 0x00FFFFFF;
-                if (dataCore0 & CORE1_DATA_MESSAGE_ID)
-                    receivedMessageID = dataCore0 & 0x00FFFFFF;
-                if (dataCore0 & CORE1_DATA_PAYLOAD)
-                    receivedPayload = dataCore0 & 0x00FFFFFF;
+            switch (dataCore0)
+            {
+            case CORE1_CMD_STOP:
+                multicore_lockout_victim_init();
+                break;
+            
+            case CORE1_CMD_SEND:
+                receivedDevice = multicore_fifo_pop_blocking();
+                receivedMessageID = multicore_fifo_pop_blocking();
+                //receivedPayload = multicore_fifo_pop_blocking();
+                customDevice[receivedDevice].set(receivedMessageID, payload);
+                break;
+            
+            default:
+                break;
             }
         }
     }
