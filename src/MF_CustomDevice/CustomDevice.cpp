@@ -89,7 +89,6 @@ namespace CustomDevice
 #if defined(USE_2ND_CORE)
     // #########################################################################
     // Communication with Core1
-    // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
     // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
     // #########################################################################
     multicore_fifo_push_blocking(CORE1_DATA | CORE1_DATA_DEVICE     | (device & 0x00FFFFFF));
@@ -122,7 +121,6 @@ namespace CustomDevice
         static uint32_t receivedDevice, receivedMessageID, receivedPayload;
         // #########################################################################
         // Communication with Core0
-        // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
         // see https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
         // #########################################################################
         if (multicore_fifo_rvalid()) {

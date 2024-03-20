@@ -1,9 +1,8 @@
 #pragma once
 
-#if defined(ARDUINO_ARCH_RP2040) && defined(USE_2ND_CORE)
+#if defined(USE_2ND_CORE)
 // #########################################################################
 // For Communication with Core1
-// see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
 // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
 // #########################################################################
 #define CORE1_CMD        (1 << 31)

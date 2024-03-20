@@ -47,19 +47,19 @@ public:
     {
         if (adr + sizeof(T) > _eepromLength) return false;
         EEPROM.put(adr, t);
-#if defined(ARDUINO_ARCH_RP2040) && defined(USE_2ND_CORE)
+#if defined(ARDUINO_ARCH_RP2040)
+#if defined(USE_2ND_CORE)
         // #########################################################################
         // Communication with Core1
-        // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
+        // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
         // #########################################################################
         multicore_fifo_push_blocking(CORE1_CMD | CORE1_CMD_STOP);
         multicore_lockout_start_blocking();
 #endif
-#if defined(ARDUINO_ARCH_RP2040)
         EEPROM.commit();
-#endif
-#if defined(ARDUINO_ARCH_RP2040) && defined(USE_2ND_CORE)
+#if defined(USE_2ND_CORE)
         multicore_lockout_end_blocking();
+#endif
 #endif
         return true;
     }
@@ -71,19 +71,19 @@ public:
         for (uint16_t i = 0; i < len; i++) {
             EEPROM.put(adr + i, t[i]);
         }
-#if defined(ARDUINO_ARCH_RP2040) && defined(USE_2ND_CORE)
+#if defined(ARDUINO_ARCH_RP2040)
+#if defined(USE_2ND_CORE)
         // #########################################################################
         // Communication with Core1
-        // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
+        // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
         // #########################################################################
         multicore_fifo_push_blocking(CORE1_CMD | CORE1_CMD_STOP);
         multicore_lockout_start_blocking();
 #endif
-#if defined(ARDUINO_ARCH_RP2040)
         EEPROM.commit();
-#endif
-#if defined(ARDUINO_ARCH_RP2040) && defined(USE_2ND_CORE)
+#if defined(USE_2ND_CORE)
         multicore_lockout_end_blocking();
+#endif
 #endif
         return true;
     }
