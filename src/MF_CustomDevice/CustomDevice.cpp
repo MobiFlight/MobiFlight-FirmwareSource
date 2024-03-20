@@ -14,7 +14,9 @@ namespace CustomDevice
     MFCustomDevice *customDevice;
     uint8_t         customDeviceRegistered = 0;
     uint8_t         maxCustomDevices       = 0;
-    char            *output;
+#if defined(USE_2ND_CORE)
+    char payload[SERIAL_RX_BUFFER_SIZE];
+#endif
 
     bool setupArray(uint16_t count)
     {
@@ -82,21 +84,20 @@ namespace CustomDevice
         int16_t device = cmdMessenger.readInt16Arg(); // get the device number
         if (device >= customDeviceRegistered)         // and do nothing if this device is not registered
             return;
-        int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
-        output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
-        cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
-
+        int16_t messageID = cmdMessenger.readInt16Arg(); // get the messageID number
+        char* output    = cmdMessenger.readStringArg();  // get the pointer to the new raw string
+        cmdMessenger.unescape(output);                   // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
-    strncpy(payload, output, DSERIAL_RX_BUFFER_SIZE);
+    strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
     // #########################################################################
     // Communication with Core1
-    // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
     // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
     // #########################################################################
     multicore_fifo_push_blocking(CORE1_CMD_SEND);
     multicore_fifo_push_blocking(device);
     multicore_fifo_push_blocking(messageID);
-    //multicore_fifo_push_blocking(payload);
+    multicore_fifo_push_blocking((uint32_t)&payload);
+
 #else
     customDevice[device].set(messageID, output);      // send the string to your custom device
 #endif
@@ -121,25 +122,21 @@ namespace CustomDevice
 #if defined(USE_2ND_CORE)
     void checkDataFromCore0()
     {
-        static uint32_t receivedDevice, receivedMessageID, receivedPayload;
+        static uint32_t receivedDevice, receivedMessageID;
+        char *receivedPayload;
         // #########################################################################
         // Communication with Core0
-        // see https://raspberrypi.github.io/pico-sdk-doxygen/group__multicore__fifo.html
         // see https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
         // #########################################################################
         if (multicore_fifo_rvalid()) {
             uint32_t dataCore0 = multicore_fifo_pop_blocking();
             switch (dataCore0)
             {
-            case CORE1_CMD_STOP:
-                multicore_lockout_victim_init();
-                break;
-            
             case CORE1_CMD_SEND:
                 receivedDevice = multicore_fifo_pop_blocking();
                 receivedMessageID = multicore_fifo_pop_blocking();
-                //receivedPayload = multicore_fifo_pop_blocking();
-                customDevice[receivedDevice].set(receivedMessageID, payload);
+                receivedPayload = (char*)multicore_fifo_pop_blocking();
+                customDevice[receivedDevice].set(receivedMessageID, receivedPayload);
                 break;
             
             default:

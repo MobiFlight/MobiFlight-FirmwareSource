@@ -5,8 +5,7 @@
 // For Communication with Core1
 // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
 // #########################################################################
-#define CORE1_CMD_STOP   (1 << 0)
-#define CORE1_CMD_SEND   (1 << 1)
+#define CORE1_CMD_SEND   (1 << 0)
 #endif
 
 namespace CustomDevice
@@ -19,6 +18,5 @@ namespace CustomDevice
     void PowerSave(bool state);
 #if defined(USE_2ND_CORE)
     void init_2ndCore();
-    char payload[SERIAL_RX_BUFFER_SIZE];
 #endif
 }

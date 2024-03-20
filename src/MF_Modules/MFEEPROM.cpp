@@ -35,16 +35,11 @@ bool MFEEPROM::write_byte(uint16_t adr, const uint8_t data)
     EEPROM.write(adr, data);
 #if defined(ARDUINO_ARCH_RP2040)
 #if defined(USE_2ND_CORE)
-        // #########################################################################
-        // Communication with Core1
-        // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
-        // #########################################################################
-        multicore_fifo_push_blocking(CORE1_CMD_STOP);
-        multicore_lockout_start_blocking();
+        rp2040.idleOtherCore();
 #endif
         EEPROM.commit();
 #if defined(USE_2ND_CORE)
-        multicore_lockout_end_blocking();
+        rp2040.resumeOtherCore();
 #endif
 #endif
     return true;
