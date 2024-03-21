@@ -34,7 +34,7 @@ bool MFEEPROM::write_byte(uint16_t adr, const uint8_t data)
     if (adr >= _eepromLength) return false;
     EEPROM.write(adr, data);
 #if defined(ARDUINO_ARCH_RP2040)
-        EEPROM.commit();
+    EEPROM.commit();
 #endif
     return true;
 }
