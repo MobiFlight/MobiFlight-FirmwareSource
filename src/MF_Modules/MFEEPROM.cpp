@@ -38,4 +38,5 @@ bool MFEEPROM::write_byte(uint16_t adr, const uint8_t data)
 #endif
     return true;
 }
+
 // MFEEPROM.cpp
