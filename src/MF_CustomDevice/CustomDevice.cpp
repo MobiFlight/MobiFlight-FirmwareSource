@@ -92,6 +92,7 @@ namespace CustomDevice
         cmdMessenger.unescape(output);                   // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
     strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
+    //rp2040.fifo.push((uintptr_t) &customDevice[device].set);
     rp2040.fifo.push(device);
     rp2040.fifo.push(messageID);
     rp2040.fifo.push((uint32_t)&payload);
@@ -127,9 +128,11 @@ void loop1() {
     char *payload;
     while (1) {
         if (rp2040.fifo.available() == 3) {
+            //int32_t (*func)() = (int32_t(*)()) rp2040.fifo.pop();
             device = rp2040.fifo.pop();
             messageID = rp2040.fifo.pop();
             payload = (char*)rp2040.fifo.pop();
+            //(*func)(messageID, payload);
             CustomDevice::customDevice[device].set(messageID, payload);
         }
     }
