@@ -1,6 +1,9 @@
 #include "mobiflight.h"
 #include "CustomDevice.h"
 #include "MFCustomDevice.h"
+#if defined(USE_2ND_CORE)
+#include "pico/util/queue.h"
+#endif
 
 /* **********************************************************************************
     Normally nothing has to be changed in this file
@@ -89,14 +92,9 @@ namespace CustomDevice
         cmdMessenger.unescape(output);                   // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
     strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
-    // #########################################################################
-    // Communication with Core1
-    // https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
-    // #########################################################################
-    multicore_fifo_push_blocking(CORE1_CMD_SEND);
-    multicore_fifo_push_blocking(device);
-    multicore_fifo_push_blocking(messageID);
-    multicore_fifo_push_blocking((uint32_t)&payload);
+    rp2040.fifo.push(device);
+    rp2040.fifo.push(messageID);
+    rp2040.fifo.push((uint32_t)&payload);
 
 #else
     customDevice[device].set(messageID, output);      // send the string to your custom device
@@ -118,46 +116,21 @@ namespace CustomDevice
                 customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "0");
         }
     }
-
-#if defined(USE_2ND_CORE)
-    void checkDataFromCore0()
-    {
-        static uint32_t receivedDevice, receivedMessageID;
-        char *receivedPayload;
-        // #########################################################################
-        // Communication with Core0
-        // see https://www.raspberrypi.com/documentation/pico-sdk/high_level.html#pico_multicore
-        // #########################################################################
-        if (multicore_fifo_rvalid()) {
-            uint32_t dataCore0 = multicore_fifo_pop_blocking();
-            switch (dataCore0)
-            {
-            case CORE1_CMD_SEND:
-                receivedDevice = multicore_fifo_pop_blocking();
-                receivedMessageID = multicore_fifo_pop_blocking();
-                receivedPayload = (char*)multicore_fifo_pop_blocking();
-                customDevice[receivedDevice].set(receivedMessageID, receivedPayload);
-                break;
-            
-            default:
-                break;
-            }
-        }
-    }
-
-    void loop_2ndCore()
-    {
-        while(1)
-        {
-            checkDataFromCore0();
-        }
-    }
-
-    void init_2ndCore()
-    {
-        multicore_launch_core1(loop_2ndCore);
-    }
-
-#endif
-
 } // end of namespace
+
+void setup1() {
+    // Nothing ToDo
+}
+
+void loop1() {
+    int32_t device, messageID;
+    char *payload;
+    while (1) {
+        if (rp2040.fifo.available() == 3) {
+            device = rp2040.fifo.pop();
+            messageID = rp2040.fifo.pop();
+            payload = (char*)rp2040.fifo.pop();
+            CustomDevice::customDevice[device].set(messageID, payload);
+        }
+    }
+}

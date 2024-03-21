@@ -45,13 +45,7 @@ public:
         if (adr + sizeof(T) > _eepromLength) return false;
         EEPROM.put(adr, t);
 #if defined(ARDUINO_ARCH_RP2040)
-#if defined(USE_2ND_CORE)
-        rp2040.idleOtherCore();
-#endif
         EEPROM.commit();
-#if defined(USE_2ND_CORE)
-        rp2040.resumeOtherCore();
-#endif
 #endif
         return true;
     }
@@ -64,13 +58,7 @@ public:
             EEPROM.put(adr + i, t[i]);
         }
 #if defined(ARDUINO_ARCH_RP2040)
-#if defined(USE_2ND_CORE)
-        rp2040.idleOtherCore();
-#endif
         EEPROM.commit();
-#if defined(USE_2ND_CORE)
-        rp2040.resumeOtherCore();
-#endif
 #endif
         return true;
     }
