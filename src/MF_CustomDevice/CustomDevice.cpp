@@ -1,6 +1,9 @@
 #include "mobiflight.h"
 #include "CustomDevice.h"
 #include "MFCustomDevice.h"
+#if defined(USE_2ND_CORE)
+#include <FreeRTOS.h>
+#endif
 
 /* **********************************************************************************
     Normally nothing has to be changed in this file
@@ -93,7 +96,6 @@ namespace CustomDevice
     rp2040.fifo.push(device);
     rp2040.fifo.push(messageID);
     rp2040.fifo.push((uint32_t)&payload);
-
 #else
     customDevice[device].set(messageID, output);      // send the string to your custom device
 #endif
