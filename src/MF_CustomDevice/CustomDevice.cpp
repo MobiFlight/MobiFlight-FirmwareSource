@@ -1,9 +1,6 @@
 #include "mobiflight.h"
 #include "CustomDevice.h"
 #include "MFCustomDevice.h"
-#if defined(USE_2ND_CORE)
-#include "pico/util/queue.h"
-#endif
 
 /* **********************************************************************************
     Normally nothing has to be changed in this file
