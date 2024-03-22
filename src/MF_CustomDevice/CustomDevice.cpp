@@ -118,6 +118,7 @@ namespace CustomDevice
     }
 } // end of namespace
 
+#if defined(USE_2ND_CORE)
 void setup1() {
     // Nothing ToDo
 }
@@ -126,7 +127,7 @@ void loop1() {
     int32_t device, messageID;
     char *payload;
     while (1) {
-        if (rp2040.fifo.available() == 3) {
+        if (rp2040.fifo.available() > 2) {
             //int32_t (*func)() = (int32_t(*)()) rp2040.fifo.pop();
             device = rp2040.fifo.pop();
             messageID = rp2040.fifo.pop();
@@ -136,3 +137,4 @@ void loop1() {
         }
     }
 }
+#endif
