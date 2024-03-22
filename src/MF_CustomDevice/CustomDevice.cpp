@@ -87,17 +87,17 @@ namespace CustomDevice
         int16_t device = cmdMessenger.readInt16Arg(); // get the device number
         if (device >= customDeviceRegistered)         // and do nothing if this device is not registered
             return;
-        int16_t messageID = cmdMessenger.readInt16Arg(); // get the messageID number
-        char* output    = cmdMessenger.readStringArg();  // get the pointer to the new raw string
-        cmdMessenger.unescape(output);                   // and unescape the string if escape characters are used
+        int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
+        char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
+        cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
-    strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
-    //rp2040.fifo.push((uintptr_t) &customDevice[device].set);
-    rp2040.fifo.push(device);
-    rp2040.fifo.push(messageID);
-    rp2040.fifo.push((uint32_t)&payload);
+        strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
+        // rp2040.fifo.push((uintptr_t) &customDevice[device].set);
+        rp2040.fifo.push(device);
+        rp2040.fifo.push(messageID);
+        rp2040.fifo.push((uint32_t)&payload);
 #else
-    customDevice[device].set(messageID, output);      // send the string to your custom device
+        customDevice[device].set(messageID, output); // send the string to your custom device
 #endif
     }
 
@@ -119,19 +119,21 @@ namespace CustomDevice
 } // end of namespace
 
 #if defined(USE_2ND_CORE)
-void setup1() {
+void setup1()
+{
     // Nothing ToDo
 }
 
-void loop1() {
+void loop1()
+{
     int32_t device, messageID;
-    char *payload;
+    char   *payload;
     while (1) {
         if (rp2040.fifo.available() > 2) {
-            //int32_t (*func)() = (int32_t(*)()) rp2040.fifo.pop();
-            device = rp2040.fifo.pop();
-            messageID = rp2040.fifo.pop();
-            payload = (char*)rp2040.fifo.pop();
+            // int32_t (*func)() = (int32_t(*)()) rp2040.fifo.pop();
+            device    = (int16_t)rp2040.fifo.pop();
+            messageID = (int16_t)rp2040.fifo.pop();
+            payload   = (char *)rp2040.fifo.pop();
             //(*func)(messageID, payload);
             CustomDevice::customDevice[device].set(messageID, payload);
         }
