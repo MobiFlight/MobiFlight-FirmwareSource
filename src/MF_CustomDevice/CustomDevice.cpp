@@ -92,7 +92,7 @@ namespace CustomDevice
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
         strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
-        // rp2040.fifo.push((uintptr_t) &customDevice[device].set);
+        // rp2040.fifo.push((uintptr_t) &customDevice[device].set); // Hmhm, how to get the function pointer to a function from class??
         rp2040.fifo.push(device);
         rp2040.fifo.push(messageID);
         rp2040.fifo.push((uint32_t)&payload);
@@ -119,6 +119,13 @@ namespace CustomDevice
 } // end of namespace
 
 #if defined(USE_2ND_CORE)
+/* **********************************************************************************
+    This will run the set() function from the custom device on the 2nd core
+    Be aware NOT to use the function calls from the Pico SDK!
+    Only use the functions from the used framework from EarlePhilHower
+    If you mix them up it will give undefined behaviour and strange effects
+    see https://arduino-pico.readthedocs.io/en/latest/multicore.html
+********************************************************************************** */
 void setup1()
 {
     // Nothing ToDo
@@ -130,11 +137,11 @@ void loop1()
     char   *payload;
     while (1) {
         if (rp2040.fifo.available() > 2) {
-            // int32_t (*func)() = (int32_t(*)()) rp2040.fifo.pop();
+            // int32_t (*func)(int16_t, char*) = (int32_t(*)(int16_t, char*)) rp2040.fifo.pop();
             device    = (int16_t)rp2040.fifo.pop();
             messageID = (int16_t)rp2040.fifo.pop();
             payload   = (char *)rp2040.fifo.pop();
-            //(*func)(messageID, payload);
+            // (*func)(messageID, payload);
             CustomDevice::customDevice[device].set(messageID, payload);
         }
     }
