@@ -92,6 +92,10 @@ namespace CustomDevice
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
         strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
+        while (!rp2040.fifo.available()) {
+            // Just wait for core 1 to be ready
+        }
+        rp2040.fifo.pop();
         // rp2040.fifo.push((uintptr_t) &customDevice[device].set); // Hmhm, how to get the function pointer to a function from class??
         rp2040.fifo.push(device);
         rp2040.fifo.push(messageID);
@@ -135,6 +139,8 @@ void loop1()
 {
     int32_t device, messageID;
     char   *payload;
+    // send ready "ready" message to core 0
+    rp2040.fifo.push(true);
     while (1) {
         if (rp2040.fifo.available() > 2) {
             // int32_t (*func)(int16_t, char*) = (int32_t(*)(int16_t, char*)) rp2040.fifo.pop();
@@ -143,6 +149,7 @@ void loop1()
             payload   = (char *)rp2040.fifo.pop();
             // (*func)(messageID, payload);
             CustomDevice::customDevice[device].set(messageID, payload);
+            rp2040.fifo.push(true);
         }
     }
 }
