@@ -1,6 +1,9 @@
 #include "mobiflight.h"
 #include "CustomDevice.h"
 #include "MFCustomDevice.h"
+#if defined(USE_2ND_CORE)
+#include <FreeRTOS.h>
+#endif
 
 /* **********************************************************************************
     Normally nothing has to be changed in this file
@@ -14,6 +17,9 @@ namespace CustomDevice
     MFCustomDevice *customDevice;
     uint8_t         customDeviceRegistered = 0;
     uint8_t         maxCustomDevices       = 0;
+#if defined(USE_2ND_CORE)
+    char payload[SERIAL_RX_BUFFER_SIZE];
+#endif
 
     bool setupArray(uint16_t count)
     {
@@ -84,7 +90,19 @@ namespace CustomDevice
         int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
         char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
-        customDevice[device].set(messageID, output);      // send the string to your custom device
+#if defined(USE_2ND_CORE)
+        while (!rp2040.fifo.available()) {
+            // Just wait for core 1 to be ready
+        }
+        strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
+        rp2040.fifo.pop();
+        // rp2040.fifo.push((uintptr_t) &customDevice[device].set); // Hmhm, how to get the function pointer to a function from class??
+        rp2040.fifo.push(device);
+        rp2040.fifo.push(messageID);
+        rp2040.fifo.push((uint32_t)&payload);
+#else
+        customDevice[device].set(messageID, output); // send the string to your custom device
+#endif
     }
 
     /* **********************************************************************************
@@ -102,5 +120,37 @@ namespace CustomDevice
                 customDevice[i].set(MESSAGEID_POWERSAVINGMODE, "0");
         }
     }
-
 } // end of namespace
+
+#if defined(USE_2ND_CORE)
+/* **********************************************************************************
+    This will run the set() function from the custom device on the 2nd core
+    Be aware NOT to use the function calls from the Pico SDK!
+    Only use the functions from the used framework from EarlePhilHower
+    If you mix them up it will give undefined behaviour and strange effects
+    see https://arduino-pico.readthedocs.io/en/latest/multicore.html
+********************************************************************************** */
+void setup1()
+{
+    // Nothing ToDo
+}
+
+void loop1()
+{
+    int32_t device, messageID;
+    char   *payload;
+    // send "ready" message to core 0
+    rp2040.fifo.push(true);
+    while (1) {
+        if (rp2040.fifo.available() > 2) {
+            // int32_t (*func)(int16_t, char*) = (int32_t(*)(int16_t, char*)) rp2040.fifo.pop();
+            device    = (int16_t)rp2040.fifo.pop();
+            messageID = (int16_t)rp2040.fifo.pop();
+            payload   = (char *)rp2040.fifo.pop();
+            // (*func)(messageID, payload);
+            CustomDevice::customDevice[device].set(messageID, payload);
+            rp2040.fifo.push(true);
+        }
+    }
+}
+#endif
