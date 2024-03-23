@@ -91,10 +91,10 @@ namespace CustomDevice
         char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
 #if defined(USE_2ND_CORE)
-        strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
         while (!rp2040.fifo.available()) {
             // Just wait for core 1 to be ready
         }
+        strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);
         rp2040.fifo.pop();
         // rp2040.fifo.push((uintptr_t) &customDevice[device].set); // Hmhm, how to get the function pointer to a function from class??
         rp2040.fifo.push(device);
@@ -139,7 +139,7 @@ void loop1()
 {
     int32_t device, messageID;
     char   *payload;
-    // send ready "ready" message to core 0
+    // send "ready" message to core 0
     rp2040.fifo.push(true);
     while (1) {
         if (rp2040.fifo.available() > 2) {
