@@ -19,7 +19,9 @@ changelog:
         - documentation
     - title: Development 💻
       labels:
-        - development    
+        - Code cleanup
+        - development 
+        - Build process
     - title: Bug Fixes (BETA) 🐛
       labels:
         - bug_beta
