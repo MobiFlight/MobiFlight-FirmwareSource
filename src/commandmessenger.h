@@ -47,6 +47,7 @@ enum {
     kSetStepperSpeedAccel,   // 31
     kSetCustomDevice,        // 32
     kSetModuleSingleSegment, // 33
+    kRetriggerDone,          // 34
     kDebug = 0xFF            // 255
 };
 
