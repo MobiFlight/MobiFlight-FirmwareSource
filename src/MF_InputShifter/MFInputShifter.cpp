@@ -26,7 +26,7 @@ bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
 
     pinMode(_latchPin, OUTPUT);
     pinMode(_clockPin, OUTPUT);
-    pinMode(_dataPin, INPUT);
+    pinMode(_dataPin, INPUT_PULLUP);
 
     if (!FitInMemory(sizeof(uint8_t) * _moduleCount))
         return false;
