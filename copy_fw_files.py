@@ -10,7 +10,7 @@ if firmware_version == "":
 firmware_version = firmware_version.lstrip("v")
 firmware_version = firmware_version.strip(".")
 
-zip_file_name = 'Mobiflight-Connector'
+zip_file_name = 'Mobiflight-Firmware'
 build_path = Path('./_build')
 build_path_fw = build_path / 'firmware'
 build_path_json = build_path / 'Boards'

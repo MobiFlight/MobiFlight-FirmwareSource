@@ -15,5 +15,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           prefix: "Board and firmware folder for this pull request:"
-          format: "[Mobiflight-Connector.zip]({url})"
+          format: "[Mobiflight-Firmware.zip]({url})"
           addTo: pull
