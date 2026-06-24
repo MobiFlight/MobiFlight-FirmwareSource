@@ -5,6 +5,7 @@
 //
 
 #include "MFInputShifter.h"
+#include "MFShiftData.h"
 #include "allocateMem.h"
 
 inputShifterEvent MFInputShifter::_inputHandler = NULL;
@@ -61,12 +62,12 @@ void MFInputShifter::poll(uint8_t doTrigger)
     digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
     digitalWrite(_latchPin, HIGH); // Disable input latching and enable shifting
 
-    // Multiple chained modules are handled one at a time. As shiftIn() keeps getting
+    // Multiple chained modules are handled one at a time. As shiftInData() keeps getting
     // called it will pull in the data from each chained module.
     for (uint8_t module = 0; module < _moduleCount; module++) {
         uint8_t currentState;
 
-        currentState = shiftIn(_dataPin, _clockPin, MSBFIRST);
+        currentState = shiftInData(_dataPin, _clockPin, MSBFIRST);
 
         // If an input changed on the current module from the last time it was read
         // then hand it off to figure out which bits specifically changed.

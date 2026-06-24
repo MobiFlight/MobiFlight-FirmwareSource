@@ -11,8 +11,11 @@
 #include "Button.h"
 #include "Encoder.h"
 #include "Output.h"
-#if !defined(ARDUINO_ARCH_AVR)
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_RP2040)
 #include "ArduinoUniqueID.h"
+#endif
+#ifdef ARDUINO_ARCH_RP2040
+#include <pico/unique_id.h>
 #endif
 
 #ifdef MF_ANALOG_SUPPORT
@@ -69,10 +72,13 @@ const uint8_t MEM_OFFSET_SERIAL = MEM_OFFSET_NAME + MEM_LEN_NAME;
 const uint8_t MEM_LEN_SERIAL    = 11;
 const uint8_t MEM_OFFSET_CONFIG = MEM_OFFSET_NAME + MEM_LEN_NAME + MEM_LEN_SERIAL;
 
+// 3 characters for "SN-", n characters for uniqueID plus terminating NULL
 #ifdef ARDUINO_ARCH_AVR
-char serial[11]; // 3 characters for "SN-",7 characters for "xyz-zyx" plus terminating NULL
+char serial[11] = {0};
+#elif ARDUINO_ARCH_RP2040
+char serial[3 + (PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2) + 1] = {0};
 #else
-char serial[3 + UniqueIDsize * 2 + 1]; // 3 characters for "SN-", UniqueID as HEX String, terminating NULL
+char serial[3 + UniqueIDsize * 2 + 1] = {0};
 #endif
 char           name[MEM_LEN_NAME]              = MOBIFLIGHT_NAME;
 const int      MEM_LEN_CONFIG                  = MEMLEN_CONFIG;
@@ -654,11 +660,7 @@ void generateRandomSerial()
     // and getting the command to send the info's to the connector is always the same.
     // additional double check if it's really a new board, should reduce Jaimes problem
     randomSeed(millis());
-    serial[0]             = 'S';
-    serial[1]             = 'N';
-    serial[2]             = '-';
-    serial[6]             = '-';
-    serial[10]            = 0x00;
+    strcpy(serial, "SN-000-000");
     uint16_t randomSerial = random(4095);
     for (uint8_t i = 3; i < 6; i++) {
         serial[i] = (randomSerial & 0x000F) + 48; // convert from 4bit to HEX string
@@ -676,14 +678,16 @@ void generateRandomSerial()
     cmdMessenger.sendCmd(kDebug, F("Serial number generated"));
 #endif
 }
-#endif
-
-#if !defined(ARDUINO_ARCH_AVR)
+#elif ARDUINO_ARCH_RP2040
 void readUniqueSerial()
 {
-    serial[0] = 'S';
-    serial[1] = 'N';
-    serial[2] = '-';
+    strcpy(serial, "SN-");
+    pico_get_unique_board_id_string(serial + 3, sizeof(serial) - 3);
+}
+#else
+void readUniqueSerial()
+{
+    strcpy(serial, "SN-");
     for (size_t i = 0; i < UniqueIDsize; i++) {
         serial[3 + i * 2] = (UniqueID[i] >> 4) + 48;
         if (serial[3 + i * 2] >= 58) serial[3 + i * 2] += 7;
