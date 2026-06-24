@@ -38,6 +38,8 @@ def copy_fw_files (source, target, env):
     copy_files_by_extension(board_folder, build_path_fw, file_extension)
     file_extension = '.json'
     copy_files_by_extension(board_folder, build_path_json, file_extension)
+    file_extension = '.png'
+    copy_files_by_extension(board_folder, build_path_json, file_extension)
 
     # set FW version within boad.json files
     replacements = {
