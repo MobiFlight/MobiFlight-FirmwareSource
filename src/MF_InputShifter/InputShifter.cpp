@@ -29,9 +29,10 @@ namespace InputShifter
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFInputShifter) * count))
-            return false;
-        inputShifter    = new (allocateMemory(sizeof(MFInputShifter) * count)) MFInputShifter;
+        if (!count) return true;
+        inputShifter = static_cast<MFInputShifter *>(MF_ALLOC_TYPE(MFInputShifter, count));
+        if (!inputShifter) return false;
+
         maxInputShifter = count;
         return true;
     }
@@ -40,7 +41,8 @@ namespace InputShifter
     {
         if (inputShifterRegistered == maxInputShifter)
             return;
-        inputShifter[inputShifterRegistered] = MFInputShifter();
+
+        new (&inputShifter[inputShifterRegistered]) MFInputShifter();
         if (!inputShifter[inputShifterRegistered].attach(latchPin, clockPin, dataPin, modules, name)) {
             cmdMessenger.sendCmd(kStatus, F("InputShifter array does not fit into Memory"));
             return;

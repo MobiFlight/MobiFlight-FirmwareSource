@@ -17,9 +17,10 @@ namespace Output
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFOutput) * count))
-            return false;
-        outputs    = new (allocateMemory(sizeof(MFOutput) * count)) MFOutput;
+        if (!count) return true;
+        outputs = static_cast<MFOutput *>(MF_ALLOC_TYPE(MFOutput, count));
+        if (!outputs) return false;
+
         maxOutputs = count;
         return true;
     }
@@ -28,7 +29,8 @@ namespace Output
     {
         if (outputsRegistered == maxOutputs)
             return;
-        outputs[outputsRegistered] = MFOutput();
+
+        new (&outputs[outputsRegistered]) MFOutput();
         outputs[outputsRegistered].attach(pin);
         outputsRegistered++;
 #ifdef DEBUG2CMDMESSENGER
@@ -47,8 +49,8 @@ namespace Output
     void OnSet()
     {
         // Read led state argument, interpret string as boolean
-        int output   = cmdMessenger.readInt16Arg();
-        int state = cmdMessenger.readInt16Arg();
+        int output = cmdMessenger.readInt16Arg();
+        int state  = cmdMessenger.readInt16Arg();
 
         outputs[output].set(state);
     }

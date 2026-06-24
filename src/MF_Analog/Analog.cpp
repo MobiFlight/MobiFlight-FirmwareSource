@@ -29,9 +29,10 @@ namespace Analog
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFAnalog) * count))
-            return false;
-        analog      = new (allocateMemory(sizeof(MFAnalog) * count)) MFAnalog;
+        if (!count) return true;
+        analog = static_cast<MFAnalog *>(MF_ALLOC_TYPE(MFAnalog, count));
+        if (!analog) return false;
+
         maxAnalogIn = count;
         return true;
     }
@@ -41,7 +42,7 @@ namespace Analog
         if (analogRegistered == maxAnalogIn)
             return;
 
-        analog[analogRegistered] = MFAnalog();
+        new (&analog[analogRegistered]) MFAnalog();
         analog[analogRegistered].attach(pin, name, sensitivity, deprecated);
         MFAnalog::attachHandler(handlerOnAnalogChange);
         analogRegistered++;

@@ -17,9 +17,10 @@ namespace Servos
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFServo) * count))
-            return false;
-        servos    = new (allocateMemory(sizeof(MFServo) * count)) MFServo;
+        if (!count) return true;
+        servos = static_cast<MFServo *>(MF_ALLOC_TYPE(MFServo, count));
+        if (!servos) return false;
+
         maxServos = count;
         return true;
     }
@@ -28,7 +29,8 @@ namespace Servos
     {
         if (servosRegistered == maxServos)
             return;
-        servos[servosRegistered] = MFServo();
+
+        new (&servos[servosRegistered]) MFServo();
         servos[servosRegistered].attach(pin, true);
         servosRegistered++;
 #ifdef DEBUG2CMDMESSENGER

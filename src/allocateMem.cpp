@@ -7,26 +7,33 @@
 #include "allocateMem.h"
 #include "commandmessenger.h"
 
-#ifdef ARDUINO_ARCH_AVR
-uint8_t deviceBuffer[MF_MAX_DEVICEMEM] = {0};
-#else
-std::size_t deviceBuffer[MF_MAX_DEVICEMEM] = {0};
-#endif
+alignas(max_align_t) static uint8_t deviceBuffer[MF_MAX_DEVICEMEM] = {0};
+static size_t nextPointer                                          = 0;
 
-uint16_t nextPointer = 0;
-
-#ifdef ARDUINO_ARCH_AVR
-uint8_t *allocateMemory(uint16_t size)
-#else
-std::size_t *allocateMemory(uint16_t size)
-#endif
+static size_t alignUp(size_t value, size_t alignment)
 {
-    uint16_t actualPointer = nextPointer;
-    nextPointer            = actualPointer + size;
-    if (nextPointer >= MF_MAX_DEVICEMEM) {
+    if (alignment == 0) return value;
+
+    size_t remainder = value % alignment;
+    if (remainder == 0) return value;
+
+    return value + (alignment - remainder);
+}
+
+void *allocateMemory(size_t size, size_t alignment)
+{
+    if (size == 0) return nullptr;
+    if (alignment == 0) alignment = 1;
+
+    size_t actualPointer = alignUp(nextPointer, alignment);
+
+    if (actualPointer > MF_MAX_DEVICEMEM || size > MF_MAX_DEVICEMEM - actualPointer) {
         cmdMessenger.sendCmd(kStatus, F("DeviceBuffer Overflow!"));
         return nullptr;
     }
+
+    size_t newPointer = actualPointer + size;
+    nextPointer       = newPointer;
 #ifdef DEBUG2CMDMESSENGER
     cmdMessenger.sendCmdStart(kDebug);
     cmdMessenger.sendCmdArg(F("Bytes added"));
@@ -45,16 +52,8 @@ void ClearMemory()
     nextPointer = 0;
 }
 
-uint16_t GetAvailableMemory()
+size_t GetAvailableMemory()
 {
     return MF_MAX_DEVICEMEM - nextPointer;
 }
-
-bool FitInMemory(uint16_t size)
-{
-    if (nextPointer + size > MF_MAX_DEVICEMEM)
-        return false;
-    return true;
-}
-
 // allocatemem.cpp

@@ -31,9 +31,10 @@ namespace CustomDevice
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFCustomDevice) * count))
-            return false;
-        customDevice     = new (allocateMemory(sizeof(MFCustomDevice) * count)) MFCustomDevice();
+        if (!count) return true;
+        customDevice = static_cast<MFCustomDevice *>(MF_ALLOC_TYPE(MFCustomDevice, count));
+        if (!customDevice) return false;
+
         maxCustomDevices = count;
         return true;
     }
@@ -42,7 +43,7 @@ namespace CustomDevice
     {
         if (customDeviceRegistered == maxCustomDevices)
             return;
-        customDevice[customDeviceRegistered] = MFCustomDevice();
+        new (&customDevice[customDeviceRegistered]) MFCustomDevice();
         customDevice[customDeviceRegistered].attach(adrPin, adrType, adrConfig, configFromFlash);
         customDeviceRegistered++;
 #ifdef DEBUG2CMDMESSENGER

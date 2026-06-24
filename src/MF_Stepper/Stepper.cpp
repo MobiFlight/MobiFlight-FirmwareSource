@@ -28,9 +28,10 @@ namespace Stepper
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFStepper) * count))
-            return false;
-        steppers    = new (allocateMemory(sizeof(MFStepper) * count)) MFStepper;
+        if (!count) return true;
+        steppers = static_cast<MFStepper *>(MF_ALLOC_TYPE(MFStepper, count));
+        if (!steppers) return false;
+
         maxSteppers = count;
         return true;
     }
@@ -39,8 +40,12 @@ namespace Stepper
     {
         if (steppersRegistered == maxSteppers)
             return;
-        steppers[steppersRegistered] = MFStepper();
-        steppers[steppersRegistered].attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput);
+
+        new (&steppers[steppersRegistered]) MFStepper();
+        if (!steppers[steppersRegistered].attach(pin1, pin2, pin3, pin4, btnPin1, mode, backlash, deactivateOutput)) {
+            cmdMessenger.sendCmd(kStatus, F("Stepper array does not fit into Memory"));
+            return;
+        }
 
         if (btnPin1 > 0) {
             // this triggers the auto reset if we need to reset

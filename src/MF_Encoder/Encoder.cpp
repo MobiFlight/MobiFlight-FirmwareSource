@@ -28,9 +28,10 @@ namespace Encoder
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFEncoder) * count))
-            return false;
-        encoders    = new (allocateMemory(sizeof(MFEncoder) * count)) MFEncoder;
+        if (!count) return true;
+        encoders = static_cast<MFEncoder *>(MF_ALLOC_TYPE(MFEncoder, count));
+        if (!encoders) return false;
+
         maxEncoders = count;
         return true;
     }
@@ -39,7 +40,7 @@ namespace Encoder
     {
         if (encodersRegistered == maxEncoders)
             return;
-        encoders[encodersRegistered] = MFEncoder();
+        new (&encoders[encodersRegistered]) MFEncoder();
         encoders[encodersRegistered].attach(pin1, pin2, encoder_type, name);
         MFEncoder::attachHandler(handlerOnEncoder);
         encodersRegistered++;

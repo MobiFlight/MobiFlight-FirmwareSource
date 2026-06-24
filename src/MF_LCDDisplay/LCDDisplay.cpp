@@ -17,9 +17,10 @@ namespace LCDDisplay
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFLCDDisplay) * count))
-            return false;
-        lcd_I2C    = new (allocateMemory(sizeof(MFLCDDisplay) * count)) MFLCDDisplay;
+        if (!count) return true;
+        lcd_I2C = static_cast<MFLCDDisplay *>(MF_ALLOC_TYPE(MFLCDDisplay, count));
+        if (!lcd_I2C) return false;
+
         maxLCD_I2C = count;
         return true;
     }
@@ -28,7 +29,8 @@ namespace LCDDisplay
     {
         if (lcd_12cRegistered == maxLCD_I2C)
             return;
-        lcd_I2C[lcd_12cRegistered] = MFLCDDisplay();
+
+        new (&lcd_I2C[lcd_12cRegistered]) MFLCDDisplay();
         lcd_I2C[lcd_12cRegistered].attach(address, cols, lines);
         lcd_12cRegistered++;
 #ifdef DEBUG2CMDMESSENGER

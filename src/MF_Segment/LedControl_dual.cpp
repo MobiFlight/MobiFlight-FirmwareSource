@@ -140,18 +140,17 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
     _clkPin  = clkPin;
     _csPin   = csPin;
 
-    if (!FitInMemory(sizeof(uint8_t) * numDevices * 2))
-        return false;
-    rawdata = new (allocateMemory(sizeof(uint8_t) * numDevices * 2)) uint8_t;
+    // make sure we have max 8 chips in the daisy chain
+    if (numDevices > 8) numDevices = 8;
+    
+    rawdata = static_cast<uint8_t*>(MF_ALLOC_BYTES(numDevices * 2));
+    if (!rawdata) return false;
 
     if (isMAX()) {
-        // make sure we have max 8 chips in the daisy chain
-        if (numDevices > 8) numDevices = 8;
+        digitBuffer = static_cast<uint8_t*>(MF_ALLOC_BYTES(numDevices * 8));
+        if (!digitBuffer) return false;
 
-        if (!FitInMemory(sizeof(uint8_t) * numDevices * 8))
-            return false;
-        digitBuffer = new (allocateMemory(sizeof(uint8_t) * numDevices * 8)) uint8_t;
-        maxUnits    = numDevices;
+        maxUnits = numDevices;
         pinMode(_dataPin, OUTPUT);
         pinMode(_clkPin, OUTPUT);
         pinMode(_csPin, OUTPUT);

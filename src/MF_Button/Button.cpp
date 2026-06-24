@@ -28,9 +28,10 @@ namespace Button
 
     bool setupArray(uint16_t count)
     {
-        if (!FitInMemory(sizeof(MFButton) * count))
-            return false;
-        buttons    = new (allocateMemory(sizeof(MFButton) * count)) MFButton;
+        if (!count) return true;
+        buttons = static_cast<MFButton *>(MF_ALLOC_TYPE(MFButton, count));
+        if (!buttons) return false;
+
         maxButtons = count;
         return true;
     }
@@ -39,7 +40,7 @@ namespace Button
     {
         if (buttonsRegistered == maxButtons)
             return;
-        buttons[buttonsRegistered] = MFButton();
+        new (&buttons[buttonsRegistered]) MFButton();
         buttons[buttonsRegistered].attach(pin, name);
         MFButton::attachHandler(handlerButtonOnChange);
         buttonsRegistered++;
