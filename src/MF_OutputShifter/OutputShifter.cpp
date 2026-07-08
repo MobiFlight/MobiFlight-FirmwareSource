@@ -74,6 +74,8 @@ namespace OutputShifter
 
     void Resync()
     {
+        // TM1637 updates can shift shared output registers behind the scenes.
+        // Re-apply the currently active output shifter state to keep them aligned.
         for (uint8_t i = 0; i < outputShifterRegistered; ++i) {
             outputShifter[i].powerSavingMode(powerSavingModeActive);
         }

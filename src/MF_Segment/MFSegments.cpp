@@ -16,6 +16,8 @@ namespace
 #ifdef MF_OUTPUT_SHIFTER_SUPPORT
     void syncOutputShiftersForTm1637(LedControl &ledControl)
     {
+        // MAX72xx writes use dedicated latch/data lines. Only TM1637 clocking can
+        // disturb shared output shift register contents and therefore needs a resync.
         if (!ledControl.isMAX()) {
             OutputShifter::Resync();
         }
