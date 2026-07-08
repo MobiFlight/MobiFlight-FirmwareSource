@@ -72,7 +72,8 @@ private:
     uint8_t *rawdata;
 #endif
 
-    uint8_t maxUnits   = 0; // MAX: N. of chained units; TM: N. of digits
+    uint8_t numDevices = 0; // number of chained devices
+    uint8_t numDigits  = 0; // number of digits per device
     uint8_t brightness = MAX_BRIGHTNESS;
     void    setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow = true);
 
@@ -86,14 +87,14 @@ private:
     void bitDelay() { delayMicroseconds(DEFAULT_BIT_DELAY); };
     void start(void);
     void stop(void);
-    bool writeByte(uint8_t data, bool rvs = false);
+    bool tm1637_writeByte(uint8_t data, bool rvs = false);
 
 #ifdef LEDCONTROL_NO_BUF
     void writeOneDigit(uint8_t ndigit, uint8_t val);
 #else
     // Has buffer available
-    void writeDigits(uint8_t ndigit, uint8_t len);
-    void writeBuffer(void) { writeDigits(maxUnits - 1, maxUnits); };
+    void tm1637_writeDigits(uint8_t ndigit, uint8_t len);
+    void writeBuffer(void) { tm1637_writeDigits(this->numDigits - 1, this->numDigits); };
 #endif
 
 public:
@@ -102,8 +103,8 @@ public:
     bool begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices = 1);
 
     bool    isMAX(void) { return _type == LedSegment::TYPE_MAX72XX; }
-    uint8_t getDeviceCount(void) { return (isMAX() ? maxUnits : 1); };
-    uint8_t getDigitCount(void) { return (isMAX() ? 8 : maxUnits); };
+    uint8_t getDeviceCount(void) { return numDevices; };
+    uint8_t getDigitCount(void) { return numDigits; };
 
     void shutdown(uint8_t addr, bool status);
     void setIntensity(uint8_t addr, uint8_t intensity);
