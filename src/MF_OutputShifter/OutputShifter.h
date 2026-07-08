@@ -15,7 +15,6 @@ namespace OutputShifter
     void Clear();
     void OnSet();
     void PowerSave(bool state);
-    void Resync();
 }
 
 // OutputShifter.h

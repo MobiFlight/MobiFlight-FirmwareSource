@@ -75,6 +75,10 @@ void MFOutputShifter::clear()
 
 void MFOutputShifter::update()
 {
+    pinMode(_latchPin, OUTPUT);
+    pinMode(_clockPin, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
+
     digitalWrite(_latchPin, LOW);
     for (uint8_t i = _moduleCount; i > 0; i--) {
         shiftOutData(_dataPin, _clockPin, MSBFIRST, _lastState[i - 1]); // LSBFIRST, MSBFIRST,
@@ -84,6 +88,10 @@ void MFOutputShifter::update()
 
 void MFOutputShifter::powerSavingMode(bool state)
 {
+    pinMode(_latchPin, OUTPUT);
+    pinMode(_clockPin, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
+
     if (state) {
         digitalWrite(_latchPin, LOW);
         for (uint8_t i = _moduleCount; i > 0; i--) {

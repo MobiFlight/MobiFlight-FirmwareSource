@@ -27,7 +27,7 @@ bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
 
     pinMode(_latchPin, OUTPUT);
     pinMode(_clockPin, OUTPUT);
-    pinMode(_dataPin, INPUT);
+    pinMode(_dataPin, INPUT_PULLUP);
 
     _lastState = static_cast<uint8_t *>(MF_ALLOC_BYTES(_moduleCount));
     if (!_lastState) return false;
@@ -58,6 +58,10 @@ void MFInputShifter::update()
 
 void MFInputShifter::poll(uint8_t doTrigger)
 {
+    pinMode(_latchPin, OUTPUT);
+    pinMode(_clockPin, OUTPUT);
+    pinMode(_dataPin, INPUT_PULLUP);
+
     digitalWrite(_clockPin, HIGH); // Preset clock to retrieve first bit
     digitalWrite(_latchPin, HIGH); // Disable input latching and enable shifting
 
