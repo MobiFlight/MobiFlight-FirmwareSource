@@ -27,7 +27,7 @@ bool MFInputShifter::attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin,
 
     pinMode(_latchPin, OUTPUT);
     pinMode(_clockPin, OUTPUT);
-    pinMode(_dataPin, INPUT_PULLUP);
+    pinMode(_dataPin, INPUT);
 
     _lastState = static_cast<uint8_t *>(MF_ALLOC_BYTES(_moduleCount));
     if (!_lastState) return false;

@@ -14,6 +14,7 @@ namespace OutputShifter
     MFOutputShifter *outputShifter;
     uint8_t          outputShifterRegistered = 0;
     uint8_t          maxOutputShifter        = 0;
+    bool             powerSavingModeActive   = false;
 
     bool setupArray(uint16_t count)
     {
@@ -65,8 +66,16 @@ namespace OutputShifter
 
     void PowerSave(bool state)
     {
+        powerSavingModeActive = state;
         for (uint8_t i = 0; i < outputShifterRegistered; ++i) {
             outputShifter[i].powerSavingMode(state);
+        }
+    }
+
+    void Resync()
+    {
+        for (uint8_t i = 0; i < outputShifterRegistered; ++i) {
+            outputShifter[i].powerSavingMode(powerSavingModeActive);
         }
     }
 } // namespace

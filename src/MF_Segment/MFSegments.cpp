@@ -7,6 +7,27 @@
 #include "MFSegments.h"
 #include "commandmessenger.h"
 
+#ifdef MF_OUTPUT_SHIFTER_SUPPORT
+#include "OutputShifter.h"
+#endif
+
+namespace
+{
+#ifdef MF_OUTPUT_SHIFTER_SUPPORT
+    void syncOutputShiftersForTm1637(LedControl &ledControl)
+    {
+        if (!ledControl.isMAX()) {
+            OutputShifter::Resync();
+        }
+    }
+#else
+    void syncOutputShiftersForTm1637(LedControl &ledControl)
+    {
+        (void)ledControl;
+    }
+#endif
+}
+
 MFSegments::MFSegments()
 {
     _moduleCount = 0;
@@ -25,6 +46,7 @@ void MFSegments::display(uint8_t module, char *string, uint8_t points, uint8_t m
         _ledControl.setChar(module, digit, string[pos], ((1 << digit) & points));
         pos++;
     }
+    syncOutputShiftersForTm1637(_ledControl);
 }
 
 void MFSegments::setSingleSegment(uint8_t module, uint8_t segment, uint8_t on_off)
@@ -33,6 +55,7 @@ void MFSegments::setSingleSegment(uint8_t module, uint8_t segment, uint8_t on_of
         return;
 
     _ledControl.setSingleSegment(module, segment, on_off);
+    syncOutputShiftersForTm1637(_ledControl);
 }
 
 void MFSegments::setBrightness(uint8_t module, uint8_t value)
@@ -47,6 +70,7 @@ void MFSegments::setBrightness(uint8_t module, uint8_t value)
         } else {
             _ledControl.shutdown(module, true);
         }
+        syncOutputShiftersForTm1637(_ledControl);
     }
 }
 
@@ -76,6 +100,7 @@ void MFSegments::powerSavingMode(bool state)
     for (uint8_t i = 0; i != _moduleCount; ++i) {
         _ledControl.shutdown(i, state);
     }
+    syncOutputShiftersForTm1637(_ledControl);
 }
 
 void MFSegments::test()
