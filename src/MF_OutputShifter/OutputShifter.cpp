@@ -16,6 +16,15 @@ namespace OutputShifter
     uint8_t          maxOutputShifter        = 0;
     bool             powerSavingModeActive   = false;
 
+    void applyPowerSavingMode(MFOutputShifter &shifter, bool state)
+    {
+        if (state) {
+            shifter.powerSavingMode(true);
+        } else {
+            shifter.update();
+        }
+    }
+
     bool setupArray(uint16_t count)
     {
         if (!count) return true;
@@ -68,7 +77,7 @@ namespace OutputShifter
     {
         powerSavingModeActive = state;
         for (uint8_t i = 0; i < outputShifterRegistered; ++i) {
-            outputShifter[i].powerSavingMode(state);
+            applyPowerSavingMode(outputShifter[i], state);
         }
     }
 
@@ -77,11 +86,7 @@ namespace OutputShifter
         // TM1637 updates can shift shared output registers behind the scenes.
         // Re-apply the currently active output shifter state to keep them aligned.
         for (uint8_t i = 0; i < outputShifterRegistered; ++i) {
-            if (powerSavingModeActive) {
-                outputShifter[i].powerSavingMode(true);
-            } else {
-                outputShifter[i].update();
-            }
+            applyPowerSavingMode(outputShifter[i], powerSavingModeActive);
         }
     }
 } // namespace
