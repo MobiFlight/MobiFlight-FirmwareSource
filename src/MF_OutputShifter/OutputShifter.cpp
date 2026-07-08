@@ -14,7 +14,7 @@ namespace OutputShifter
     MFOutputShifter *outputShifter;
     uint8_t          outputShifterRegistered = 0;
     uint8_t          maxOutputShifter        = 0;
-    volatile bool    powerSavingModeActive   = false;
+    bool             powerSavingModeActive   = false;
 
     bool setupArray(uint16_t count)
     {
