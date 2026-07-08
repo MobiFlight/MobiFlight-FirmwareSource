@@ -90,7 +90,7 @@ private:
     bool tm1637_writeByte(uint8_t data, bool rvs = false);
 
 #ifdef LEDCONTROL_NO_BUF
-    void writeOneDigit(uint8_t ndigit, uint8_t val);
+    void tm1637_writeOneDigit(uint8_t ndigit, uint8_t val);
 #else
     // Has buffer available
     void tm1637_writeDigits(uint8_t ndigit, uint8_t len);
@@ -102,9 +102,7 @@ public:
 
     bool begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t csPin, uint8_t numDevices = 1);
 
-    bool    isMAX(void) { return _type == LedSegment::TYPE_MAX72XX; }
-    uint8_t getDeviceCount(void) { return numDevices; };
-    uint8_t getDigitCount(void) { return numDigits; };
+    bool isMAX(void) { return _type == LedSegment::TYPE_MAX72XX; }
 
     void shutdown(uint8_t addr, bool status);
     void setIntensity(uint8_t addr, uint8_t intensity);
