@@ -145,12 +145,13 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
     _csPin   = csPin;
 
     if (isMAX()) {
+        // make sure we have max 8 chips in the daisy chain
+        if (numDevices > MAX72XX_MAX_DEVICES) numDevices = MAX72XX_MAX_DEVICES;
+
         // allocate
         rawdata = static_cast<uint8_t *>(MF_ALLOC_BYTES(numDevices * 2));
         if (!rawdata) return false;
 
-        // make sure we have max 8 chips in the daisy chain
-        if (numDevices > MAX72XX_MAX_DEVICES) numDevices = MAX72XX_MAX_DEVICES;
         digitBuffer = static_cast<uint8_t *>(MF_ALLOC_BYTES(numDevices * MAX72XX_MAX_DIGITS));
         if (!digitBuffer) return false;
 
@@ -339,14 +340,12 @@ void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
     uint8_t offset   = addr * 2;
     uint8_t maxBytes = _numDevices * 2;
 
-    // for (uint8_t i = 0; i < maxBytes; i++) rawdata[i] = (byte)0;
     memset(rawdata, 0, maxBytes);
-    rawdata[offset + 1] = opcode;
     rawdata[offset]     = data;
+    rawdata[offset + 1] = opcode;
 
     digitalWrite(_csPin, LOW);
     for (uint8_t i = maxBytes; i > 0; i--) {
-        // shiftOut(IO_DTA, IO_CLK, MSBFIRST, rawdata[i - 1]);
         byte dta = rawdata[i - 1];
         for (uint8_t m = 0x80; m != 0; m >>= 1) {
             // MSB first
