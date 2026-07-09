@@ -247,6 +247,7 @@ void LedControl::clearDisplay(uint8_t addr)
 void LedControl::setDigit(uint8_t addr, uint8_t digit, uint8_t value, bool dp, bool sendNow)
 {
     if (addr >= _numDevices) return;
+
     if ((value > 15) && (value != '-')) value = (uint8_t)' '; // Use space for invalid digit
     if (dp) value |= 0x80;
     setPattern(addr, digit, value, sendNow);
@@ -254,9 +255,10 @@ void LedControl::setDigit(uint8_t addr, uint8_t digit, uint8_t value, bool dp, b
 
 void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool sendNow)
 {
+    if (addr >= _numDevices) return;
+
     uint8_t v = (uint8_t)value; // Get rid of signedness
 
-    if (addr >= _numDevices) return;
     if (v > 127) v = 32; // undefined: replace with space char
     if (dp) v |= 0x80;
 
@@ -265,12 +267,12 @@ void LedControl::setChar(uint8_t addr, uint8_t digit, char value, bool dp, bool 
 
 void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t value, bool sendNow)
 {
+    if (subModule >= _numDevices) return;
+    if (segment >= _numDigits * SEGMENTS_PER_DIGIT) return;
+
     uint8_t digit       = segment >> 3;
     uint8_t bitPosition = segment % 8;
     uint8_t offset      = subModule * 8;
-
-    if (subModule >= _numDevices) return;
-    if (segment >= _numDigits * SEGMENTS_PER_DIGIT) return;
 
     if (isMAX()) {
         if (value) {
