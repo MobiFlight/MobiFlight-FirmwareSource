@@ -216,7 +216,6 @@ void LedControl::setIntensity(uint8_t addr, uint8_t intensity)
     if (intensity > 15) intensity = 15;
     _brightness = intensity;
     if (isMAX()) {
-        if (addr >= _numDevices) return;
         spiTransfer(addr, OP_INTENSITY, _brightness);
     } else {
         if (intensity > 0) {
