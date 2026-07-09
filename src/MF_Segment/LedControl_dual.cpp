@@ -148,10 +148,6 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
         // make sure we have max 8 chips in the daisy chain
         if (numDevices > MAX72XX_MAX_DEVICES) numDevices = MAX72XX_MAX_DEVICES;
 
-        // allocate
-        rawdata = static_cast<uint8_t *>(MF_ALLOC_BYTES(numDevices * 2));
-        if (!rawdata) return false;
-
         digitBuffer = static_cast<uint8_t *>(MF_ALLOC_BYTES(numDevices * MAX72XX_MAX_DIGITS));
         if (!digitBuffer) return false;
 
@@ -162,9 +158,9 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
         pinMode(_csPin, OUTPUT);
         digitalWrite(_csPin, HIGH);
         for (uint8_t i = 0; i < _numDevices; i++) {
-            spiTransfer(i, OP_DISPLAYTEST, 0);
-            setScanLimit(i, 7);               // scanlimit is set to max on startup
-            spiTransfer(i, OP_DECODEMODE, 0); // decode is done in source
+            max72xx_spiTransfer(i, OP_DISPLAYTEST, 0);
+            setScanLimit(i, 7);                       // scanlimit is set to max on startup
+            max72xx_spiTransfer(i, OP_DECODEMODE, 0); // decode is done in source
             clearDisplay(i);
             shutdown(i, true); // we go into shutdown-mode on startup
         }
@@ -198,7 +194,7 @@ void LedControl::shutdown(uint8_t addr, bool b)
     if (addr >= _numDevices) return;
 
     if (isMAX()) {
-        spiTransfer(addr, OP_SHUTDOWN, b ? 0 : 1);
+        max72xx_spiTransfer(addr, OP_SHUTDOWN, b ? 0 : 1);
     } else {
         uint8_t bri = _brightness >> 1;
         if (!b) bri |= 0x08;
@@ -217,7 +213,7 @@ void LedControl::setIntensity(uint8_t addr, uint8_t intensity)
     if (intensity > 15) intensity = 15;
     _brightness = intensity;
     if (isMAX()) {
-        spiTransfer(addr, OP_INTENSITY, _brightness);
+        max72xx_spiTransfer(addr, OP_INTENSITY, _brightness);
     } else {
         if (intensity > 0) {
             if (intensity > 1) intensity >>= 1;
@@ -236,7 +232,7 @@ void LedControl::clearDisplay(uint8_t addr)
 
     if (isMAX()) {
         for (uint8_t i = 0; i < 8; i++) {
-            spiTransfer(addr, i + 1, 0);
+            max72xx_spiTransfer(addr, i + 1, 0);
         }
     } else {
         memset(digitBuffer, 0, _numDigits);
@@ -280,7 +276,7 @@ void LedControl::setSingleSegment(uint8_t subModule, uint8_t segment, uint8_t va
         } else {
             digitBuffer[offset + digit] &= ~(1 << bitPosition);
         }
-        spiTransfer(subModule, digit + 1, digitBuffer[offset + digit]);
+        max72xx_spiTransfer(subModule, digit + 1, digitBuffer[offset + digit]);
     } else {
         // Same order as MAX72XX
         // MAX72XX order is:      dABCDEFG
@@ -308,7 +304,7 @@ void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sen
         uint8_t offset = addr * 8;
         if (value & 0x80) v |= 0x80;
         digitBuffer[offset + digit] = v;
-        spiTransfer(addr, digit + 1, v); // Always send immediately for MAX
+        max72xx_spiTransfer(addr, digit + 1, v); // Always send immediately for MAX
     } else {
         // Original data for MAX has the bit sequence: dABCDEFG
         // Common TM1637 boards are connected so that they require: dGFEDCBA
@@ -334,28 +330,27 @@ void LedControl::setScanLimit(uint8_t addr, uint8_t limit)
     if (addr >= _numDevices) return;
     if (limit > 7) return;
 
-    spiTransfer(addr, OP_SCANLIMIT, limit);
+    max72xx_spiTransfer(addr, OP_SCANLIMIT, limit);
 }
 
-void LedControl::spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
+void LedControl::max72xx_spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 {
-    uint8_t offset   = addr * 2;
-    uint8_t maxBytes = _numDevices * 2;
-
-    memset(rawdata, 0, maxBytes);
-    rawdata[offset]     = data;
-    rawdata[offset + 1] = opcode;
+    if (addr >= _numDevices) return;
 
     digitalWrite(_csPin, LOW);
-    for (uint8_t i = maxBytes; i > 0; i--) {
-        byte dta = rawdata[i - 1];
-        for (uint8_t m = 0x80; m != 0; m >>= 1) {
-            // MSB first
-            digitalWrite(_dataPin, (dta & m));
-            digitalWrite(_clkPin, HIGH);
-            digitalWrite(_clkPin, LOW);
+
+    for (uint8_t i = _numDevices; i > 0; i--) {
+        uint8_t device = i - 1;
+
+        if (device == addr) {
+            max72xx_writeByte(opcode);
+            max72xx_writeByte(data);
+        } else {
+            max72xx_writeByte(0);
+            max72xx_writeByte(0);
         }
     }
+
     digitalWrite(_csPin, HIGH);
 }
 
@@ -497,6 +492,15 @@ void LedControl::showString(uint8_t addr, char *s, uint8_t loffset, uint8_t dots
         uint8_t pos = (maxlen - 1) - d;
         setChar(addr, pos, *s++, ((dots & msk) != 0), false);
         msk >>= 1;
+    }
+}
+
+void LedControl::max72xx_writeByte(uint8_t value)
+{
+    for (uint8_t m = 0x80; m != 0; m >>= 1) {
+        digitalWrite(_dataPin, (value & m) ? HIGH : LOW);
+        digitalWrite(_clkPin, HIGH);
+        digitalWrite(_clkPin, LOW);
     }
 }
 

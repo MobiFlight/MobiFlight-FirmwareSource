@@ -54,11 +54,10 @@ class LedControl
 {
 private:
     // Common
-    uint8_t  _type    = TYPE_UNDEFINED;
-    uint8_t  _dataPin = TYPE_UNDEFINED;
-    uint8_t  _clkPin  = TYPE_UNDEFINED;
-    uint8_t  _csPin   = TYPE_UNDEFINED;
-    uint8_t *rawdata;
+    uint8_t _type    = TYPE_UNDEFINED;
+    uint8_t _dataPin = TYPE_UNDEFINED;
+    uint8_t _clkPin  = TYPE_UNDEFINED;
+    uint8_t _csPin   = TYPE_UNDEFINED;
 
     uint8_t _numDevices = 0; // number of chained devices
     uint8_t _numDigits  = 0; // number of digits per device
@@ -68,7 +67,7 @@ private:
     // MAX-specific
     uint8_t *digitBuffer; // each digit must be stored in a buffer to be able to set single segments
     void     setScanLimit(uint8_t addr, uint8_t limit);
-    void     spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data);
+    void     max72xx_spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data);
 
     // TM-specific
     // uint8_t dpSet = 0;
@@ -91,6 +90,7 @@ public:
     void shutdown(uint8_t addr, bool status);
     void setIntensity(uint8_t addr, uint8_t intensity);
     void clearDisplay(uint8_t addr = 0);
+    void max72xx_writeByte(uint8_t value);
 
     // Display a hexadecimal digit.
     // Params:
