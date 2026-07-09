@@ -60,9 +60,9 @@ private:
     uint8_t  _csPin   = TYPE_UNDEFINED;
     uint8_t *rawdata;
 
-    uint8_t numDevices = 0; // number of chained devices
-    uint8_t numDigits  = 0; // number of digits per device
-    uint8_t brightness = MAX_BRIGHTNESS;
+    uint8_t _numDevices = 0; // number of chained devices
+    uint8_t _numDigits  = 0; // number of digits per device
+    uint8_t _brightness = MAX_BRIGHTNESS;
     void    setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sendNow = true);
 
     // MAX-specific
@@ -79,7 +79,7 @@ private:
 
     // Has buffer available
     void tm1637_writeDigits(uint8_t ndigit, uint8_t len);
-    void writeBuffer(void) { tm1637_writeDigits(this->numDigits - 1, this->numDigits); };
+    void writeBuffer(void) { tm1637_writeDigits(this->_numDigits - 1, this->_numDigits); };
 
 public:
     LedControl() {};
