@@ -24,11 +24,6 @@
 
 #pragma once
 
-// This constant reduces buffer usage: a single (static) 16-byte buffer
-// is used for all objects. However, for TM1637s, data is written
-// byte-by-byte, making transmission of data blocks slower.
-// #define LEDCONTROL_NO_BUF
-
 // This constant adds methods to print a decimal/hex number or a string
 // (as opposite to writing individual chars).
 #define LEDCONTROL_EXTENDED
@@ -59,18 +54,11 @@ class LedControl
 {
 private:
     // Common
-    uint8_t _type    = TYPE_UNDEFINED;
-    uint8_t _dataPin = TYPE_UNDEFINED;
-    uint8_t _clkPin  = TYPE_UNDEFINED;
-    uint8_t _csPin   = TYPE_UNDEFINED;
-#ifdef LEDCONTROL_NO_BUF
-    // For TM, buffer can't be static (= shared): either we are building
-    // the extended version (which adds a per-unit buffer instead of the static one)
-    // or we are forced to resort to digit-by-digit output
-    static uint8_t *rawdata;
-#else
+    uint8_t  _type    = TYPE_UNDEFINED;
+    uint8_t  _dataPin = TYPE_UNDEFINED;
+    uint8_t  _clkPin  = TYPE_UNDEFINED;
+    uint8_t  _csPin   = TYPE_UNDEFINED;
     uint8_t *rawdata;
-#endif
 
     uint8_t numDevices = 0; // number of chained devices
     uint8_t numDigits  = 0; // number of digits per device
@@ -89,13 +77,9 @@ private:
     void stop(void);
     bool tm1637_writeByte(uint8_t data, bool rvs = false);
 
-#ifdef LEDCONTROL_NO_BUF
-    void tm1637_writeOneDigit(uint8_t ndigit, uint8_t val);
-#else
     // Has buffer available
     void tm1637_writeDigits(uint8_t ndigit, uint8_t len);
     void writeBuffer(void) { tm1637_writeDigits(this->numDigits - 1, this->numDigits); };
-#endif
 
 public:
     LedControl() {};
@@ -116,7 +100,6 @@ public:
     // dp	    sets the decimal point.
     // sendnow  If false, buffers chars rather than sending them immediately (TM only;
     //          requires a sendAll() afterwards).
-    //          Ignored for MAX, or if LEDCONTROL_NO_BUF is defined.
     void setDigit(uint8_t addr, uint8_t digit, uint8_t value, bool dp = false, bool sendNow = true);
 
     // Display a character.
@@ -131,7 +114,6 @@ public:
     // dp	    sets the decimal point.
     // sendnow  If false, buffers chars rather than sending them immediately (TM only;
     //          requires a sendAll() afterwards).
-    //          Ignored for MAX, or if LEDCONTROL_NO_BUF is defined.
     void setChar(uint8_t addr, uint8_t digit, char value, bool dp = false, bool sendNow = true);
 
     // Display a Single Segment.
@@ -141,13 +123,7 @@ public:
     // value	set or unset the Segment
     // sendnow  If false, buffers chars rather than sending them immediately (TM only;
     //          requires a sendAll() afterwards).
-    //          Ignored for MAX, or if LEDCONTROL_NO_BUF is defined.
     void setSingleSegment(uint8_t addr, uint8_t segment, uint8_t value, bool sendNow = true);
-
-#ifndef LEDCONTROL_NO_BUF
-    // Sends the whole (previously filled) buffer content.
-    void sendAll(void) { writeBuffer(); };
-#endif
 
 #ifdef LEDCONTROL_EXTENDED
     // Display a decimal number, with dot control

@@ -73,10 +73,6 @@ enum {
     OP_DISPLAYTEST = 15
 };
 
-#ifdef LEDCONTROL_NO_BUF
-uint8_t *LedControl::rawdata;
-#endif
-
 // =======================================================================
 // TM1637 Definitions
 // =======================================================================
@@ -243,14 +239,8 @@ void LedControl::clearDisplay(uint8_t addr)
             spiTransfer(addr, i + 1, 0);
         }
     } else {
-#ifdef LEDCONTROL_NO_BUF
-        for (uint8_t i = 0; i < numDigits; i++) {
-            tm1637_writeOneDigit(i, 0);
-        }
-#else
         memset(digitBuffer, 0, numDigits);
         writeBuffer();
-#endif
     }
 }
 
@@ -324,14 +314,10 @@ void LedControl::setPattern(uint8_t addr, uint8_t digit, uint8_t value, bool sen
         // and then just transmit them reversed (from LSb to MSb)
         v <<= 1;
         if (value & 0x80) v |= 0x01;
-#ifdef LEDCONTROL_NO_BUF
-        tm1637_writeOneDigit(digit, v);
-#else
         digitBuffer[(numDigits - 1) - digit] = v; // Change only the individual affected digit in static buffer
         if (sendNow) {
             tm1637_writeDigits(digit, 1);
         }
-#endif
     }
 }
 
@@ -424,31 +410,9 @@ bool LedControl::tm1637_writeByte(uint8_t data, bool rvs)
     return ack;
 }
 
-#ifdef LEDCONTROL_NO_BUF
-void LedControl::tm1637_writeOneDigit(uint8_t ndigit, uint8_t pattern)
-{
-    uint8_t b;
-    // Write COMM1
-    start();
-    tm1637_writeByte(TM1637_I2C_COMM1F); // TM1637_I2C_COMM1 is also fine
-    stop();
-
-    start();
-    ndigit = (numDigits - 1) - ndigit;
-    b      = ((numDigits == TM1637_4DIGITS) ? ndigit : digitmap[ndigit]);
-    tm1637_writeByte(TM1637_I2C_COMM2 + b);
-    // Write only raw data bit-reversed (to use the existing data in MAX-format)
-    tm1637_writeByte(pattern, true);
-    stop();
-}
-#endif
-
 // =========================================================
 //   Methods for extended library
 // =========================================================
-
-#ifndef LEDCONTROL_NO_BUF
-
 void LedControl::tm1637_writeDigits(uint8_t startd, uint8_t len)
 {
     bool    is4Digit = (numDigits == TM1637_4DIGITS);
@@ -473,8 +437,6 @@ void LedControl::tm1637_writeDigits(uint8_t startd, uint8_t len)
     }
     stop();
 }
-
-#endif
 
 #ifdef LEDCONTROL_EXTENDED
 
@@ -536,10 +498,6 @@ void LedControl::showString(uint8_t addr, char *s, uint8_t loffset, uint8_t dots
         setChar(addr, pos, *s++, ((dots & msk) != 0), false);
         msk >>= 1;
     }
-
-#ifndef LEDCONTROL_NO_BUF
-    if (!isMAX()) writeBuffer();
-#endif
 }
 
 #endif
