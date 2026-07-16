@@ -54,15 +54,38 @@ namespace OutputShifter
 #endif
     }
 
+    /*
+    Order of commands:
+    1) kSetShiftRegisterPins
+    2) which module (chain of shift registers)
+    3) set or reset pin
+    4) number of 8bit Register
+    5) bitmask of which pins to be set/unset
+    First byte of bit mask must be MSB
+    e.g. 27,0,1,3,[0x12345678][0x87654321][0x12348765];
+    */
     void OnSet()
     {
+        int     module              = cmdMessenger.readInt16Arg(); // which chain of shifter
+        int     value               = cmdMessenger.readInt16Arg(); // set or reset pin
+        int     _moduleCount        = cmdMessenger.readInt16Arg(); // number of 8bit Register
+        uint8_t _pins[_moduleCount] = {0};                         // pin mask
 
-        int   module = cmdMessenger.readInt16Arg();
-        char *pins   = cmdMessenger.readStringArg();
-        int   value  = cmdMessenger.readInt16Arg();
-        outputShifter[module].setPins(pins, value);
+        for (uint8_t i = 0; i < _moduleCount; i++) {
+            _pins[i] = cmdMessenger.readBinArg<uint8_t>(); // read in data
+        }
+        outputShifter[module].setPins(_pins, value); // call set function of class
     }
+    /*
+        void OnSet()
+        {
 
+            int   module = cmdMessenger.readInt16Arg();
+            char *pins   = cmdMessenger.readStringArg();
+            int   value  = cmdMessenger.readInt16Arg();
+            outputShifter[module].setPins(pins, value);
+        }
+    */
     void PowerSave(bool state)
     {
         for (uint8_t i = 0; i < outputShifterRegistered; ++i) {

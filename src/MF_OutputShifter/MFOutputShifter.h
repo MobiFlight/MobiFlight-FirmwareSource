@@ -20,8 +20,7 @@ class MFOutputShifter
 {
 public:
     MFOutputShifter();
-    void setPin(uint8_t pin, uint8_t value, uint8_t refresh = 1);
-    void setPins(char *pins, uint8_t value);
+    void setPins(uint8_t *pins, uint8_t value);
     bool attach(uint8_t latchPin, uint8_t clockPin, uint8_t dataPin, uint8_t moduleCount);
     void detach();
     void clear();
