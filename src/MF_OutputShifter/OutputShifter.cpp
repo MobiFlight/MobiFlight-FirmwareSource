@@ -62,7 +62,7 @@ namespace OutputShifter
     4) number of 8bit Register
     5) bitmask of which pins to be set/unset
     First byte of bit mask must be MSB
-    e.g. 27,0,1,3,[0x12345678][0x87654321][0x12348765];
+    e.g. 27,0,1,3,[0x12345678],[0x87654321],[0x12348765];
 
     in cpp it would be:
     cmdMessenger.sendCmdStart (kSetShiftRegisterPins);
@@ -70,7 +70,7 @@ namespace OutputShifter
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)value);
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)number_of_submodules);
     for (uint8_t i = number_of_submodules; i != 0; i--) {
-        cmdMessenger.sendCmdBinArg<uint8_t>((uint8_t)value[i - 1]);
+        cmdMessenger.sendCmdBinArg<uint8_t>((uint8_t)pins[i - 1]);
     }
     cmdMessenger.sendCmdEnd ();
     */
