@@ -81,21 +81,13 @@ namespace OutputShifter
         int     number_of_submodules        = cmdMessenger.readInt16Arg(); // number of 8bit Register
         uint8_t _pins[number_of_submodules] = {0};                         // pin mask
 
-        for (uint8_t i = number_of_submodules - 1; i != 0; i--) {
-            _pins[i] = cmdMessenger.readBinArg<uint8_t>(); // read in data
+        for (uint8_t i = number_of_submodules; i != 0; i--) {
+            _pins[i-1] = cmdMessenger.readBinArg<uint8_t>(); // read in data
         }
+
         outputShifter[module].setPins(_pins, value); // call set function of class
     }
-    /*
-        void OnSet()
-        {
 
-            int   module = cmdMessenger.readInt16Arg();
-            char *pins   = cmdMessenger.readStringArg();
-            int   value  = cmdMessenger.readInt16Arg();
-            outputShifter[module].setPins(pins, value);
-        }
-    */
     void PowerSave(bool state)
     {
         for (uint8_t i = 0; i < outputShifterRegistered; ++i) {

@@ -12,35 +12,7 @@ MFOutputShifter::MFOutputShifter()
 {
     _initialized = false;
 }
-/*
-void MFOutputShifter::setPin(uint8_t pin, uint8_t value, uint8_t refresh)
-{
-    if (!_initialized) return;
 
-    uint8_t idx = (pin & 0xF8) >> 3;
-    uint8_t msk = (0x01 << (pin & 0x07));
-
-    if (value != MF_LOW) {
-        _lastState[idx] |= msk;
-    } else {
-        _lastState[idx] &= ~msk;
-    }
-    if (refresh) update();
-}
-
-void MFOutputShifter::setPins(char *pins, uint8_t value)
-{
-    if (!_initialized) return;
-
-    char *pinTokens = strtok(pins, "|");
-    while (pinTokens != 0) {
-        uint8_t num = (uint8_t)atoi(pinTokens);
-        setPin(num, value, 0);
-        pinTokens = strtok(0, "|");
-    }
-    update();
-}
-*/
 void MFOutputShifter::setPins(uint8_t *pins, uint8_t value)
 {
     if (!_initialized) return;
