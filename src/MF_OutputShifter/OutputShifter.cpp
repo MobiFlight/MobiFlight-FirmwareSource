@@ -69,8 +69,8 @@ namespace OutputShifter
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)module);
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)value);
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)number_of_submodules);
-    for (uint8_t i = number_of_submodules - 1; i != 0; i--) {
-        cmdMessenger.sendCmdBinArg<uint8_t>((uint8_t)value[i]);
+    for (uint8_t i = number_of_submodules; i != 0; i--) {
+        cmdMessenger.sendCmdBinArg<uint8_t>((uint8_t)value[i - 1]);
     }
     cmdMessenger.sendCmdEnd ();
     */
