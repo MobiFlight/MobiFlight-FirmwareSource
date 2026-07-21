@@ -58,8 +58,8 @@ namespace OutputShifter
     Order of commands:
     1) kSetShiftRegisterPins
     2) which module (chain of shift registers)
-    3) set or reset pin
-    4) number of 8bit Register
+    3) number of 8bit Register
+    4) set or reset pin
     5) bitmask of which pins to be set/unset
     First byte of bit mask must be MSB
     e.g. 27,0,1,3,[0x12345678],[0x87654321],[0x12348765];
@@ -67,8 +67,8 @@ namespace OutputShifter
     in cpp it would be:
     cmdMessenger.sendCmdStart (kSetShiftRegisterPins);
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)module);
-    cmdMessenger.sendCmdArg<uint8_t>((uint8_t)value);
     cmdMessenger.sendCmdArg<uint8_t>((uint8_t)number_of_submodules);
+    cmdMessenger.sendCmdArg<uint8_t>((uint8_t)value);
     for (uint8_t i = number_of_submodules; i != 0; i--) {
         cmdMessenger.sendCmdBinArg<uint8_t>((uint8_t)pins[i - 1]);
     }
@@ -76,16 +76,16 @@ namespace OutputShifter
     */
     void OnSet()
     {
-        int     module                      = cmdMessenger.readInt16Arg(); // which chain of shifter
-        int     value                       = cmdMessenger.readInt16Arg(); // set or reset pin
-        int     number_of_submodules        = cmdMessenger.readInt16Arg(); // number of 8bit Register
-        uint8_t _pins[number_of_submodules] = {0};                         // pin mask
+        int     module                      = cmdMessenger.readInt16Arg();
+        int     number_of_submodules        = cmdMessenger.readInt16Arg();
+        int     value                       = cmdMessenger.readInt16Arg();
+        uint8_t _pins[number_of_submodules] = {0};
 
         for (uint8_t i = number_of_submodules; i != 0; i--) {
-            _pins[i-1] = cmdMessenger.readBinArg<uint8_t>(); // read in data
+            _pins[i-1] = cmdMessenger.readBinArg<uint8_t>();
         }
 
-        outputShifter[module].setPins(_pins, value); // call set function of class
+        outputShifter[module].setPins(_pins, value);
     }
 
     void PowerSave(bool state)
