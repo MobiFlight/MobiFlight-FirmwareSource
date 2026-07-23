@@ -48,6 +48,7 @@ enum {
     kSetCustomDevice,        // 32
     kSetModuleSingleSegment, // 33
     kRetriggerDone,          // 34
+    kMessageReady2Send,      // 35
     kDebug = 0xFF            // 255
 };
 

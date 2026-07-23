@@ -101,6 +101,7 @@ namespace CustomDevice
         int16_t messageID = cmdMessenger.readInt16Arg();  // get the messageID number
         char   *output    = cmdMessenger.readStringArg(); // get the pointer to the new raw string
         cmdMessenger.unescape(output);                    // and unescape the string if escape characters are used
+        cmdMessenger.sendCmd(kMessageReady2Send);
 #if defined(USE_2ND_CORE) && defined(ARDUINO_ARCH_RP2040)
         // copy the message, could get be overwritten from the next message while processing on 2nd core
         strncpy(payload, output, SERIAL_RX_BUFFER_SIZE);

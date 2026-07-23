@@ -75,7 +75,7 @@ namespace Stepper
     {
         uint8_t stepper = (uint8_t)cmdMessenger.readInt16Arg();
         long    newPos  = cmdMessenger.readInt32Arg();
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         if (stepper >= steppersRegistered)
             return;
 #if defined(STEPPER_ON_2ND_CORE) && defined(ARDUINO_ARCH_RP2040)
@@ -93,7 +93,7 @@ namespace Stepper
     void OnReset()
     {
         uint8_t stepper = (uint8_t)cmdMessenger.readInt16Arg();
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         if (stepper >= steppersRegistered)
             return;
         steppers[stepper].reset();
@@ -102,7 +102,7 @@ namespace Stepper
     void OnSetZero()
     {
         uint8_t stepper = (uint8_t)cmdMessenger.readInt16Arg();
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         if (stepper >= steppersRegistered)
             return;
 #if defined(STEPPER_ON_2ND_CORE) && defined(ARDUINO_ARCH_RP2040)
@@ -122,7 +122,7 @@ namespace Stepper
         uint8_t  stepper  = (uint8_t)cmdMessenger.readInt16Arg();
         uint16_t maxSpeed = cmdMessenger.readInt16Arg();
         uint16_t maxAccel = cmdMessenger.readInt16Arg();
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         if (stepper >= steppersRegistered)
             return;
 #if defined(STEPPER_ON_2ND_CORE) && defined(ARDUINO_ARCH_RP2040)

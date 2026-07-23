@@ -53,6 +53,7 @@ namespace Servos
     {
         int servo    = cmdMessenger.readInt16Arg();
         int newValue = cmdMessenger.readInt16Arg();
+        cmdMessenger.sendCmd(kMessageReady2Send);
         if (servo >= servosRegistered)
             return;
         servos[servo].moveTo(newValue);

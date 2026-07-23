@@ -109,6 +109,7 @@ void OnUnknownCommand()
 void OnSetPowerSavingMode()
 {
     bool enablePowerSavingMode = cmdMessenger.readBoolArg();
+    cmdMessenger.sendCmd(kMessageReady2Send);
 
     // If the request is to enable powersaving mode then set the last command time
     // to the earliest possible time. The next time loop() is called in mobiflight.cpp
@@ -137,6 +138,7 @@ uint32_t getLastCommandMillis()
 
 void OnTrigger()
 {
+    cmdMessenger.sendCmd(kMessageReady2Send);
     Button::OnTrigger();
 #ifdef MF_INPUT_SHIFTER_SUPPORT
     InputShifter::OnTrigger();

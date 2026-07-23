@@ -53,6 +53,7 @@ namespace LCDDisplay
     {
         int   address = cmdMessenger.readInt16Arg();
         char *output  = cmdMessenger.readStringArg();
+        cmdMessenger.sendCmd(kMessageReady2Send);
         cmdMessenger.unescape(output);
         lcd_I2C[address].display(output);
     }

@@ -66,6 +66,7 @@ namespace LedSegment
         int module     = cmdMessenger.readInt16Arg();
         int subModule  = cmdMessenger.readInt16Arg();
         int brightness = cmdMessenger.readInt16Arg();
+        cmdMessenger.sendCmd(kMessageReady2Send);
         ledSegments[module].setBrightness(subModule, brightness);
     }
 
@@ -76,6 +77,7 @@ namespace LedSegment
         char   *value     = cmdMessenger.readStringArg();
         uint8_t points    = (uint8_t)cmdMessenger.readInt16Arg();
         uint8_t mask      = (uint8_t)cmdMessenger.readInt16Arg();
+        cmdMessenger.sendCmd(kMessageReady2Send);
         ledSegments[module].display(subModule, value, points, mask);
     }
 
@@ -84,6 +86,7 @@ namespace LedSegment
         int module     = cmdMessenger.readInt16Arg();
         int subModule  = cmdMessenger.readInt16Arg();
         int brightness = cmdMessenger.readInt16Arg();
+        cmdMessenger.sendCmd(kMessageReady2Send);
         ledSegments[module].setBrightness(subModule, brightness);
     }
 
@@ -93,7 +96,7 @@ namespace LedSegment
         uint8_t subModule = (uint8_t)cmdMessenger.readInt16Arg();
         char   *segment   = cmdMessenger.readStringArg();         // 0 to 63, multiple segments deliminited by '|'
         uint8_t on_off    = (uint8_t)cmdMessenger.readInt16Arg(); // 0 or 1
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         char *pinTokens = strtok(segment, "|");
         while (pinTokens != 0) {
             uint8_t num = (uint8_t)atoi(pinTokens);

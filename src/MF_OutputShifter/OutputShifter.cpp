@@ -64,7 +64,7 @@ namespace OutputShifter
         for (uint8_t i = number_of_submodules; i != 0; i--) {
             _pins[i-1] = (uint8_t)cmdMessenger.readInt16Arg();
         }
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         outputShifter[module].setPins(_pins, value);
     }
 

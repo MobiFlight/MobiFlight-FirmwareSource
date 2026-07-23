@@ -51,7 +51,7 @@ namespace Output
         // Read led state argument, interpret string as boolean
         int output = cmdMessenger.readInt16Arg();
         int state  = cmdMessenger.readInt16Arg();
-
+        cmdMessenger.sendCmd(kMessageReady2Send);
         outputs[output].set(state);
     }
 
