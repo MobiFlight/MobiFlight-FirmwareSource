@@ -44,7 +44,7 @@
 // TM1637 Definitions
 // =======================================================================
 
-#define DEFAULT_BIT_DELAY 100
+#define DEFAULT_BIT_DELAY 5
 #define TYPE_UNDEFINED    0xFF
 #define MAX_BRIGHTNESS    15
 
