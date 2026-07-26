@@ -175,11 +175,11 @@ bool LedControl::begin(uint8_t type, uint8_t dataPin, uint8_t clkPin, uint8_t cs
         digitBuffer = static_cast<uint8_t *>(MF_ALLOC_BYTES(_numDigits));
         if (!digitBuffer) return false;
 
-        // Both pins are set as inputs, allowing the pull-up resistors to pull them up
-        pinMode(_clkPin, INPUT_PULLUP);
-        pinMode(_dataPin, INPUT_PULLUP);
-        digitalWrite(_clkPin, LOW);  // Prepare '0' value as dominant
-        digitalWrite(_dataPin, LOW); // Prepare '0' value as dominant
+        // Both pins are actively driven (push-pull), bus idles HIGH.
+        pinMode(_clkPin, OUTPUT);
+        pinMode(_dataPin, OUTPUT);
+        digitalWrite(_clkPin, HIGH);
+        digitalWrite(_dataPin, HIGH);
         clearDisplay(0);
         // setIntensity(0, MAX_BRIGHTNESS);
         _brightness = MAX_BRIGHTNESS;
@@ -360,17 +360,17 @@ void LedControl::max72xx_spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 
 void LedControl::start()
 {
-    pinMode(_dataPin, OUTPUT);
+    digitalWrite(_dataPin, LOW);
     bitDelay();
 }
 
 void LedControl::stop()
 {
-    pinMode(_dataPin, OUTPUT);
+    digitalWrite(_dataPin, LOW);
     bitDelay();
-    pinMode(_clkPin, INPUT);
+    digitalWrite(_clkPin, HIGH);
     bitDelay();
-    pinMode(_dataPin, INPUT);
+    digitalWrite(_dataPin, HIGH);
     bitDelay();
 }
 
@@ -378,29 +378,26 @@ bool LedControl::tm1637_writeByte(uint8_t data, bool rvs)
 {
     uint8_t msk = (rvs ? 0x80 : 0x01);
     for (uint8_t i = 0; i < 8; i++) {
-        // CLK low
-        pinMode(_clkPin, OUTPUT);
-        bitDelay();
-        // Set data bit
-        pinMode(_dataPin, (data & msk) ? INPUT : OUTPUT);
-        bitDelay();
-        // CLK high
-        pinMode(_clkPin, INPUT);
-        bitDelay();
+        // Push-pull: both edges are actively driven, so digitalWrite()'s own
+        // call overhead provides the setup/hold margin, same as TM1637_RT.
+        digitalWrite(_clkPin, LOW);
+        digitalWrite(_dataPin, (data & msk) ? HIGH : LOW);
+        digitalWrite(_clkPin, HIGH);
+
         data = (rvs ? data << 1 : data >> 1);
     }
-    // Wait for acknowledge
-    // CLK to zero
-    pinMode(_clkPin, OUTPUT);
+    // Wait for acknowledge - release DATA (no pull-up backing it anymore, so it
+    // must be forced back to a driven LOW afterwards regardless of ack result).
+    digitalWrite(_clkPin, LOW);
     pinMode(_dataPin, INPUT);
     bitDelay();
-    // CLK to high
-    pinMode(_clkPin, INPUT);
+    digitalWrite(_clkPin, HIGH);
     bitDelay();
     uint8_t ack = digitalRead(_dataPin);
-    if (ack == 0) pinMode(_dataPin, OUTPUT);
+    pinMode(_dataPin, OUTPUT);
+    digitalWrite(_dataPin, LOW);
     bitDelay();
-    pinMode(_clkPin, OUTPUT);
+    digitalWrite(_clkPin, LOW);
     bitDelay();
     return ack;
 }
