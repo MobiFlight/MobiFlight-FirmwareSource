@@ -381,8 +381,11 @@ void LedControl::tm1637_stop()
 
 bool LedControl::tm1637_ack()
 {
-    // Wait for acknowledge - release DATA (no pull-up backing it anymore, so it
-    // must be forced back to a driven LOW afterwards regardless of ack result).
+    // After the 8th bit, on the falling edge of the clock
+    // the TM1637 pulls the data line LOW to acknowledge that it has received the byte.
+    //
+    // Note:
+    // It is not possible to change pin mode BEFORE the clock is pulled LOW.
     digitalWrite(_clkPin, LOW);
     pinMode(_dataPin, INPUT);
     tm1637_bitDelay();
@@ -391,10 +394,11 @@ bool LedControl::tm1637_ack()
     tm1637_bitDelay();
 
     uint8_t ack = digitalRead(_dataPin);
-    pinMode(_dataPin, OUTPUT);
-    tm1637_bitDelay();
 
     digitalWrite(_clkPin, LOW);
+    tm1637_bitDelay();
+
+    pinMode(_dataPin, OUTPUT);
     tm1637_bitDelay();
     return ack;
 }
