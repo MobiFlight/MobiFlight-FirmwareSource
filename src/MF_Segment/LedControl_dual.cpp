@@ -384,16 +384,17 @@ bool LedControl::tm1637_ack()
 {
     // Wait for acknowledge - release DATA (no pull-up backing it anymore, so it
     // must be forced back to a driven LOW afterwards regardless of ack result).
-    pinMode(_dataPin, INPUT);
     digitalWrite(_clkPin, LOW);
+    pinMode(_dataPin, INPUT);
     tm1637_bitDelay();
-    uint8_t ack = digitalRead(_dataPin);
+
     digitalWrite(_clkPin, HIGH);
     tm1637_bitDelay();
+
+    uint8_t ack = digitalRead(_dataPin);
     pinMode(_dataPin, OUTPUT);
     tm1637_bitDelay();
-    digitalWrite(_dataPin, LOW);
-    tm1637_bitDelay();
+
     digitalWrite(_clkPin, LOW);
     tm1637_bitDelay();
     return ack;
