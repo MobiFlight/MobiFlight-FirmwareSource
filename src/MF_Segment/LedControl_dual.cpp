@@ -89,7 +89,7 @@ enum {
 //     Cmd2+Data: (Start + Command + ACK + Data + ACK) * N + Stop +
 //     Cmd3: Start + Command3 + ACK + Stop
 //
-// CmdSetData - Data command settings (byte) - TM1637_I2C_COMM1
+// CmdSetData - Data command settings (byte) - TM1637_I2C_CMD_SETDATA
 // B7 B6 B5 B4 B3 B2 B1 B0 - Function Description
 // 0  1  0  0  _  _  0  0  - (Data read/write) Write data to display register
 // 0  1  0  0  _  _  1  0  - (Data read/write) Read key scan data
@@ -98,7 +98,7 @@ enum {
 // 0  1  0  0  0  _  _  _  - (Test mode) Normal mode
 // 0  1  0  0  1  _  _  _  - (Test mode) Test mode
 //
-// CmdSetAddress - Set Address - Digit (byte) - TM1637_I2C_COMM2
+// CmdSetAddress - Set Address - Digit (byte) - TM1637_I2C_CMD_SETADDRESS
 // B7 B6 B5 B4 B3 B2 B1 B0 - Function Description
 // 1  1  0  0  0  0  0  0  - Digit 1 - C0H Grid1
 // 1  1  0  0  0  0  0  1  - Digit 2 - C1H Grid2
@@ -107,7 +107,7 @@ enum {
 // 1  1  0  0  0  1  0  0  - Digit 5 - C4H Grid5
 // 1  1  0  0  0  1  0  1  - Digit 6 - C5H Grid6
 //
-// CmdDisplay - Set Display - Digit (byte) - TM1637_I2C_COMM3
+// CmdDisplay - Set Display - Digit (byte) - TM1637_I2C_CMD_SETDISPLAY
 // B7 B6 B5 B4 B3 B2 B1 B0 - Function Description
 // 1  0  0  0  _  0  0  0  - Brightness - Pulse width is set as 1/16
 // 1  0  0  0  _  0  0  1  - Brightness - Pulse width is set as 2/16
@@ -120,10 +120,9 @@ enum {
 // 1  0  0  0  0  _  _  _  - Display OFF
 // 1  0  0  0  1  _  _  _  - Display ON
 
-#define TM1637_I2C_COMM1  0x40 // CmdSetData       0b01000000
-#define TM1637_I2C_COMM2  0xC0 // CmdSetAddress    0b11000000
-#define TM1637_I2C_COMM3  0x80 // CmdDisplay       0b10000000
-#define TM1637_I2C_COMM1F 0x44 // CmdSetData - fixedAddress    0b11000100
+#define TM1637_I2C_CMD_SETDATA    0x40 // CmdSetData       0b01000000
+#define TM1637_I2C_CMD_SETADDRESS 0xC0 // CmdSetAddress    0b11000000
+#define TM1637_I2C_CMD_SETDISPLAY 0x80 // CmdDisplay       0b10000000
 
 #define TM1637_4DIGITS 4
 #define TM1637_6DIGITS 6
@@ -200,7 +199,7 @@ void LedControl::shutdown(uint8_t addr, bool b)
         if (!b) bri |= 0x08;
         // Write COMM3 + intensity
         tm1637_start();
-        tm1637_writeByte(TM1637_I2C_COMM3 + bri);
+        tm1637_writeByte(TM1637_I2C_CMD_SETDISPLAY + bri);
         tm1637_stop();
     }
 }
@@ -221,7 +220,7 @@ void LedControl::setIntensity(uint8_t addr, uint8_t intensity)
         }
         // Write COMM3 + intensity
         tm1637_start();
-        tm1637_writeByte(TM1637_I2C_COMM3 + intensity);
+        tm1637_writeByte(TM1637_I2C_CMD_SETDISPLAY + intensity);
         tm1637_stop();
     }
 }
@@ -404,8 +403,6 @@ bool LedControl::tm1637_writeByte(uint8_t data, bool rvs)
 {
     uint8_t msk = (rvs ? 0x80 : 0x01);
     for (uint8_t i = 0; i < 8; i++) {
-        // Push-pull: both edges are actively driven, so digitalWrite()'s own
-        // call overhead provides the setup/hold margin, same as TM1637_RT.
         digitalWrite(_clkPin, LOW);
         digitalWrite(_dataPin, (data & msk) ? HIGH : LOW);
         digitalWrite(_clkPin, HIGH);
@@ -426,14 +423,14 @@ void LedControl::tm1637_writeDigits(uint8_t startd, uint8_t len)
 
     // Write COMM1
     tm1637_start();
-    tm1637_writeByte(TM1637_I2C_COMM1);
+    tm1637_writeByte(TM1637_I2C_CMD_SETDATA);
     tm1637_stop();
 
     uint8_t pos = (_numDigits - 1) - startd;
     b           = (is4Digit ? pos : digitmap[pos + len - 1]);
 
     tm1637_start();
-    tm1637_writeByte(TM1637_I2C_COMM2 + b);
+    tm1637_writeByte(TM1637_I2C_CMD_SETADDRESS + b);
     // Write the data bytes
     if (pos + len > _numDigits) len = _numDigits - pos;
     uint8_t k;
