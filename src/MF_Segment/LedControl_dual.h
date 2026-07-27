@@ -71,9 +71,10 @@ private:
 
     // TM-specific
     // uint8_t dpSet = 0;
-    void bitDelay() { delayMicroseconds(DEFAULT_BIT_DELAY); };
-    void start(void);
-    void stop(void);
+    void tm1637_bitDelay() { delayMicroseconds(DEFAULT_BIT_DELAY); };
+    void tm1637_start(void);
+    void tm1637_stop(void);
+    bool tm1637_ack(void);
     bool tm1637_writeByte(uint8_t data, bool rvs = false);
 
     // Has buffer available

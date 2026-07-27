@@ -199,9 +199,9 @@ void LedControl::shutdown(uint8_t addr, bool b)
         uint8_t bri = _brightness >> 1;
         if (!b) bri |= 0x08;
         // Write COMM3 + intensity
-        start();
+        tm1637_start();
         tm1637_writeByte(TM1637_I2C_COMM3 + bri);
-        stop();
+        tm1637_stop();
     }
 }
 
@@ -220,9 +220,9 @@ void LedControl::setIntensity(uint8_t addr, uint8_t intensity)
             intensity |= 0x08;
         }
         // Write COMM3 + intensity
-        start();
+        tm1637_start();
         tm1637_writeByte(TM1637_I2C_COMM3 + intensity);
-        stop();
+        tm1637_stop();
     }
 }
 
@@ -358,20 +358,43 @@ void LedControl::max72xx_spiTransfer(uint8_t addr, uint8_t opcode, uint8_t data)
 // TM-specific driver methods
 // ------------------------------------------------
 
-void LedControl::start()
+void LedControl::tm1637_start()
 {
+    digitalWrite(_dataPin, HIGH);
+    tm1637_bitDelay();
+    digitalWrite(_clkPin, HIGH);
+    tm1637_bitDelay();
     digitalWrite(_dataPin, LOW);
-    bitDelay();
+    tm1637_bitDelay();
 }
 
-void LedControl::stop()
+void LedControl::tm1637_stop()
 {
+    digitalWrite(_clkPin, LOW);
+    tm1637_bitDelay();
     digitalWrite(_dataPin, LOW);
-    bitDelay();
+    tm1637_bitDelay();
     digitalWrite(_clkPin, HIGH);
-    bitDelay();
+    tm1637_bitDelay();
     digitalWrite(_dataPin, HIGH);
-    bitDelay();
+    tm1637_bitDelay();
+}
+
+bool LedControl::tm1637_ack()
+{
+    // Wait for acknowledge - release DATA (no pull-up backing it anymore, so it
+    // must be forced back to a driven LOW afterwards regardless of ack result).
+    pinMode(_dataPin, INPUT);
+    digitalWrite(_clkPin, LOW);
+    tm1637_bitDelay();
+    uint8_t ack = digitalRead(_dataPin);
+    digitalWrite(_clkPin, HIGH);
+    tm1637_bitDelay();
+    digitalWrite(_clkPin, LOW);
+    tm1637_bitDelay();
+    pinMode(_dataPin, OUTPUT);
+    tm1637_bitDelay();
+    return ack;
 }
 
 bool LedControl::tm1637_writeByte(uint8_t data, bool rvs)
@@ -386,20 +409,8 @@ bool LedControl::tm1637_writeByte(uint8_t data, bool rvs)
 
         data = (rvs ? data << 1 : data >> 1);
     }
-    // Wait for acknowledge - release DATA (no pull-up backing it anymore, so it
-    // must be forced back to a driven LOW afterwards regardless of ack result).
-    digitalWrite(_clkPin, LOW);
-    pinMode(_dataPin, INPUT);
-    bitDelay();
-    digitalWrite(_clkPin, HIGH);
-    bitDelay();
-    uint8_t ack = digitalRead(_dataPin);
-    pinMode(_dataPin, OUTPUT);
-    digitalWrite(_dataPin, LOW);
-    bitDelay();
-    digitalWrite(_clkPin, LOW);
-    bitDelay();
-    return ack;
+
+    return tm1637_ack();
 }
 
 // =========================================================
@@ -411,14 +422,14 @@ void LedControl::tm1637_writeDigits(uint8_t startd, uint8_t len)
     uint8_t b;
 
     // Write COMM1
-    start();
+    tm1637_start();
     tm1637_writeByte(TM1637_I2C_COMM1);
-    stop();
+    tm1637_stop();
 
     uint8_t pos = (_numDigits - 1) - startd;
     b           = (is4Digit ? pos : digitmap[pos + len - 1]);
 
-    start();
+    tm1637_start();
     tm1637_writeByte(TM1637_I2C_COMM2 + b);
     // Write the data bytes
     if (pos + len > _numDigits) len = _numDigits - pos;
@@ -427,7 +438,7 @@ void LedControl::tm1637_writeDigits(uint8_t startd, uint8_t len)
         k = (is4Digit ? b : len - b - 1);
         tm1637_writeByte(digitBuffer[pos + k], true);
     }
-    stop();
+    tm1637_stop();
 }
 
 #ifdef LEDCONTROL_EXTENDED
