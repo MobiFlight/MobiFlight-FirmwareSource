@@ -390,9 +390,11 @@ bool LedControl::tm1637_ack()
     uint8_t ack = digitalRead(_dataPin);
     digitalWrite(_clkPin, HIGH);
     tm1637_bitDelay();
-    digitalWrite(_clkPin, LOW);
-    tm1637_bitDelay();
     pinMode(_dataPin, OUTPUT);
+    tm1637_bitDelay();
+    digitalWrite(_dataPin, LOW);
+    tm1637_bitDelay();
+    digitalWrite(_clkPin, LOW);
     tm1637_bitDelay();
     return ack;
 }
