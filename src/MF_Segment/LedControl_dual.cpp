@@ -404,8 +404,11 @@ bool LedControl::tm1637_writeByte(uint8_t data, bool rvs)
     uint8_t msk = (rvs ? 0x80 : 0x01);
     for (uint8_t i = 0; i < 8; i++) {
         digitalWrite(_clkPin, LOW);
+        tm1637_bitDelay();
         digitalWrite(_dataPin, (data & msk) ? HIGH : LOW);
+        tm1637_bitDelay();
         digitalWrite(_clkPin, HIGH);
+        tm1637_bitDelay();
 
         data = (rvs ? data << 1 : data >> 1);
     }
