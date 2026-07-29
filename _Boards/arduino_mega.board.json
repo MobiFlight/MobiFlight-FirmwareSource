@@ -2,7 +2,7 @@
   "$schema": "./mfboard.schema.json",
   "AvrDudeSettings": {
     "Device": "atmega2560",
-    "BaudRates": ["115200"],
+    "BaudRates": [ "115200" ],
     "Programmer": "wiring",
     "Timeout": 15000
   },
@@ -34,7 +34,6 @@
   "Info": {
     "CanInstallFirmware": true,
     "CanResetBoard": true,
-    "DelayAfterFirmwareUpdate": 0,
     "FirmwareBaseName": "mobiflight_mega",
     "FirmwareExtension": "hex",
     "LatestFirmwareVersion": "0.0.1",
@@ -42,22 +41,39 @@
     "MobiFlightType": "MobiFlight Mega",
     "ResetFirmwareFile": "reset.arduino_mega_1_0_2.hex",
     "Community": {
-      "Project": "MobiFlight Mega",
+      "Project": "MobiFlight",
       "Website": "https://mobiflight.com/links/connector/info/website/mega.html",
       "Docs": "https://mobiflight.com/links/connector/info/docs/mega.html",
       "Support": "https://mobiflight.com/discord"
     },
     "DeviceConfigs": [
       {
-        "Name": "Prototyping Board (Latest version)",
+        "Name": "Prototyping Board",
         "Description": "The device definitions for the Prototyping Board from the Community Shop",
-        "File": "prototyping-board-latest.mega.mfmc",
+        "File": "prototyping-board.mega.mfmc",
         "DefaultUpload": false
       },
       {
-        "Name": "Prototyping Board v2.0",
-        "Description": "The device definitions for the Prototyping Board from the Community Shop",
-        "File": "prototyping-board-latest.mega.mfmc",
+        "Name": "Prototyping Board - Multiplexer (SMD)",
+        "Description": "The device definitions, with SMD Multiplexer, for the Prototyping Board from the Community Shop",
+        "File": "prototyping-board.mega.multiplexer.smd.mfmc",
+        "DefaultUpload": false
+      },
+      {
+        "Name": "Prototyping Board - Multiplexer",
+        "Description": "The device definitions, with Multiplexer, for the Prototyping Board from the Community Shop",
+        "File": "prototyping-board.mega.multiplexer.mfmc",
+        "DefaultUpload": false
+      },
+      {
+        "Name": "Prototyping Board - v2.1",
+        "Description": "The device definitions for the Prototyping Board with version 2.1.x, now legacy",
+        "File": "prototyping-board.mega.mfmc",
+        "DefaultUpload": false
+      },{
+        "Name": "Prototyping Board - v2.1 (Multiplexer)",
+        "Description": "The device definitions, with Multiplexer, for the Prototyping Board from the Community Shop",
+        "File": "prototyping-board.mega.multiplexer.mfmc",
         "DefaultUpload": false
       }
     ]
@@ -74,7 +90,7 @@
     "MaxShifters": 6,
     "MaxSteppers": 10,
     "MaxInputMultiplexer": 6,
-    "MaxCustomDevices" : 0
+    "MaxCustomDevices": 0
   },
   "Pins": [
     {
