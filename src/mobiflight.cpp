@@ -78,11 +78,16 @@ typedef struct {
 #ifdef MF_CUSTOMDEVICE_SUPPORT
     uint32_t CustomDevice = 0;
 #endif
+    uint32_t toggleLED = 0;
 } lastUpdate_t;
 
 lastUpdate_t lastUpdate;
 
 extern MFEEPROM MFeeprom;
+
+void toggle_LED() {
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+}
 
 void initPollIntervals(void)
 {
@@ -175,6 +180,7 @@ void setup()
     cmdMessenger.printLfCr();
     ResetBoard();
     initPollIntervals();
+    pinMode(LED_BUILTIN, OUTPUT);
 }
 
 // ************************************************************
@@ -223,7 +229,7 @@ void loop()
         CustomDevice::update();
 #endif
 #endif
-
+        timedUpdate(toggle_LED, &lastUpdate.toggleLED, 250);
         // lcds, outputs, outputshifters, segments do not need update
     }
 }
